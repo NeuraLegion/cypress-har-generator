@@ -1,0 +1,4 @@
+tmp
+node_modules
+**/*.spec.ts
+**/*.js

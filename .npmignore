@@ -1,0 +1,11 @@
+node_modules
+src
+tmp
+.github
+**/*.spec.ts
+.idea
+.eslintrc
+.eslintignore
+.prettierignore
+.prettierrc
+.releaserc
