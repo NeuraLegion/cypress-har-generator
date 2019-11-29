@@ -7,6 +7,8 @@ import { Logger } from '../utils';
 import Timeout = NodeJS.Timeout;
 
 export class CDPFactory {
+  private readonly BROWSER_TARGET = '/devtools/browser';
+
   constructor(
     private readonly options: ChromeRemoteInterfaceOptions,
     private readonly logger: Logger,
@@ -18,10 +20,16 @@ export class CDPFactory {
       this.logger.info('Attempting to connect to Chrome Debugging Protocol');
 
       const { host, port } = this.options;
+      const { Version } = chromeRemoteInterfaceFactory;
+      const { webSocketDebuggerUrl } = await Version({
+        host,
+        port
+      });
 
       const cdp: ChromeRemoteInterface = await chromeRemoteInterfaceFactory({
         host,
-        port
+        port,
+        target: webSocketDebuggerUrl ?? this.BROWSER_TARGET
       });
 
       this.logger.info('Connected to Chrome Debugging Protocol');
