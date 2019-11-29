@@ -49,7 +49,7 @@ export class NetworkObservable {
       return;
     }
 
-    if (params.request.hasPostData) {
+    if (params.request.hasPostData && !params.request.postData) {
       try {
         const { postData } = await this.network.getRequestPostData({
           requestId
@@ -136,8 +136,6 @@ export class NetworkObservable {
         body,
         base64Encoded
       });
-
-      this.destination.call(Object.create(this.destination), entry);
     } catch (err) {
       this.logger.err(err.message);
     }
@@ -162,11 +160,15 @@ export class NetworkObservable {
   ): void {
     const { requestId, body, base64Encoded } = params;
     const entry: ChromeEntry = this._entries.get(requestId);
+
     if (!entry) {
       return;
     }
+
     entry.responseBody = body;
     entry.responseBodyIsBase64 = base64Encoded;
+
+    this.destination.call(Object.create(this.destination), entry);
   }
 
   public webSocketWillSendHandshakeRequest(
