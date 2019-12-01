@@ -1,2 +1,2 @@
-export { CDPFactory } from './CDPFactory';
+export { CRIConnection } from './CRIConnection';
 export { RetryStrategy } from './RetryStrategy';

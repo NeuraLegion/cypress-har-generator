@@ -428,18 +428,6 @@ declare module 'chrome-remote-interface' {
       local?: boolean;
       target?: string;
     }
-
-    function Version(
-      options: ChromeRemoteInterfaceOptions,
-      callback: (
-        err: Error | undefined,
-        version?: { webSocketDebuggerUrl: string }
-      ) => void
-    ): {};
-
-    function Version(
-      options: ChromeRemoteInterfaceOptions
-    ): Promise<{ webSocketDebuggerUrl: string }>;
   }
 
   declare function chromeRemoteInterfaceFactory(

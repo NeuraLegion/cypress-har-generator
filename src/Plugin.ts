@@ -1,5 +1,5 @@
 import { Logger } from './utils';
-import { CDPFactory, RetryStrategy } from './cdp';
+import { CRIConnection, RetryStrategy } from './cdp';
 import {
   access as accessCb,
   constants,
@@ -7,11 +7,8 @@ import {
   writeFile as writeFileCb
 } from 'fs';
 import { promisify } from 'util';
-import { EntryFactory } from './network';
-import { Entry } from 'har-format';
-import { ChromeEntry, NetworkObservable } from './network';
-import { HarFactory } from './network';
 import { ChromeRemoteInterface } from 'chrome-remote-interface';
+import { ChromeRequest, HarBuilder, NetworkObserver } from './network';
 
 const access = promisify(accessCb);
 const unlink = promisify(unlinkCb);
@@ -19,11 +16,14 @@ const writeFile = promisify(writeFileCb);
 
 export class Plugin {
   private rdpPort?: number;
-  private readonly entries: Entry[] = [];
+  private readonly requests: ChromeRequest[] = [];
 
   constructor(private readonly logger: Logger) {}
 
-  public install(browser: Cypress.Browser, args: string[]): string[] {
+  public async install(
+    browser: Cypress.Browser,
+    args: string[]
+  ): Promise<string[]> {
     if (!this.isChromeFamily(browser)) {
       throw new Error(
         `An unsupported browser family was used, output will not be logged to console: ${browser.name}`
@@ -36,7 +36,7 @@ export class Plugin {
     return args;
   }
 
-  public async removeHarFile(options: { harFile: string }): Promise<void> {
+  public async removeHar(options: { harFile: string }): Promise<void> {
     try {
       await access(options.harFile, constants.F_OK);
       await unlink(options.harFile);
@@ -46,21 +46,21 @@ export class Plugin {
   }
 
   public async recordHar(): Promise<void> {
-    const cdpFactory: CDPFactory = new CDPFactory(
+    const factory: CRIConnection = new CRIConnection(
       { port: this.rdpPort },
       this.logger,
-      new RetryStrategy(10, 30, 1000)
+      new RetryStrategy(20, 5, 100)
     );
 
-    const cdpCreateTask: ChromeRemoteInterface = await cdpFactory.Create();
+    const cri: ChromeRemoteInterface = await factory.open();
 
-    const networkObservable: NetworkObservable = new NetworkObservable(
-      cdpCreateTask,
+    const networkObservable: NetworkObserver = new NetworkObserver(
+      cri,
       this.logger
     );
 
-    await networkObservable.subscribe((entry: ChromeEntry) =>
-      this.entries.push(new EntryFactory().Create(entry))
+    await networkObservable.subscribe((request: ChromeRequest) =>
+      this.requests.push(request)
     );
 
     return null;
@@ -68,13 +68,9 @@ export class Plugin {
 
   public async saveHar(options: { harFile: string }): Promise<void> {
     try {
-      const entries: Entry[] = this.entries.filter(
-        (entry: Entry | undefined) => entry
-      );
-
       await writeFile(
         options.harFile,
-        JSON.stringify(new HarFactory().Create(entries), null, 2)
+        JSON.stringify(await new HarBuilder(this.requests).build(), null, 2)
       );
     } catch (e) {}
 

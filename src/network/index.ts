@@ -1,8 +1,13 @@
-export { EntryFactory } from './EntryFactory';
-export { HarFactory } from './HarFactory';
+export { EntryBuilder } from './EntryBuilder';
+export { CookieParser } from './CookieParser';
+export { HarBuilder } from './HarBuilder';
 export {
-  NetworkObservable,
+  NetworkObserver,
   ChromeRemoteInterfaceEvent,
   ChromeRemoteInterfaceMethod
-} from './NetworkObservable';
-export { ChromeEntry } from './ChromeEntry';
+} from './NetworkObserver';
+export {
+  ChromeRequest,
+  ContentData,
+  WebSocketFrameType
+} from './ChromeRequest';

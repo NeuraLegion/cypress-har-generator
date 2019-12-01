@@ -6,14 +6,14 @@ import { RetryStrategy } from './RetryStrategy';
 import { Logger } from '../utils';
 import Timeout = NodeJS.Timeout;
 
-export class CDPFactory {
+export class CRIConnection {
   constructor(
     private readonly options: ChromeRemoteInterfaceOptions,
     private readonly logger: Logger,
     private readonly retryStrategy: RetryStrategy
   ) {}
 
-  public async Create(): Promise<ChromeRemoteInterface> {
+  public async open(): Promise<ChromeRemoteInterface> {
     try {
       this.logger.info('Attempting to connect to Chrome Debugging Protocol');
 
@@ -24,8 +24,6 @@ export class CDPFactory {
         port
       });
 
-      this.logger.info('Connected to Chrome Debugging Protocol');
-
       const { Security } = cdp;
 
       await Security.enable();
@@ -34,6 +32,8 @@ export class CDPFactory {
       Security.certificateError(({ eventId }) =>
         Security.handleCertificateError({ eventId, action: 'continue' })
       );
+
+      this.logger.info('Connected to Chrome Debugging Protocol');
 
       cdp.once('disconnect', () =>
         this.logger.info('Chrome Debugging Protocol disconnected')
@@ -58,7 +58,7 @@ export class CDPFactory {
 
     await this.delay(timeout);
 
-    return this.Create();
+    return this.open();
   }
 
   private delay(timeout: number): Promise<void> {

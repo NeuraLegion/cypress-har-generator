@@ -1,0 +1,274 @@
+import { ChromeRequest } from './ChromeRequest';
+import {
+  Content,
+  Cookie,
+  Entry,
+  Param,
+  PostData,
+  Request,
+  Response,
+  Timings
+} from 'har-format';
+import Protocol from 'devtools-protocol';
+
+export class EntryBuilder {
+  constructor(private readonly request: ChromeRequest) {}
+
+  public async build(): Promise<Entry> {
+    let serverIPAddress: string = this.request.remoteAddress;
+
+    const portPositionInString: number = serverIPAddress.lastIndexOf(':');
+
+    if (portPositionInString !== -1) {
+      serverIPAddress = serverIPAddress.substr(0, portPositionInString);
+    }
+
+    const timings: Timings = this.buildTimings();
+
+    const time: any = Object.values(timings).reduce(
+      (acc: number, t: number) => (acc += Math.max(t, 0))
+    );
+
+    const entry: any = {
+      startedDateTime: new Date(
+        this.request.getWallTime(this.request.issueTime) * 1000
+      ).toJSON(),
+      time,
+      request: await this.buildRequest(),
+      response: await this.buildResponse(),
+      cache: {},
+      timings,
+      serverIPAddress: serverIPAddress.replace(/\[\]/g, ''),
+      _priority: this.request.priority,
+      _resourceType: this.request.resourceType,
+      _websocket: [...(this.request.frames ?? [])]
+    };
+
+    if (this.request.connectionId !== '0') {
+      entry.connection = this.request.connectionId;
+    }
+
+    return entry;
+  }
+
+  private getResponseBodySize(): number {
+    if (this.request.statusCode === 304) {
+      return 0;
+    }
+
+    if (!this.request.responseHeadersText) {
+      return -1;
+    }
+
+    return this.request.transferSize - this.request.responseHeadersText.length;
+  }
+
+  private getResponseCompression(): number | undefined {
+    if (this.request.statusCode === 304 || this.request.statusCode === 206) {
+      return;
+    }
+    if (!this.request.responseHeadersText) {
+      return;
+    }
+
+    return this.request.resourceSize - this.getResponseBodySize();
+  }
+
+  private toMilliseconds(time: number): number {
+    return time === -1 ? -1 : time * 1000;
+  }
+
+  private async buildRequest(): Promise<Request> {
+    const res: Request = {
+      method: this.request.requestMethod,
+      url: this.buildRequestURL(this.request.url),
+      httpVersion: this.request.requestHttpVersion,
+      headers: this.request.requestHeaders,
+      queryString: [...(this.request.queryParameters ?? [])],
+      cookies: this.buildCookies(this.request.requestCookies ?? []),
+      headersSize: this.request.requestHeadersText
+        ? this.request.requestHeadersText.length
+        : -1,
+      bodySize: await this.requestBodySize()
+    };
+
+    const postData: PostData = await this.buildPostData();
+
+    if (postData) {
+      res.postData = postData;
+    }
+
+    return res;
+  }
+
+  private async buildResponse(): Promise<Response> {
+    return {
+      status: this.request.statusCode,
+      statusText: this.request.statusText,
+      httpVersion: this.request.responseHttpVersion(),
+      headers: this.request.responseHeaders,
+      cookies: this.buildCookies(this.request.responseCookies || []),
+      content: await this.buildContent(),
+      redirectURL: this.request.responseHeaderValue('Location') ?? '',
+      headersSize: this.request.responseHeadersText
+        ? this.request.responseHeadersText.length
+        : -1,
+      bodySize: this.getResponseBodySize(),
+      _transferSize: this.request.transferSize
+    };
+  }
+
+  private async buildContent(): Promise<Content> {
+    return {
+      size: this.request.resourceSize,
+      mimeType: this.request.mimeType || 'x-unknown',
+      ...(await this.request.contentData()),
+      compression: this.getResponseCompression() ?? undefined
+    };
+  }
+
+  private buildTimings(): Timings {
+    const timing: Protocol.Network.ResourceTiming = this.request.timing;
+    const issueTime: number = this.request.issueTime;
+    const startTime: number = this.request.startTime;
+
+    const result: Timings = {
+      blocked: -1,
+      dns: -1,
+      ssl: -1,
+      connect: -1,
+      send: 0,
+      wait: 0,
+      receive: 0
+    };
+
+    const queuedTime: number =
+      issueTime < startTime ? startTime - issueTime : -1;
+    result.blocked = this.toMilliseconds(queuedTime);
+
+    let highestTime = 0;
+
+    if (timing) {
+      const blockedStart = this.leastNonNegative([
+        timing.dnsStart,
+        timing.connectStart,
+        timing.sendStart
+      ]);
+      if (blockedStart !== Infinity) {
+        result.blocked += blockedStart;
+      }
+
+      const dnsStart: any = timing.dnsEnd >= 0 ? blockedStart : 0;
+      const dnsEnd: number = timing.dnsEnd >= 0 ? timing.dnsEnd : -1;
+      result.dns = dnsEnd - dnsStart;
+
+      const sslStart: number = timing.sslEnd > 0 ? timing.sslStart : 0;
+      const sslEnd: number = timing.sslEnd > 0 ? timing.sslEnd : -1;
+      result.ssl = sslEnd - sslStart;
+
+      const connectStart: number =
+        timing.connectEnd >= 0
+          ? this.leastNonNegative([dnsEnd, blockedStart])
+          : 0;
+      const connectEnd: number =
+        timing.connectEnd >= 0 ? timing.connectEnd : -1;
+      result.connect = connectEnd - connectStart;
+
+      const sendStart: number =
+        timing.sendEnd >= 0 ? Math.max(connectEnd, dnsEnd, blockedStart) : 0;
+      const sendEnd: number = timing.sendEnd >= 0 ? timing.sendEnd : 0;
+      result.send = sendEnd - sendStart;
+
+      if (result.send < 0) {
+        result.send = 0;
+      }
+
+      highestTime = Math.max(
+        sendEnd,
+        connectEnd,
+        sslEnd,
+        dnsEnd,
+        blockedStart,
+        0
+      );
+    } else if (this.request.responseReceivedTime === -1) {
+      result.blocked = this.request.endTime - issueTime;
+
+      return result;
+    }
+
+    const requestTime: number = timing ? timing.requestTime : startTime;
+    const waitStart: number = highestTime;
+    const waitEnd: number = this.toMilliseconds(
+      this.request.responseReceivedTime - requestTime
+    );
+    result.wait = waitEnd - waitStart;
+
+    const receiveStart: number = waitEnd;
+    const receiveEnd: number = this.toMilliseconds(
+      this.request.endTime - requestTime
+    );
+    result.receive = Math.max(receiveEnd - receiveStart, 0);
+
+    return result;
+  }
+
+  private leastNonNegative(values: number[]): number {
+    const value: number = values.find((item: number) => item >= 0);
+
+    return value ?? -1;
+  }
+
+  private async buildPostData(): Promise<PostData> {
+    const postData: string = await this.request.requestFormData();
+
+    if (!postData) {
+      return;
+    }
+
+    const res: Partial<PostData> = {
+      mimeType: this.request.requestContentType || '',
+      text: postData
+    };
+
+    const formParameters: Param[] = await this.request.formParameters();
+
+    if (formParameters) {
+      res.params = [...formParameters];
+    }
+
+    return res as PostData;
+  }
+
+  private buildRequestURL(url: string): string {
+    return url.split('#', 2)[0];
+  }
+
+  private buildCookies(cookies: Cookie[]): Cookie[] {
+    return cookies.map(this.buildCookie.bind(this));
+  }
+
+  private buildCookie(cookie: Cookie): Cookie {
+    return {
+      name: cookie.name,
+      value: cookie.value,
+      path: cookie.path,
+      domain: cookie.domain,
+      expires: new Date(
+        this.request.getWallTime(this.request.startTime) * 1000
+      ).toJSON(),
+      httpOnly: cookie.httpOnly,
+      secure: cookie.secure
+    };
+  }
+
+  private async requestBodySize(): Promise<number> {
+    const postData: string | undefined = await this.request.requestFormData();
+
+    if (!postData) {
+      return 0;
+    }
+
+    return this.request.contentLength;
+  }
+}
