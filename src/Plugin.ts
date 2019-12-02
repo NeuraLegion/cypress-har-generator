@@ -76,7 +76,9 @@ export class Plugin {
     try {
       const har: Har = await new HarBuilder(this.requests).build();
       await writeFile(this.options.file, JSON.stringify(har, null, 2));
-    } catch (e) {}
+    } catch (e) {
+      this.logger.err(e.message);
+    }
 
     return null;
   }

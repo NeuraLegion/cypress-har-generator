@@ -45,14 +45,8 @@ export function install(
   );
 
   on('task', {
-    saveHar(): Promise<void> {
-      return plugin.saveHar();
-    },
-    recordHar(): Promise<void> {
-      return plugin.recordHar();
-    },
-    removeHar(): Promise<void> {
-      return plugin.removeHar();
-    }
+    saveHar: (): Promise<void> => plugin.saveHar(),
+    recordHar: (): Promise<void> => plugin.recordHar(),
+    removeHar: (): Promise<void> => plugin.removeHar()
   });
 }
