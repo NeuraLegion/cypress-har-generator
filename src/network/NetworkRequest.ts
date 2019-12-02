@@ -5,16 +5,24 @@ import { Network } from 'chrome-remote-interface';
 import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
 
+export interface ContentData {
+  error?: string;
+  text?: string;
+  encoding?: string;
+}
+
 export enum WebSocketFrameType {
   Request = 'request',
   Response = 'response',
   Error = 'error'
 }
 
-export interface ContentData {
-  error?: string;
-  text?: string;
-  encoding?: string;
+export interface WebSocket {
+  type: WebSocketFrameType;
+  data: string;
+  time: Protocol.Network.MonotonicTime;
+  opCode: number;
+  mask: boolean;
 }
 
 export class NetworkRequest {
@@ -365,21 +373,9 @@ export class NetworkRequest {
     this._initialPriority = priority;
   }
 
-  private _frames: {
-    type: WebSocketFrameType;
-    data: string;
-    time: Protocol.Network.MonotonicTime;
-    opCode: number;
-    mask: boolean;
-  }[] = [];
+  private _frames: WebSocket[] = [];
 
-  get frames(): {
-    type: WebSocketFrameType;
-    data: string;
-    time: Protocol.Network.MonotonicTime;
-    opCode: number;
-    mask: boolean;
-  }[] {
+  get frames(): WebSocket[] {
     return this._frames;
   }
 
@@ -749,13 +745,7 @@ export class NetworkRequest {
     }, []);
   }
 
-  private addFrame(frame: {
-    type: WebSocketFrameType;
-    data: string;
-    time: Protocol.Network.MonotonicTime;
-    opCode: number;
-    mask: boolean;
-  }): void {
+  private addFrame(frame: WebSocket): void {
     this._frames.push(frame);
   }
 
