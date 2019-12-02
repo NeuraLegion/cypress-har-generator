@@ -5,6 +5,7 @@ out
 gen
 
 logs
+*.har
 *.log
 npm-debug.log*
 yarn-debug.log*
