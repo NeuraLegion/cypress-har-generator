@@ -1,30 +1,31 @@
-import { Cookie } from 'har-format';
+import { NetworkCookie } from './NetworkCookie';
 
 interface KeyValue {
   key: string;
   value?: string;
-  pos: number;
+  position: number;
 }
 
 export class CookieParser {
   private _input?: string;
   private _originalInputLength?: number;
-  private _lastCookie?: Cookie;
+  private _lastCookie?: NetworkCookie;
+  private _lastCookiePosition: number = 0;
 
-  private _cookies: Cookie[];
+  private _cookies: NetworkCookie[];
 
-  get cookies(): Cookie[] {
+  get cookies(): NetworkCookie[] {
     return this._cookies;
   }
 
-  public parseCookie(cookieHeader: string): Cookie[] | undefined {
+  public parseCookie(cookieHeader: string): NetworkCookie[] | undefined {
     if (!this._initialize(cookieHeader)) {
       return;
     }
 
     for (let kv = this._extractKeyValue(); kv; kv = this._extractKeyValue()) {
       if (kv.key.charAt(0) === '$' && this._lastCookie) {
-        this._lastCookie[kv.key.slice(1)] = kv.value;
+        this._lastCookie.addAttribute(kv.key.slice(1), kv.value);
       } else if (
         kv.key.toLowerCase() !== '$version' &&
         typeof kv.value === 'string'
@@ -40,14 +41,14 @@ export class CookieParser {
     return this._cookies;
   }
 
-  public parseSetCookie(setCookieHeader: string): Cookie[] | undefined {
+  public parseSetCookie(setCookieHeader: string): NetworkCookie[] | undefined {
     if (!this._initialize(setCookieHeader)) {
       return;
     }
 
     for (let kv = this._extractKeyValue(); kv; kv = this._extractKeyValue()) {
       if (this._lastCookie) {
-        this._lastCookie[kv.key] = kv.value;
+        this._lastCookie.addAttribute(kv.key, kv.value);
       } else {
         this.addCookie(kv);
       }
@@ -73,6 +74,13 @@ export class CookieParser {
   }
 
   private flushCookie(): void {
+    if (this._lastCookie) {
+      this._lastCookie.size =
+        this._originalInputLength -
+        this._input.length -
+        this._lastCookiePosition;
+    }
+
     delete this._lastCookie;
   }
 
@@ -86,7 +94,7 @@ export class CookieParser {
     // and http://crbug.com/12361). The logic below matches latest versions of IE, Firefox,
     // Chrome and Safari on some old platforms. The latest version of Safari supports quoted
     // cookie values, though.
-    const keyValueMatch = /^[ \t]*([^\s=;]+)[ \t]*(?:=[ \t]*([^;\n]*))?/.exec(
+    const keyValueMatch = /^[ \t]*([^\s=;]+)[ \t]*(?:=[ \t]*([^;\n]*))?/i.exec(
       this._input
     );
 
@@ -95,14 +103,21 @@ export class CookieParser {
     }
 
     const result: KeyValue = {
-      key: keyValueMatch[1],
-      value: keyValueMatch[2] && keyValueMatch[2].trim(),
-      pos: this._originalInputLength - this._input.length
+      key: this.toCamelCase(keyValueMatch[1]),
+      value: keyValueMatch[2]?.trim(),
+      position: this._originalInputLength - this._input.length
     };
 
     this._input = this._input.slice(keyValueMatch[0].length);
 
     return result;
+  }
+
+  private toCamelCase(str: string): string {
+    return str
+      .replace(/\s(.)/g, ($1: string) => $1.toUpperCase())
+      .replace(/\s/g, '')
+      .replace(/^(.)/, ($1: string) => $1.toLowerCase());
   }
 
   private advanceAndCheckCookieDelimiter(): boolean {
@@ -118,13 +133,16 @@ export class CookieParser {
   }
 
   private addCookie(keyValue: KeyValue): void {
-    // Mozilla bug 169091: Mozilla, IE and Chrome treat single token (w/o "=") as
-    // specifying a value for a cookie with empty name.
+    if (this._lastCookie) {
+      this._lastCookie.size = keyValue.position - this._lastCookiePosition;
+    }
+
     this._lastCookie =
       typeof keyValue.value === 'string'
-        ? { name: keyValue.key, value: keyValue.value }
-        : { name: '', value: keyValue.key };
+        ? new NetworkCookie(keyValue.key, keyValue.value)
+        : new NetworkCookie('', keyValue.key);
 
+    this._lastCookiePosition = keyValue.position;
     this._cookies.push(this._lastCookie);
   }
 }

@@ -13,23 +13,23 @@ export type ChromeRemoteInterfaceEvent = {
 };
 
 export class NetworkObserver {
-  private readonly _entries: Map<Protocol.Network.RequestId, ChromeRequest>;
+  private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
   private readonly network: Network;
-  private destination: (chromeEntry: ChromeRequest) => void;
+  private destination: (chromeEntry: NetworkRequest) => void;
 
   constructor(
     private readonly chromeRemoteInterface: ChromeRemoteInterface,
     private readonly logger: Logger
   ) {
-    this._entries = new Map<Protocol.Network.RequestId, ChromeRequest>();
+    this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
     const { Network: network } = this.chromeRemoteInterface;
     this.network = network;
   }
 
   public async subscribe(
-    callback: (chromeEntry: ChromeRequest) => void
+    callback: (chromeEntry: NetworkRequest) => void
   ): Promise<void> {
-    this.destination = (entry: ChromeRequest): void => callback(entry);
+    this.destination = (entry: NetworkRequest): void => callback(entry);
 
     this.chromeRemoteInterface.on(
       'event',
@@ -44,7 +44,7 @@ export class NetworkObserver {
   public signedExchangeReceived(
     params: Protocol.Network.SignedExchangeReceivedEvent
   ): void {
-    const entry: ChromeRequest | undefined = this._entries.get(
+    const entry: NetworkRequest | undefined = this._entries.get(
       params.requestId
     );
     if (!entry) {
@@ -69,7 +69,7 @@ export class NetworkObserver {
     request,
     wallTime
   }: Protocol.Network.RequestWillBeSentEvent): void {
-    let entry: ChromeRequest | undefined = this._entries.get(requestId);
+    let entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (entry) {
       if (!redirectResponse) {
@@ -112,7 +112,7 @@ export class NetworkObserver {
     encodedDataLength,
     timestamp
   }: Protocol.Network.DataReceivedEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
     }
@@ -129,7 +129,7 @@ export class NetworkObserver {
     timestamp,
     type
   }: Protocol.Network.ResponseReceivedEvent): void {
-    const entry: ChromeRequest = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
       return;
@@ -145,7 +145,7 @@ export class NetworkObserver {
     requestId,
     newPriority
   }: Protocol.Network.ResourceChangedPriorityEvent): void {
-    const entry: ChromeRequest = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
       return;
@@ -159,7 +159,7 @@ export class NetworkObserver {
     timestamp,
     encodedDataLength
   }: Protocol.Network.LoadingFinishedEvent): Promise<void> {
-    const entry: ChromeRequest = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
       return;
@@ -175,7 +175,7 @@ export class NetworkObserver {
     type,
     timestamp
   }: Protocol.Network.LoadingFailedEvent): void {
-    const entry: ChromeRequest = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
     }
@@ -193,7 +193,7 @@ export class NetworkObserver {
     requestId,
     url
   }: Protocol.Network.WebSocketCreatedEvent): void {
-    const entry: ChromeRequest = this.createRequest(
+    const entry: NetworkRequest | undefined = this.createRequest(
       requestId,
       '',
       '',
@@ -210,7 +210,7 @@ export class NetworkObserver {
     timestamp,
     wallTime
   }: Protocol.Network.WebSocketWillSendHandshakeRequestEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
     }
@@ -224,22 +224,27 @@ export class NetworkObserver {
     response,
     requestId
   }: Protocol.Network.WebSocketHandshakeResponseReceivedEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
+
     if (!entry) {
       return;
     }
+
     entry.statusCode = response.status;
     entry.statusText = response.statusText;
     entry.responseHeaders = this.headersMapToHeadersArray(response.headers);
     entry.responseHeadersText = response.headersText || '';
+
     if (response.requestHeaders) {
       entry.requestHeaders = this.headersMapToHeadersArray(
         response.requestHeaders
       );
     }
+
     if (response.requestHeadersText) {
       entry.requestHeadersText = response.requestHeadersText;
     }
+
     entry.responseReceivedTime = timestamp;
     entry.protocol = 'websocket';
   }
@@ -249,7 +254,7 @@ export class NetworkObserver {
     timestamp,
     response
   }: Protocol.Network.WebSocketFrameSentEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
       return;
@@ -264,7 +269,7 @@ export class NetworkObserver {
     timestamp,
     response
   }: Protocol.Network.WebSocketFrameReceivedEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
       return;
@@ -279,7 +284,8 @@ export class NetworkObserver {
     requestId,
     timestamp
   }: Protocol.Network.WebSocketFrameErrorEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
+
     if (!entry) {
       return;
     }
@@ -292,35 +298,25 @@ export class NetworkObserver {
     requestId,
     timestamp
   }: Protocol.Network.WebSocketClosedEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
-    if (!entry) {
-      return;
-    }
-    this.finishRequest(entry, timestamp, -1);
-  }
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
-  public eventSourceMessageReceived({
-    data,
-    eventId,
-    eventName,
-    requestId,
-    timestamp
-  }: Protocol.Network.EventSourceMessageReceivedEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
     }
-    entry.addEventSourceMessage(timestamp, eventName, eventId, data);
+
+    this.finishRequest(entry, timestamp, -1);
   }
 
   public requestWillBeSentExtraInfo({
     requestId,
     headers
   }: Protocol.Network.RequestWillBeSentExtraInfoEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
+
     if (!entry) {
       return;
     }
+
     entry.addExtraRequestInfo({
       requestHeaders: this.headersMapToHeadersArray(headers)
     });
@@ -331,10 +327,12 @@ export class NetworkObserver {
     headers,
     headersText
   }: Protocol.Network.ResponseReceivedExtraInfoEvent): void {
-    const entry: ChromeRequest | undefined = this._entries.get(requestId);
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
+
     if (!entry) {
       return;
     }
+
     entry.addExtraResponseInfo({
       responseHeaders: this.headersMapToHeadersArray(headers),
       responseHeadersText: headersText
@@ -345,26 +343,25 @@ export class NetworkObserver {
     requestId: Protocol.Network.RequestId,
     time: Protocol.Network.MonotonicTime,
     redirectURL: string
-  ): ChromeRequest {
-    const originalNetworkRequest: ChromeRequest | undefined = this._entries.get(
-      requestId
-    );
-    let redirectCount: number = 0;
+  ): NetworkRequest {
+    const originalNetworkRequest:
+      | NetworkRequest
+      | undefined = this._entries.get(requestId);
 
-    for (
-      let redirect: ChromeRequest | undefined =
-        originalNetworkRequest.redirectSource;
-      redirect;
-      redirect = redirect.redirectSource
-    ) {
+    let redirectCount: number = 0;
+    let redirect: NetworkRequest | undefined =
+      originalNetworkRequest.redirectSource;
+
+    while (redirect) {
       redirectCount++;
+      redirect = redirect.redirectSource;
     }
 
     originalNetworkRequest.markAsRedirect(redirectCount);
 
     this.finishRequest(originalNetworkRequest, time, -1);
 
-    const newNetworkRequest: ChromeRequest = this.createRequest(
+    const newNetworkRequest: NetworkRequest = this.createRequest(
       requestId,
       originalNetworkRequest.frameId,
       originalNetworkRequest.loaderId,
@@ -379,15 +376,17 @@ export class NetworkObserver {
   }
 
   private finishRequest(
-    networkRequest: ChromeRequest,
+    networkRequest: NetworkRequest,
     finishTime: Protocol.Network.MonotonicTime,
     encodedDataLength: number
   ): void {
     networkRequest.endTime = finishTime;
 
     if (encodedDataLength >= 0) {
-      const redirectSource = networkRequest.redirectSource;
-      if (redirectSource && redirectSource.signedExchangeInfo) {
+      const redirectSource: NetworkRequest | undefined =
+        networkRequest.redirectSource;
+
+      if (redirectSource?.signedExchangeInfo) {
         networkRequest.transferSize = 0;
         redirectSource.transferSize = encodedDataLength;
       } else {
@@ -399,12 +398,12 @@ export class NetworkObserver {
     this.destination(networkRequest);
   }
 
-  private startRequest(networkRequest: ChromeRequest): void {
+  private startRequest(networkRequest: NetworkRequest): void {
     this._entries.set(networkRequest.requestId, networkRequest);
   }
 
   private updateNetworkRequestWithRequest(
-    chromeRequest: ChromeRequest,
+    chromeRequest: NetworkRequest,
     request: Protocol.Network.Request
   ): void {
     chromeRequest.requestMethod = request.method;
@@ -416,8 +415,6 @@ export class NetworkObserver {
       request.postData ?? null
     );
     chromeRequest.initialPriority = request.initialPriority;
-    chromeRequest.mixedContentType = request.mixedContentType ?? 'none';
-    chromeRequest.referrerPolicy = request.referrerPolicy;
   }
 
   private createRequest(
@@ -427,8 +424,8 @@ export class NetworkObserver {
     url: string,
     documentURL: string,
     initiator: Protocol.Network.Initiator
-  ): ChromeRequest {
-    return new ChromeRequest(
+  ): NetworkRequest {
+    return new NetworkRequest(
       requestId,
       url,
       documentURL,
@@ -440,7 +437,7 @@ export class NetworkObserver {
   }
 
   private updateNetworkRequestWithResponse(
-    networkRequest: ChromeRequest,
+    networkRequest: NetworkRequest,
     response: Protocol.Network.Response
   ): void {
     if (response.url && networkRequest.url !== response.url) {
@@ -449,6 +446,7 @@ export class NetworkObserver {
     networkRequest.mimeType = response.mimeType;
     networkRequest.statusCode = response.status;
     networkRequest.statusText = response.statusText;
+
     if (!networkRequest.hasExtraResponseInfo) {
       networkRequest.responseHeaders = this.headersMapToHeadersArray(
         response.headers
@@ -478,13 +476,7 @@ export class NetworkObserver {
 
     networkRequest.timing = response.timing;
 
-    networkRequest.protocol = response.protocol || '';
-
-    networkRequest.securityState = response.securityState;
-
-    if (response.securityDetails) {
-      networkRequest.securityDetails = response.securityDetails;
-    }
+    networkRequest.protocol = response.protocol ?? '';
   }
 
   private headersMapToHeadersArray(

@@ -7,7 +7,7 @@ export {
   ChromeRemoteInterfaceMethod
 } from './NetworkObserver';
 export {
-  ChromeRequest,
+  NetworkRequest,
   ContentData,
   WebSocketFrameType
-} from './ChromeRequest';
+} from './NetworkRequest';

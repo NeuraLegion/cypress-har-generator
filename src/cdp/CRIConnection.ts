@@ -19,12 +19,14 @@ export class CRIConnection {
 
       const { host, port } = this.options;
 
-      const cdp: ChromeRemoteInterface = await chromeRemoteInterfaceFactory({
-        host,
-        port
-      });
+      const chromeRemoteInterface: ChromeRemoteInterface = await chromeRemoteInterfaceFactory(
+        {
+          host,
+          port
+        }
+      );
 
-      const { Security } = cdp;
+      const { Security } = chromeRemoteInterface;
 
       await Security.enable();
       await Security.setOverrideCertificateErrors({ override: true });
@@ -35,11 +37,11 @@ export class CRIConnection {
 
       this.logger.info('Connected to Chrome Debugging Protocol');
 
-      cdp.once('disconnect', () =>
+      chromeRemoteInterface.once('disconnect', () =>
         this.logger.info('Chrome Debugging Protocol disconnected')
       );
 
-      return cdp;
+      return chromeRemoteInterface;
     } catch (e) {
       this.logger.err(
         `Failed to connect to Chrome Debugging Protocol: ${e.message}`

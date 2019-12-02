@@ -1,4 +1,4 @@
-import { ChromeRequest } from './ChromeRequest';
+import { NetworkRequest } from './NetworkRequest';
 import {
   Content,
   Cookie,
@@ -10,9 +10,10 @@ import {
   Timings
 } from 'har-format';
 import Protocol from 'devtools-protocol';
+import { NetworkCookie } from './NetworkCookie';
 
 export class EntryBuilder {
-  constructor(private readonly request: ChromeRequest) {}
+  constructor(private readonly request: NetworkRequest) {}
 
   public async build(): Promise<Entry> {
     let serverIPAddress: string = this.request.remoteAddress;
@@ -197,7 +198,7 @@ export class EntryBuilder {
       return result;
     }
 
-    const requestTime: number = timing ? timing.requestTime : startTime;
+    const requestTime: number = timing?.requestTime ?? startTime;
     const waitStart: number = highestTime;
     const waitEnd: number = this.toMilliseconds(
       this.request.responseReceivedTime - requestTime
@@ -227,7 +228,7 @@ export class EntryBuilder {
     }
 
     const res: Partial<PostData> = {
-      mimeType: this.request.requestContentType || '',
+      mimeType: this.request.requestContentType ?? '',
       text: postData
     };
 
@@ -244,19 +245,21 @@ export class EntryBuilder {
     return url.split('#', 2)[0];
   }
 
-  private buildCookies(cookies: Cookie[]): Cookie[] {
+  private buildCookies(cookies: NetworkCookie[]): Cookie[] {
     return cookies.map(this.buildCookie.bind(this));
   }
 
-  private buildCookie(cookie: Cookie): Cookie {
+  private buildCookie(cookie: NetworkCookie): Cookie {
     return {
       name: cookie.name,
       value: cookie.value,
       path: cookie.path,
       domain: cookie.domain,
-      expires: new Date(
-        this.request.getWallTime(this.request.startTime) * 1000
-      ).toJSON(),
+      expires: cookie
+        .expiresDate(
+          new Date(this.request.getWallTime(this.request.startTime) * 1000)
+        )
+        .toJSON(),
       httpOnly: cookie.httpOnly,
       secure: cookie.secure
     };

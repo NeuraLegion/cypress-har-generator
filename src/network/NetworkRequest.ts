@@ -1,8 +1,9 @@
 import Protocol from 'devtools-protocol';
 import { parse as parseUrl, UrlWithStringQuery } from 'url';
-import { Cookie, Header, Param, QueryString } from 'har-format';
+import { Header, Param, QueryString } from 'har-format';
 import { Network } from 'chrome-remote-interface';
 import { CookieParser } from './CookieParser';
+import { NetworkCookie } from './NetworkCookie';
 
 export enum WebSocketFrameType {
   Request = 'request',
@@ -16,7 +17,7 @@ export interface ContentData {
   encoding?: string;
 }
 
-export class ChromeRequest {
+export class NetworkRequest {
   private _contentData?: ContentData;
   private _wallIssueTime: Protocol.Network.TimeSinceEpoch = -1;
   private _requestHeaderValues: Map<string, string> = new Map<string, string>();
@@ -30,22 +31,6 @@ export class ChromeRequest {
     string | undefined
   > = Promise.resolve(undefined);
   private _formParametersPromise?: Promise<Param[]>;
-
-  private _eventSourceMessages: {
-    eventId: string;
-    data: string;
-    eventName: string;
-    time: number;
-  }[] = [];
-
-  get eventSourceMessages(): {
-    eventId: string;
-    data: string;
-    eventName: string;
-    time: number;
-  }[] {
-    return this._eventSourceMessages;
-  }
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
   // @ts-ignore
@@ -105,16 +90,6 @@ export class ChromeRequest {
     this._requestTime = value ?? 0;
   }
 
-  private _mixedContentType: string = 'none';
-
-  get mixedContentType(): string {
-    return this._mixedContentType;
-  }
-
-  set mixedContentType(value: string) {
-    this._mixedContentType = value ?? 'none';
-  }
-
   private _requestMethod: string = '';
 
   get requestMethod(): string {
@@ -151,36 +126,6 @@ export class ChromeRequest {
 
   get remoteAddress(): string {
     return this._remoteAddress;
-  }
-
-  private _referrerPolicy?: string;
-
-  get referrerPolicy(): string | undefined {
-    return this._referrerPolicy;
-  }
-
-  set referrerPolicy(referrerPolicy: string) {
-    this._referrerPolicy = referrerPolicy;
-  }
-
-  private _securityState: Protocol.Security.SecurityState = 'unknown';
-
-  get securityState(): Protocol.Security.SecurityState {
-    return this._securityState;
-  }
-
-  set securityState(securityState: Protocol.Security.SecurityState) {
-    this._securityState = securityState ?? 'unknown';
-  }
-
-  private _securityDetails?: Protocol.Network.SecurityDetails;
-
-  get securityDetails(): Protocol.Network.SecurityDetails | undefined {
-    return this._securityDetails;
-  }
-
-  set securityDetails(securityDetails: Protocol.Network.SecurityDetails) {
-    this._securityDetails = securityDetails;
   }
 
   private _startTime: Protocol.Network.MonotonicTime = -1;
@@ -292,13 +237,13 @@ export class ChromeRequest {
     this._resourceType = resourceType ?? 'Other';
   }
 
-  private _redirectSource?: ChromeRequest;
+  private _redirectSource?: NetworkRequest;
 
-  get redirectSource(): ChromeRequest | undefined {
+  get redirectSource(): NetworkRequest | undefined {
     return this._redirectSource;
   }
 
-  set redirectSource(originatingRequest: ChromeRequest) {
+  set redirectSource(originatingRequest: NetworkRequest) {
     this._redirectSource = originatingRequest;
   }
 
@@ -314,9 +259,9 @@ export class ChromeRequest {
     delete this._requestCookies;
   }
 
-  private _requestCookies?: Cookie[];
+  private _requestCookies?: NetworkCookie[];
 
-  get requestCookies(): Cookie[] | undefined {
+  get requestCookies(): NetworkCookie[] | undefined {
     if (!this._requestCookies) {
       const cookie = this.requestHeaderValue('Cookie');
       this._requestCookies = new CookieParser().parseCookie(cookie);
@@ -375,9 +320,9 @@ export class ChromeRequest {
     this._responseHeadersText = value;
   }
 
-  private _responseCookies?: Cookie[];
+  private _responseCookies?: NetworkCookie[];
 
-  get responseCookies(): Cookie[] | undefined {
+  get responseCookies(): NetworkCookie[] | undefined {
     if (!this._responseCookies) {
       const cookie = this.responseHeaderValue('Set-Cookie');
       this._requestCookies = new CookieParser().parseSetCookie(cookie);
@@ -718,26 +663,6 @@ export class ChromeRequest {
     });
   }
 
-  public addEventSourceMessage(
-    time: Protocol.Network.MonotonicTime,
-    eventName: string,
-    eventId: string,
-    data: string
-  ): void {
-    const message: {
-      eventId: string;
-      data: string;
-      eventName: string;
-      time: number;
-    } = {
-      time,
-      eventName,
-      eventId,
-      data
-    };
-    this._eventSourceMessages.push(message);
-  }
-
   public markAsRedirect(redirectCount: number): void {
     this._requestId = `${this.requestId}:redirected.${redirectCount}`;
   }
@@ -792,7 +717,7 @@ export class ChromeRequest {
     data: string,
     boundary: string
   ): Param[] {
-    const sanitizedBoundary: string = ChromeRequest.escapeCharacters(boundary);
+    const sanitizedBoundary: string = NetworkRequest.escapeCharacters(boundary);
     const keyValuePattern: RegExp = new RegExp(
       // Header with an optional file name.
       '^\\r\\ncontent-disposition\\s*:\\s*form-data\\s*;\\s*name="([^"]*)"(?:\\s*;\\s*filename="([^"]*)")?' +
