@@ -57,11 +57,12 @@ export class Plugin {
       new RetryStrategy(20, 5, 100)
     );
 
-    const cri: ChromeRemoteInterface = await factory.open();
+    const chromeRemoteInterface: ChromeRemoteInterface = await factory.open();
 
     const networkObservable: NetworkObserver = new NetworkObserver(
-      cri,
-      this.logger
+      chromeRemoteInterface,
+      this.logger,
+      this.options
     );
 
     await networkObservable.subscribe((request: NetworkRequest) =>

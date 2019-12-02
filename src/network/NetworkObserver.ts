@@ -3,7 +3,7 @@ import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 import { ChromeRemoteInterface, Network } from 'chrome-remote-interface';
 import { Logger } from '../utils';
 import { Header } from 'har-format';
-import { ChromeRequest } from './ChromeRequest';
+import { NetworkRequest } from './NetworkRequest';
 
 export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
 
@@ -19,7 +19,10 @@ export class NetworkObserver {
 
   constructor(
     private readonly chromeRemoteInterface: ChromeRemoteInterface,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly options: {
+      stubPath: string;
+    }
   ) {
     this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
     const { Network: network } = this.chromeRemoteInterface;
@@ -427,7 +430,7 @@ export class NetworkObserver {
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,
-      url,
+      this.stripStubPathFromUrl(url),
       documentURL,
       frameId,
       loaderId,
@@ -436,12 +439,18 @@ export class NetworkObserver {
     );
   }
 
+  private stripStubPathFromUrl(url: string): string {
+    const indexOfStubPath: number = url.indexOf(this.options.stubPath);
+
+    return indexOfStubPath !== -1 ? url.substring(indexOfStubPath) : url;
+  }
+
   private updateNetworkRequestWithResponse(
     networkRequest: NetworkRequest,
     response: Protocol.Network.Response
   ): void {
     if (response.url && networkRequest.url !== response.url) {
-      networkRequest.setUrl(response.url);
+      networkRequest.setUrl(this.stripStubPathFromUrl(response.url));
     }
     networkRequest.mimeType = response.mimeType;
     networkRequest.statusCode = response.status;
