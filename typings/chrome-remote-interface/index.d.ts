@@ -1,495 +1,8 @@
 declare module 'chrome-remote-interface' {
   import Protocol from 'devtools-protocol';
+  import { EventEmitter } from 'events';
 
-  declare namespace ChromeRemoteInterface {
-    export interface Page {
-      /**
-       * Deprecated, please use addScriptToEvaluateOnNewDocument instead.
-       */
-      addScriptToEvaluateOnLoad(
-        params: Protocol.Page.AddScriptToEvaluateOnLoadRequest
-      ): Promise<Protocol.Page.AddScriptToEvaluateOnLoadResponse>;
-
-      /**
-       * Evaluates given script in every frame upon creation (before loading frame's scripts).
-       */
-      addScriptToEvaluateOnNewDocument(
-        params: Protocol.Page.AddScriptToEvaluateOnNewDocumentRequest
-      ): Promise<Protocol.Page.AddScriptToEvaluateOnNewDocumentResponse>;
-
-      /**
-       * Brings page to front (activates tab).
-       */
-      bringToFront(): Promise<void>;
-
-      /**
-       * Capture page screenshot.
-       */
-      captureScreenshot(
-        params: Protocol.Page.CaptureScreenshotRequest
-      ): Promise<Protocol.Page.CaptureScreenshotResponse>;
-
-      /**
-       * Returns a snapshot of the page as a string. For MHTML format, the serialization includes
-       * iframes, shadow DOM, external resources, and element-inline styles.
-       */
-      captureSnapshot(
-        params: Protocol.Page.CaptureSnapshotRequest
-      ): Promise<Protocol.Page.CaptureSnapshotResponse>;
-
-      /**
-       * Clears the overriden device metrics.
-       */
-      clearDeviceMetricsOverride(): Promise<void>;
-
-      /**
-       * Clears the overridden Device Orientation.
-       */
-      clearDeviceOrientationOverride(): Promise<void>;
-
-      /**
-       * Clears the overriden Geolocation Position and Error.
-       */
-      clearGeolocationOverride(): Promise<void>;
-
-      /**
-       * Creates an isolated world for the given frame.
-       */
-      createIsolatedWorld(
-        params: Protocol.Page.CreateIsolatedWorldRequest
-      ): Promise<Protocol.Page.CreateIsolatedWorldResponse>;
-
-      /**
-       * Deletes browser cookie with given name, domain and path.
-       */
-      deleteCookie(params: Protocol.Page.DeleteCookieRequest): Promise<void>;
-
-      /**
-       * Disables page domain notifications.
-       */
-      disable(): Promise<void>;
-
-      /**
-       * Enables page domain notifications.
-       */
-      enable(): Promise<void>;
-
-      getAppManifest(): Promise<Protocol.Page.GetAppManifestResponse>;
-
-      getInstallabilityErrors(): Promise<
-        Protocol.Page.GetInstallabilityErrorsResponse
-      >;
-
-      /**
-       * Returns all browser cookies. Depending on the backend support, will return detailed cookie
-       * information in the `cookies` field.
-       */
-      getCookies(): Promise<Protocol.Page.GetCookiesResponse>;
-
-      /**
-       * Returns present frame tree structure.
-       */
-      getFrameTree(): Promise<Protocol.Page.GetFrameTreeResponse>;
-
-      /**
-       * Returns metrics relating to the layouting of the page, such as viewport bounds/scale.
-       */
-      getLayoutMetrics(): Promise<Protocol.Page.GetLayoutMetricsResponse>;
-
-      /**
-       * Returns navigation history for the current page.
-       */
-      getNavigationHistory(): Promise<
-        Protocol.Page.GetNavigationHistoryResponse
-      >;
-
-      /**
-       * Resets navigation history for the current page.
-       */
-      resetNavigationHistory(): Promise<void>;
-
-      /**
-       * Returns content of the given resource.
-       */
-      getResourceContent(
-        params: Protocol.Page.GetResourceContentRequest
-      ): Promise<Protocol.Page.GetResourceContentResponse>;
-
-      /**
-       * Returns present frame / resource tree structure.
-       */
-      getResourceTree(): Promise<Protocol.Page.GetResourceTreeResponse>;
-
-      /**
-       * Accepts or dismisses a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload).
-       */
-      handleJavaScriptDialog(
-        params: Protocol.Page.HandleJavaScriptDialogRequest
-      ): Promise<void>;
-
-      /**
-       * Navigates current page to the given URL.
-       */
-      navigate(
-        params: Protocol.Page.NavigateRequest
-      ): Promise<Protocol.Page.NavigateResponse>;
-
-      /**
-       * Navigates current page to the given history entry.
-       */
-      navigateToHistoryEntry(
-        params: Protocol.Page.NavigateToHistoryEntryRequest
-      ): Promise<void>;
-
-      /**
-       * Print page as PDF.
-       */
-      printToPDF(
-        params: Protocol.Page.PrintToPDFRequest
-      ): Promise<Protocol.Page.PrintToPDFResponse>;
-
-      /**
-       * Reloads given page optionally ignoring the cache.
-       */
-      reload(params: Protocol.Page.ReloadRequest): Promise<void>;
-
-      /**
-       * Deprecated, please use removeScriptToEvaluateOnNewDocument instead.
-       */
-      removeScriptToEvaluateOnLoad(
-        params: Protocol.Page.RemoveScriptToEvaluateOnLoadRequest
-      ): Promise<void>;
-
-      /**
-       * Removes given script from the list.
-       */
-      removeScriptToEvaluateOnNewDocument(
-        params: Protocol.Page.RemoveScriptToEvaluateOnNewDocumentRequest
-      ): Promise<void>;
-
-      /**
-       * Acknowledges that a screencast frame has been received by the frontend.
-       */
-      screencastFrameAck(
-        params: Protocol.Page.ScreencastFrameAckRequest
-      ): Promise<void>;
-
-      /**
-       * Searches for given string in resource content.
-       */
-      searchInResource(
-        params: Protocol.Page.SearchInResourceRequest
-      ): Promise<Protocol.Page.SearchInResourceResponse>;
-
-      /**
-       * Enable Chrome's experimental ad filter on all sites.
-       */
-      setAdBlockingEnabled(
-        params: Protocol.Page.SetAdBlockingEnabledRequest
-      ): Promise<void>;
-
-      /**
-       * Enable page Content Security Policy by-passing.
-       */
-      setBypassCSP(params: Protocol.Page.SetBypassCSPRequest): Promise<void>;
-
-      /**
-       * Overrides the values of device screen dimensions (window.screen.width, window.screen.height,
-       * window.innerWidth, window.innerHeight, and "device-width"/"device-height"-related CSS media
-       * query results).
-       */
-      setDeviceMetricsOverride(
-        params: Protocol.Page.SetDeviceMetricsOverrideRequest
-      ): Promise<void>;
-
-      /**
-       * Overrides the Device Orientation.
-       */
-      setDeviceOrientationOverride(
-        params: Protocol.Page.SetDeviceOrientationOverrideRequest
-      ): Promise<void>;
-
-      /**
-       * Set generic font families.
-       */
-      setFontFamilies(
-        params: Protocol.Page.SetFontFamiliesRequest
-      ): Promise<void>;
-
-      /**
-       * Set default font sizes.
-       */
-      setFontSizes(params: Protocol.Page.SetFontSizesRequest): Promise<void>;
-
-      /**
-       * Sets given markup as the document's HTML.
-       */
-      setDocumentContent(
-        params: Protocol.Page.SetDocumentContentRequest
-      ): Promise<void>;
-
-      /**
-       * Set the behavior when downloading a file.
-       */
-      setDownloadBehavior(
-        params: Protocol.Page.SetDownloadBehaviorRequest
-      ): Promise<void>;
-
-      /**
-       * Overrides the Geolocation Position or Error. Omitting any of the parameters emulates position
-       * unavailable.
-       */
-      setGeolocationOverride(
-        params: Protocol.Page.SetGeolocationOverrideRequest
-      ): Promise<void>;
-
-      /**
-       * Controls whether page will emit lifecycle events.
-       */
-      setLifecycleEventsEnabled(
-        params: Protocol.Page.SetLifecycleEventsEnabledRequest
-      ): Promise<void>;
-
-      /**
-       * Toggles mouse event-based touch event emulation.
-       */
-      setTouchEmulationEnabled(
-        params: Protocol.Page.SetTouchEmulationEnabledRequest
-      ): Promise<void>;
-
-      /**
-       * Starts sending each frame using the `screencastFrame` event.
-       */
-      startScreencast(
-        params: Protocol.Page.StartScreencastRequest
-      ): Promise<void>;
-
-      /**
-       * Force the page stop all navigations and pending resource fetches.
-       */
-      stopLoading(): Promise<void>;
-
-      /**
-       * Crashes renderer on the IO thread, generates minidumps.
-       */
-      crash(): Promise<void>;
-
-      /**
-       * Tries to close page, running its beforeunload hooks, if any.
-       */
-      close(): Promise<void>;
-
-      /**
-       * Tries to update the web lifecycle state of the page.
-       * It will transition the page to the given state according to:
-       * https://github.com/WICG/web-lifecycle/
-       */
-      setWebLifecycleState(
-        params: Protocol.Page.SetWebLifecycleStateRequest
-      ): Promise<void>;
-
-      /**
-       * Stops sending each frame in the `screencastFrame`.
-       */
-      stopScreencast(): Promise<void>;
-
-      /**
-       * Forces compilation cache to be generated for every subresource script.
-       */
-      setProduceCompilationCache(
-        params: Protocol.Page.SetProduceCompilationCacheRequest
-      ): Promise<void>;
-
-      /**
-       * Seeds compilation cache for given url. Compilation cache does not survive
-       * cross-process navigation.
-       */
-      addCompilationCache(
-        params: Protocol.Page.AddCompilationCacheRequest
-      ): Promise<void>;
-
-      /**
-       * Clears seeded compilation cache.
-       */
-      clearCompilationCache(): Promise<void>;
-
-      /**
-       * Generates a report for testing.
-       */
-      generateTestReport(
-        params: Protocol.Page.GenerateTestReportRequest
-      ): Promise<void>;
-
-      /**
-       * Pauses page execution. Can be resumed using generic Runtime.runIfWaitingForDebugger.
-       */
-      waitForDebugger(): Promise<void>;
-
-      /**
-       * Intercept file chooser requests and transfer control to protocol clients.
-       * When file chooser interception is enabled, native file chooser dialog is not shown.
-       * Instead, a protocol event `Page.fileChooserOpened` is emitted.
-       */
-      setInterceptFileChooserDialog(
-        params: Protocol.Page.SetInterceptFileChooserDialogRequest
-      ): Promise<void>;
-
-      domContentEventFired(
-        listener: (params: Protocol.Page.DomContentEventFiredEvent) => void
-      ): void;
-
-      /**
-       * Emitted only when `page.interceptFileChooser` is enabled.
-       */
-      fileChooserOpened(
-        listener: (params: Protocol.Page.FileChooserOpenedEvent) => void
-      ): void;
-
-      /**
-       * Fired when frame has been attached to its parent.
-       */
-      frameAttached(
-        listener: (params: Protocol.Page.FrameAttachedEvent) => void
-      ): void;
-
-      /**
-       * Fired when frame no longer has a scheduled navigation.
-       */
-      frameClearedScheduledNavigation(
-        listener: (
-          params: Protocol.Page.FrameClearedScheduledNavigationEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when frame has been detached from its parent.
-       */
-      frameDetached(
-        listener: (params: Protocol.Page.FrameDetachedEvent) => void
-      ): void;
-
-      /**
-       * Fired once navigation of the frame has completed. Frame is now associated with the new loader.
-       */
-      frameNavigated(
-        listener: (params: Protocol.Page.FrameNavigatedEvent) => void
-      ): void;
-
-      frameResized(listener: () => void): void;
-
-      /**
-       * Fired when a renderer-initiated navigation is requested.
-       * Navigation may still be cancelled after the event is issued.
-       */
-      frameRequestedNavigation(
-        listener: (params: Protocol.Page.FrameRequestedNavigationEvent) => void
-      ): void;
-
-      /**
-       * Fired when frame schedules a potential navigation.
-       */
-      frameScheduledNavigation(
-        listener: (params: Protocol.Page.FrameScheduledNavigationEvent) => void
-      ): void;
-
-      /**
-       * Fired when frame has started loading.
-       */
-      frameStartedLoading(
-        listener: (params: Protocol.Page.FrameStartedLoadingEvent) => void
-      ): void;
-
-      /**
-       * Fired when frame has stopped loading.
-       */
-      frameStoppedLoading(
-        listener: (params: Protocol.Page.FrameStoppedLoadingEvent) => void
-      ): void;
-
-      /**
-       * Fired when page is about to start a download.
-       */
-      downloadWillBegin(
-        listener: (params: Protocol.Page.DownloadWillBeginEvent) => void
-      ): void;
-
-      /**
-       * Fired when interstitial page was hidden
-       */
-      interstitialHidden(listener: () => void): void;
-
-      /**
-       * Fired when interstitial page was shown
-       */
-      interstitialShown(listener: () => void): void;
-
-      /**
-       * Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) has been
-       * closed.
-       */
-      javascriptDialogClosed(
-        listener: (params: Protocol.Page.JavascriptDialogClosedEvent) => void
-      ): void;
-
-      /**
-       * Fired when a JavaScript initiated dialog (alert, confirm, prompt, or onbeforeunload) is about to
-       * open.
-       */
-      javascriptDialogOpening(
-        listener: (params: Protocol.Page.JavascriptDialogOpeningEvent) => void
-      ): void;
-
-      /**
-       * Fired for top level page lifecycle events such as navigation, load, paint, etc.
-       */
-      lifecycleEvent(
-        listener: (params: Protocol.Page.LifecycleEventEvent) => void
-      ): void;
-
-      loadEventFired(
-        listener: (params: Protocol.Page.LoadEventFiredEvent) => void
-      ): void;
-
-      /**
-       * Fired when same-document navigation happens, e.g. due to history API usage or anchor navigation.
-       */
-      navigatedWithinDocument(
-        listener: (params: Protocol.Page.NavigatedWithinDocumentEvent) => void
-      ): void;
-
-      /**
-       * Compressed image data requested by the `startScreencast`.
-       */
-      screencastFrame(
-        listener: (params: Protocol.Page.ScreencastFrameEvent) => void
-      ): void;
-
-      /**
-       * Fired when the page with currently enabled screencast was shown or hidden `.
-       */
-      screencastVisibilityChanged(
-        listener: (
-          params: Protocol.Page.ScreencastVisibilityChangedEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when a new window is going to be opened, via window.open(), link click, form submission,
-       * etc.
-       */
-      windowOpen(
-        listener: (params: Protocol.Page.WindowOpenEvent) => void
-      ): void;
-
-      /**
-       * Issued for every compilation cache generated. Is only available
-       * if Page.setGenerateCompilationCache is enabled.
-       */
-      compilationCacheProduced(
-        listener: (params: Protocol.Page.CompilationCacheProducedEvent) => void
-      ): void;
-    }
-
+  declare namespace chromeRemoteInterfaceFactory {
     export interface Network {
       /**
        * Tells whether clearing browser cache is supported.
@@ -583,7 +96,7 @@ declare module 'chrome-remote-interface' {
        */
       getResponseBody(
         params: Protocol.Network.GetResponseBodyRequest
-      ): Promise<GetResponseBodyResponse>;
+      ): Promise<Protocol.Network.GetResponseBodyResponse>;
 
       /**
        * Returns post data sent with the request. Returns an error when no data was sent with the request.
@@ -839,32 +352,95 @@ declare module 'chrome-remote-interface' {
         ) => void
       ): void;
     }
-  }
 
-  declare class ChromeRemoteInterface {
-    readonly Page: ChromeRemoteInterface.Page;
-    readonly Network: ChromeRemoteInterface.Network;
-  }
+    export interface Security {
+      /**
+       * Disables tracking security state changes.
+       */
+      disable(): Promise<void>;
 
-  declare interface ChromeOptions {
-    host?: string;
-    port?: number;
-    secure?: boolean;
-    useHostName?: boolean;
-    alterPath?: string;
-    protocol?: string;
-    local?: boolean;
-    target?: string;
+      /**
+       * Enables tracking security state changes.
+       */
+      enable(): Promise<void>;
+
+      /**
+       * Enable/disable whether all certificate errors should be ignored.
+       */
+      setIgnoreCertificateErrors(
+        params: Protocol.Security.SetIgnoreCertificateErrorsRequest
+      ): Promise<void>;
+
+      /**
+       * Handles a certificate error that fired a certificateError event.
+       */
+      handleCertificateError(
+        params: Protocol.Security.HandleCertificateErrorRequest
+      ): Promise<void>;
+
+      /**
+       * Enable/disable overriding certificate errors. If enabled, all certificate error events need to
+       * be handled by the DevTools client and should be answered with `handleCertificateError` commands.
+       */
+      setOverrideCertificateErrors(
+        params: Protocol.Security.SetOverrideCertificateErrorsRequest
+      ): Promise<void>;
+
+      /**
+       * There is a certificate error. If overriding certificate errors is enabled, then it should be
+       * handled with the `handleCertificateError` command. Note: this event does not fire if the
+       * certificate error has been allowed internally. Only one client per target should override
+       * certificate errors at the same time.
+       */
+      certificateError(
+        listener: (params: Protocol.Security.CertificateErrorEvent) => void
+      ): void;
+
+      /**
+       * The security state of the page changed.
+       */
+      visibleSecurityStateChanged(
+        listener: (
+          params: Protocol.Security.VisibleSecurityStateChangedEvent
+        ) => void
+      ): void;
+
+      /**
+       * The security state of the page changed.
+       */
+      securityStateChanged(
+        listener: (params: Protocol.Security.SecurityStateChangedEvent) => void
+      ): void;
+    }
+
+    export interface ChromeRemoteInterface extends EventEmitter {
+      readonly Network: Network;
+      readonly Security: Security;
+    }
+
+    export interface ChromeRemoteInterfaceOptions {
+      host?: string;
+      port?: number;
+      secure?: boolean;
+      useHostName?: boolean;
+      alterPath?: string;
+      protocol?: string;
+      local?: boolean;
+      target?: string;
+    }
   }
 
   declare function chromeRemoteInterfaceFactory(
-    options: ChromeOptions,
-    callback: (err: Error | undefined, chrome?: ChromeRemoteInterface) => void
+    options: chromeRemoteInterfaceFactory.ChromeRemoteInterfaceOptions,
+    callback: (
+      err: Error | undefined,
+      chrome?: chromeRemoteInterfaceFactory.ChromeRemoteInterface
+    ) => void
   ): void;
 
   declare function chromeRemoteInterfaceFactory(
-    options: ChromeOptions
-  ): Promise<ChromeRemoteInterface>;
+    options: chromeRemoteInterfaceFactory.ChromeRemoteInterfaceOptions
+  ): Promise<chromeRemoteInterfaceFactory.ChromeRemoteInterface>;
 
   export = chromeRemoteInterfaceFactory;
 }

@@ -1,5 +1,6 @@
 node_modules
 src
+example
 tmp
 .github
 **/*.spec.ts

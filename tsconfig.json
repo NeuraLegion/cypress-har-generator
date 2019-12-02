@@ -24,6 +24,7 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "typeRoots": ["node_modules/@types", "typings"],
+    "types": ["cypress", "node", "chrome-remote-interface"],
     "skipLibCheck": true,
     "newLine": "LF",
     "declaration": true,
