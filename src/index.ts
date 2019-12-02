@@ -2,22 +2,22 @@ import { Plugin } from './Plugin';
 import { Logger } from './utils';
 import { PluginOptions } from './PluginOptions';
 
-export type CypressInstallationCallback = (
+type CypressInstallationCallback = (
   browser: Cypress.Browser,
   args: string[]
 ) => Promise<string[]> | string[];
 
-export interface CypressTasks {
+interface CypressTasks {
   saveHar(options: PluginOptions): Promise<void>;
   recordHar(options: PluginOptions): Promise<void>;
   removeHar(options: PluginOptions): Promise<void>;
 }
 
-export type InstallationArg = CypressInstallationCallback | CypressTasks;
+type InstallationArg = CypressInstallationCallback | CypressTasks;
 
-export type CypressPluginEvent = 'before:browser:launch' | 'task';
+type CypressPluginEvent = 'before:browser:launch' | 'task';
 
-export type CypressCallback = (
+type CypressCallback = (
   event: CypressPluginEvent,
   arg?: InstallationArg
 ) => void;
