@@ -8,7 +8,9 @@ import {
 } from 'fs';
 import { promisify } from 'util';
 import { ChromeRemoteInterface } from 'chrome-remote-interface';
-import { ChromeRequest, HarBuilder, NetworkObserver } from './network';
+import { NetworkRequest, HarBuilder, NetworkObserver } from './network';
+import { Har } from 'har-format';
+import { PluginOptions } from './PluginOptions';
 
 const access = promisify(accessCb);
 const unlink = promisify(unlinkCb);
@@ -16,17 +18,20 @@ const writeFile = promisify(writeFileCb);
 
 export class Plugin {
   private rdpPort?: number;
-  private readonly requests: ChromeRequest[] = [];
+  private readonly requests: NetworkRequest[] = [];
 
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly options: PluginOptions
+  ) {
+    this.stubPathIsDefined(this.options.stubPath);
+    this.fileIsDefined(this.options.file);
+  }
 
-  public async install(
-    browser: Cypress.Browser,
-    args: string[]
-  ): Promise<string[]> {
+  public install(browser: Cypress.Browser, args: string[]): string[] {
     if (!this.isChromeFamily(browser)) {
       throw new Error(
-        `An unsupported browser family was used, output will not be logged to console: ${browser.name}`
+        `An unsupported browser family was used: ${browser.name}`
       );
     }
 
@@ -36,10 +41,10 @@ export class Plugin {
     return args;
   }
 
-  public async removeHar(options: { harFile: string }): Promise<void> {
+  public async removeHar(): Promise<void> {
     try {
-      await access(options.harFile, constants.F_OK);
-      await unlink(options.harFile);
+      await access(this.options.file, constants.F_OK);
+      await unlink(this.options.file);
     } catch (e) {}
 
     return null;
@@ -59,22 +64,34 @@ export class Plugin {
       this.logger
     );
 
-    await networkObservable.subscribe((request: ChromeRequest) =>
+    await networkObservable.subscribe((request: NetworkRequest) =>
       this.requests.push(request)
     );
 
     return null;
   }
 
-  public async saveHar(options: { harFile: string }): Promise<void> {
+  public async saveHar(): Promise<void> {
     try {
-      await writeFile(
-        options.harFile,
-        JSON.stringify(await new HarBuilder(this.requests).build(), null, 2)
-      );
+      const har: Har = await new HarBuilder(this.requests).build();
+      await writeFile(this.options.file, JSON.stringify(har, null, 2));
     } catch (e) {}
 
     return null;
+  }
+
+  private stubPathIsDefined(
+    stubPath: string | undefined
+  ): asserts stubPath is string {
+    if (typeof stubPath !== 'string') {
+      throw new Error('Stub path path must be a string.');
+    }
+  }
+
+  private fileIsDefined(file: string | undefined): asserts file is string {
+    if (typeof file !== 'string') {
+      throw new Error('File path must be a string.');
+    }
   }
 
   private isChromeFamily(browser: Cypress.Browser): boolean {
