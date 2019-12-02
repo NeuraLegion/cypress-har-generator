@@ -90,7 +90,7 @@ export class NetworkCookie {
     this._value = value;
   }
 
-  public expiresDate(requestDate: Date): Date {
+  public expiresDate(requestDate: Date): Date | undefined {
     if (this.maxAge) {
       const targetDate = requestDate === null ? new Date() : requestDate;
 
@@ -101,7 +101,7 @@ export class NetworkCookie {
       return new Date(this.expires);
     }
 
-    return null;
+    return;
   }
 
   public addAttribute(key: string, value: string): void {
