@@ -19,6 +19,13 @@
   "publishConfig": {
     "access": "public"
   },
+  "keywords": [
+    "cypress",
+    "har",
+    "cypress-plugin",
+    "chrome",
+    "http-archive"
+  ],
   "scripts": {
     "semantic-release": "semantic-release",
     "lint": "eslint -c .eslintrc 'src/**/*.ts'",
