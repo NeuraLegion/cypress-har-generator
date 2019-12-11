@@ -1,3 +1,5 @@
+'use strict';
+
 before(() => {
   cy.task('removeHar');
   cy.task('recordHar');
