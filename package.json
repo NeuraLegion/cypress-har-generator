@@ -55,7 +55,7 @@
     "eslint-plugin-prefer-arrow": "^1.1.6",
     "eslint-plugin-prettier": "^3.1.1",
     "husky": "^3.0.7",
-    "jest": "^23.5.0",
+    "jest": "^25.0.0",
     "lint-staged": "^9.4.1",
     "nyc": "~14.1.1",
     "prettier": "~1.19.1",
@@ -101,6 +101,7 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "tslib": "^1.10.0",
     "chalk": "^3.0.0",
     "chrome-remote-interface": "^0.28.0"
   }
