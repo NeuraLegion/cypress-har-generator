@@ -1,1 +1,1 @@
-require('../../../dist/support');
+require('../../../support');
