@@ -105,7 +105,7 @@ export class Plugin {
     return [
       ...new Set([
         ...args,
-        '--window-size=1800,1200',
+        '--window-size=1800,1250',
         '--disable-background-networking',
         '--headless',
         '--no-sandbox',
