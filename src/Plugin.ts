@@ -8,7 +8,7 @@ import {
 } from 'fs';
 import { promisify } from 'util';
 import { ChromeRemoteInterface } from 'chrome-remote-interface';
-import { NetworkRequest, HarBuilder, NetworkObserver } from './network';
+import { HarBuilder, NetworkObserver, NetworkRequest } from './network';
 import { Har } from 'har-format';
 import { PluginOptions } from './PluginOptions';
 
@@ -20,22 +20,26 @@ export class Plugin {
   private rdpPort?: number;
   private readonly requests: NetworkRequest[] = [];
 
-  constructor(
-    private readonly logger: Logger,
-    private readonly options: PluginOptions
-  ) {
-    this.stubPathIsDefined(this.options.stubPath);
-    this.fileIsDefined(this.options.file);
+  constructor(private readonly logger: Logger, private options: PluginOptions) {
+    this.validatePluginOptions(options);
   }
 
-  public install(browser: Cypress.Browser, args: string[]): string[] {
+  public configure(options: PluginOptions): void {
+    this.validatePluginOptions(options);
+    this.options = options;
+  }
+
+  public ensureRequiredBrowserFlags(
+    browser: Cypress.Browser,
+    args: string[]
+  ): string[] {
     if (!this.isChromeFamily(browser)) {
       throw new Error(
         `An unsupported browser family was used: ${browser.name}`
       );
     }
 
-    args = this.ensureHeadless(args);
+    args = this.ensureTestingFlags(args);
     args = this.ensureRdpPort(args);
 
     return args;
@@ -83,6 +87,11 @@ export class Plugin {
     return null;
   }
 
+  private validatePluginOptions(options: PluginOptions): void | never {
+    this.stubPathIsDefined(options.stubPath);
+    this.fileIsDefined(options.file);
+  }
+
   private stubPathIsDefined(
     stubPath: string | undefined
   ): asserts stubPath is string {
@@ -101,13 +110,17 @@ export class Plugin {
     return ['chrome', 'chromium', 'canary'].includes(browser?.name);
   }
 
-  private ensureHeadless(args: string[]): string[] {
+  private ensureTestingFlags(args: string[]): string[] {
     return [
       ...new Set([
         ...args,
-        '--disable-background-networking',
         '--headless',
         '--no-sandbox',
+        '--disable-background-networking',
+        '--disable-web-security',
+        '--reduce-security-for-testing',
+        '--allow-insecure-localhost',
+        '--ignore-certificate-errors',
         '--disable-gpu'
       ])
     ];

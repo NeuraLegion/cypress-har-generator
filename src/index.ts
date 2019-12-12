@@ -27,6 +27,8 @@ const DEFAULT_OPTIONS: PluginOptions = {
   stubPath: '/__cypress/xhrs/'
 };
 
+const plugin: Plugin = new Plugin(Logger.Instance, DEFAULT_OPTIONS);
+
 export function install(
   on: CypressCallback,
   config: Cypress.ConfigOptions
@@ -38,15 +40,18 @@ export function install(
     stubPath: env?.STUB_PATH ?? DEFAULT_OPTIONS.stubPath
   };
 
-  const plugin: Plugin = new Plugin(Logger.Instance, pluginOptions);
-
-  on('before:browser:launch', (browser: Cypress.Browser, args: string[]) =>
-    plugin.install(browser, args)
-  );
+  plugin.configure(pluginOptions);
 
   on('task', {
     saveHar: (): Promise<void> => plugin.saveHar(),
     recordHar: (): Promise<void> => plugin.recordHar(),
     removeHar: (): Promise<void> => plugin.removeHar()
   });
+}
+
+export function ensureRequiredBrowserFlags(
+  browser: Cypress.Browser,
+  args: string[]
+): string[] {
+  return plugin.ensureRequiredBrowserFlags(browser, args);
 }
