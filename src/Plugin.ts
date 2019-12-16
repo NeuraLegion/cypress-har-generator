@@ -114,7 +114,6 @@ export class Plugin {
     return [
       ...new Set([
         ...args,
-        '--headless',
         '--no-sandbox',
         '--disable-background-networking',
         '--disable-web-security',
