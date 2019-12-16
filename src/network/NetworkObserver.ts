@@ -188,7 +188,7 @@ export class NetworkObserver {
     this.finishRequest(entry, timestamp, -1);
 
     const message: string = errorText || (canceled && 'Canceled');
-    this.logger.err(message);
+    this.logger.debug(`Failed request: ${requestId}. Reason: ${message}`);
   }
 
   public webSocketCreated({

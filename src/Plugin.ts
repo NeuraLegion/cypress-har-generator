@@ -81,7 +81,7 @@ export class Plugin {
       const har: Har = await new HarBuilder(this.requests).build();
       await writeFile(this.options.file, JSON.stringify(har, null, 2));
     } catch (e) {
-      this.logger.err(e.message);
+      this.logger.err(`Failed to save HAR: ${e.message}`);
     }
 
     return null;

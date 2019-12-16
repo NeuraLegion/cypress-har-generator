@@ -1,10 +1,11 @@
-import chromeRemoteInterfaceFactory, {
+import connect, {
   ChromeRemoteInterface,
   ChromeRemoteInterfaceOptions
 } from 'chrome-remote-interface';
 import { RetryStrategy } from './RetryStrategy';
 import { Logger } from '../utils';
 import Timeout = NodeJS.Timeout;
+import * as CRIOutputMessages from './CRIOutputMessages';
 
 export class CRIConnection {
   constructor(
@@ -15,16 +16,14 @@ export class CRIConnection {
 
   public async open(): Promise<ChromeRemoteInterface> {
     try {
-      this.logger.info('Attempting to connect to Chrome Debugging Protocol');
+      this.logger.debug(CRIOutputMessages.ATTEMPT_TO_CONNECT);
 
       const { host, port } = this.options;
 
-      const chromeRemoteInterface: ChromeRemoteInterface = await chromeRemoteInterfaceFactory(
-        {
-          host,
-          port
-        }
-      );
+      const chromeRemoteInterface: ChromeRemoteInterface = await connect({
+        host,
+        port
+      });
 
       const { Security } = chromeRemoteInterface;
 
@@ -35,16 +34,16 @@ export class CRIConnection {
         Security.handleCertificateError({ eventId, action: 'continue' })
       );
 
-      this.logger.info('Connected to Chrome Debugging Protocol');
+      this.logger.debug(CRIOutputMessages.CONNECTED);
 
       chromeRemoteInterface.once('disconnect', () =>
-        this.logger.info('Chrome Debugging Protocol disconnected')
+        this.logger.debug(CRIOutputMessages.DISCONNECTED)
       );
 
       return chromeRemoteInterface;
     } catch (e) {
-      this.logger.err(
-        `Failed to connect to Chrome Debugging Protocol: ${e.message}`
+      this.logger.debug(
+        `${CRIOutputMessages.FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`
       );
 
       return this.scheduleReconnect();
@@ -55,7 +54,7 @@ export class CRIConnection {
     const timeout: number | undefined = this.retryStrategy.getNextTime();
 
     if (!timeout) {
-      throw new Error(`Failed to connect to Chrome Debugging Protocol.`);
+      throw new Error(CRIOutputMessages.FAILED_TO_CONNECT);
     }
 
     await this.delay(timeout);
