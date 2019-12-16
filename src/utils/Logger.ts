@@ -1,4 +1,7 @@
 import chalk from 'chalk';
+import { debuglog } from 'util';
+
+const debug = debuglog('cypress-har-generator');
 
 export class Logger {
   private static _instance: Logger;
@@ -21,6 +24,10 @@ export class Logger {
 
   public warn(msg: string): void {
     this.log(chalk.yellow(`⚠ ${msg}`));
+  }
+
+  public debug(msg: string): void {
+    debug(msg);
   }
 
   private log(msg: string): void {
