@@ -45,9 +45,9 @@ cypress run --browser chrome
 
 > ✴  Now only Chrome family browsers are supported.
 
-When the cypress finished executing tests, the plugin will save a new archive `archive.har`:
+When the cypress finished executing tests, the plugin will save a new archive `archive.har` at the root of the project.
 
-> ✴  If you want to change a path to a file, you can specify it by setting the `CYPRESS_HAR_FILE` environment variable.
+> ✴  If you want to change the path to the file, you can specify it by setting the `CYPRESS_HAR_FILE` environment variable.
 
 ## License
 
