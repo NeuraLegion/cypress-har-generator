@@ -663,18 +663,13 @@ export class NetworkRequest {
     this._requestId = `${this.requestId}:redirected.${redirectCount}`;
   }
 
-  public addExtraRequestInfo(extraRequestInfo: {
-    requestHeaders: Header[];
-  }): void {
+  public addExtraRequestInfo(extraRequestInfo: RequestExtraInfo): void {
     this.requestHeaders = extraRequestInfo.requestHeaders;
     this._hasExtraRequestInfo = true;
     this.requestHeadersText = '';
   }
 
-  public addExtraResponseInfo(extraResponseInfo: {
-    responseHeaders: Header[];
-    responseHeadersText: string;
-  }): void {
+  public addExtraResponseInfo(extraResponseInfo: ResponseExtraInfo): void {
     this.responseHeaders = extraResponseInfo.responseHeaders;
 
     if (extraResponseInfo.responseHeadersText) {
