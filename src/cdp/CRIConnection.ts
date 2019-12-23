@@ -81,7 +81,7 @@ export class CRIConnection {
 
     this.chromeRemoteInterface.on('event', callback);
 
-    await Promise.all([this.security.enable(), this.network.enable()]);
+    await Promise.all([this.security?.enable(), this.network?.enable()]);
   }
 
   private async scheduleReconnect(): Promise<void> {

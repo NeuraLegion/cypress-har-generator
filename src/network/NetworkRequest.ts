@@ -424,12 +424,12 @@ export class NetworkRequest {
     return this._parsedQueryParameters;
   }
 
-  get requestContentType(): string {
+  get requestContentType(): string | undefined {
     return this.requestHeaderValue('Content-Type');
   }
 
   get priority(): Protocol.Network.ResourcePriority | undefined {
-    return this._currentPriority || this._initialPriority || null;
+    return this._currentPriority ?? this._initialPriority ?? undefined;
   }
 
   set priority(priority: Protocol.Network.ResourcePriority) {
@@ -442,7 +442,7 @@ export class NetworkRequest {
     public readonly documentURL: string,
     public readonly frameId: Protocol.Page.FrameId = '',
     public readonly loaderId: Protocol.Network.LoaderId,
-    public readonly initiator: Protocol.Network.Initiator
+    public readonly initiator?: Protocol.Network.Initiator
   ) {
     this.setUrl(url);
   }
@@ -571,7 +571,7 @@ export class NetworkRequest {
   public responseHttpVersion(): string {
     if (this._responseHeadersText) {
       const firstLine: string = this._responseHeadersText.split(/\r\n/)[0];
-      const match: RegExpMatchArray | undefined = firstLine.match(
+      const match: RegExpMatchArray | null = firstLine.match(
         /^(HTTP\/\d+\.\d+)/
       );
 

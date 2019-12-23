@@ -89,7 +89,7 @@ export class EntryBuilder {
   private async buildRequest(): Promise<Request> {
     const res: Request = {
       method: this.request.requestMethod,
-      url: this.buildRequestURL(this.request.url),
+      url: this.buildRequestURL(this.request.url!),
       httpVersion: this.request.requestHttpVersion,
       headers: this.request.requestHeaders,
       queryString: [...(this.request.queryParameters ?? [])],
@@ -98,7 +98,7 @@ export class EntryBuilder {
       bodySize: await this.requestBodySize()
     };
 
-    const postData: PostData = await this.buildPostData();
+    const postData: PostData | undefined = await this.buildPostData();
 
     if (postData) {
       res.postData = postData;
@@ -220,13 +220,13 @@ export class EntryBuilder {
   }
 
   private leastNonNegative(values: number[]): number {
-    const value: number = values.find((item: number) => item >= 0);
+    const value: number | undefined = values.find((item: number) => item >= 0);
 
     return value ?? -1;
   }
 
-  private async buildPostData(): Promise<PostData> {
-    const postData: string = await this.request.requestFormData();
+  private async buildPostData(): Promise<PostData | undefined> {
+    const postData: string | undefined = await this.request.requestFormData();
 
     if (!postData) {
       return;

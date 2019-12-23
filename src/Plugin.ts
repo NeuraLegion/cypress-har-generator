@@ -1,12 +1,5 @@
-import { Logger } from './utils';
+import { FileManager, Logger } from './utils';
 import { CRIConnection, RetryStrategy } from './cdp';
-import {
-  access as accessCb,
-  constants,
-  unlink as unlinkCb,
-  writeFile as writeFileCb
-} from 'fs';
-import { promisify } from 'util';
 import {
   EntryBuilder,
   HarBuilder,
@@ -14,17 +7,17 @@ import {
   NetworkRequest
 } from './network';
 import { Entry, Har } from 'har-format';
-
-const access = promisify(accessCb);
-const unlink = promisify(unlinkCb);
-const writeFile = promisify(writeFileCb);
+import { resolve } from 'path';
 
 export class Plugin {
   private rdpPort?: number;
   private entries: Entry[] = [];
   private connection?: CRIConnection;
 
-  constructor(private readonly logger: Logger) {}
+  constructor(
+    private readonly logger: Logger,
+    private readonly fileManager: FileManager
+  ) {}
 
   public ensureRequiredBrowserFlags(
     browser: Cypress.Browser,
@@ -61,11 +54,16 @@ export class Plugin {
   public async saveHar(fileName: string): Promise<void> {
     this.fileIsDefined(fileName);
 
-    await this.removeHar(fileName);
+    if (!this.connection) {
+      this.logger.err(`Failed to save HAR. First you should start recording.`);
+
+      return null;
+    }
 
     try {
+      await this.fileManager.createIfIsNotExist(resolve(fileName, '..'));
       const har: string = this.buildHar();
-      await writeFile(fileName, har);
+      await this.fileManager.writeFile(fileName, har);
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     } finally {
@@ -79,15 +77,6 @@ export class Plugin {
     const har: Har = new HarBuilder(this.entries).build();
 
     return JSON.stringify(har, null, 2);
-  }
-
-  private async removeHar(fileName: string): Promise<void> {
-    try {
-      await access(fileName, constants.F_OK);
-      await unlink(fileName);
-    } catch (e) {}
-
-    return null;
   }
 
   private async subscribeToRequests(): Promise<void> {
@@ -146,7 +135,7 @@ export class Plugin {
   }
 
   private getRdpPortFromArgs(args: string[]): number | undefined {
-    const existing: string = args.find((arg) =>
+    const existing: string | undefined = args.find((arg) =>
       arg.startsWith('--remote-debugging-port=')
     );
 

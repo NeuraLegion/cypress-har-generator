@@ -202,7 +202,7 @@ export class NetworkObserver {
     requestId,
     url
   }: Protocol.Network.WebSocketCreatedEvent): void {
-    const entry: NetworkRequest | undefined = this.createRequest(
+    const entry: NetworkRequest = this.createRequest(
       requestId,
       '',
       '',
@@ -360,7 +360,7 @@ export class NetworkObserver {
       );
     }
 
-    return this._extraInfoBuilders.get(requestId);
+    return this._extraInfoBuilders.get(requestId)!;
   }
 
   private _appendRedirect(
@@ -368,9 +368,9 @@ export class NetworkObserver {
     time: Protocol.Network.MonotonicTime,
     redirectURL: string
   ): NetworkRequest {
-    const originalNetworkRequest:
-      | NetworkRequest
-      | undefined = this._entries.get(requestId);
+    const originalNetworkRequest: NetworkRequest = this._entries.get(
+      requestId
+    ) as NetworkRequest;
 
     let redirectCount: number = 0;
     let redirect: NetworkRequest | undefined =
@@ -466,7 +466,7 @@ export class NetworkObserver {
     loaderId: Protocol.Network.LoaderId,
     url: string,
     documentURL: string,
-    initiator: Protocol.Network.Initiator
+    initiator?: Protocol.Network.Initiator
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,

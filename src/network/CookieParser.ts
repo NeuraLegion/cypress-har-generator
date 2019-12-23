@@ -11,15 +11,10 @@ export class CookieParser {
   private _originalInputLength?: number;
   private _lastCookie?: NetworkCookie;
   private _lastCookiePosition: number = 0;
-
-  private _cookies: NetworkCookie[];
-
-  get cookies(): NetworkCookie[] {
-    return this._cookies;
-  }
+  private _cookies?: NetworkCookie[];
 
   public parseCookie(cookieHeader: string): NetworkCookie[] | undefined {
-    if (!this._initialize(cookieHeader)) {
+    if (!this._initialize(cookieHeader!)) {
       return;
     }
 
@@ -67,8 +62,8 @@ export class CookieParser {
       return false;
     }
     this._cookies = [];
-    this._lastCookie = null;
-    this._originalInputLength = this._input.length;
+    this._lastCookie = undefined;
+    this._originalInputLength = this._input!.length;
 
     return true;
   }
@@ -76,15 +71,15 @@ export class CookieParser {
   private flushCookie(): void {
     if (this._lastCookie) {
       this._lastCookie.size =
-        this._originalInputLength -
-        this._input.length -
+        this._originalInputLength! -
+        this._input!.length -
         this._lastCookiePosition;
     }
 
     delete this._lastCookie;
   }
 
-  private _extractKeyValue(): KeyValue {
+  private _extractKeyValue(): KeyValue | undefined {
     if (!this._input?.length) {
       return;
     }
@@ -105,7 +100,7 @@ export class CookieParser {
     const result: KeyValue = {
       key: this.toCamelCase(keyValueMatch[1]),
       value: keyValueMatch[2]?.trim(),
-      position: this._originalInputLength - this._input.length
+      position: this._originalInputLength! - this._input.length
     };
 
     this._input = this._input.slice(keyValueMatch[0].length);
@@ -121,13 +116,13 @@ export class CookieParser {
   }
 
   private advanceAndCheckCookieDelimiter(): boolean {
-    const match: RegExpExecArray | undefined = /^\s*[\n;]\s*/.exec(this._input);
+    const match: RegExpExecArray | null = /^\s*[\n;]\s*/.exec(this._input!);
 
     if (!match) {
       return false;
     }
 
-    this._input = this._input.slice(match[0].length);
+    this._input = this._input!.slice(match[0].length);
 
     return match[0].match('\n') !== null;
   }
@@ -143,6 +138,6 @@ export class CookieParser {
         : new NetworkCookie('', keyValue.key);
 
     this._lastCookiePosition = keyValue.position;
-    this._cookies.push(this._lastCookie);
+    this._cookies!.push(this._lastCookie);
   }
 }
