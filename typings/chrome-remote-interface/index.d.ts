@@ -416,6 +416,7 @@ declare module 'chrome-remote-interface' {
     export interface ChromeRemoteInterface extends EventEmitter {
       readonly Network: Network;
       readonly Security: Security;
+      close(): Promise<void>;
     }
 
     export interface ChromeRemoteInterfaceOptions {

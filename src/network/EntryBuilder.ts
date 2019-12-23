@@ -1,4 +1,4 @@
-import { NetworkRequest, WebSocket } from './NetworkRequest';
+import { ContentData, NetworkRequest, WebSocket } from './NetworkRequest';
 import {
   Content,
   Cookie,
@@ -123,11 +123,13 @@ export class EntryBuilder {
   }
 
   private async buildContent(): Promise<Content> {
+    const data: ContentData = await this.request.contentData();
+
     return {
       size: this.request.resourceSize,
       mimeType: this.request.mimeType || 'x-unknown',
-      ...(await this.request.contentData()),
-      compression: this.getResponseCompression() ?? undefined
+      compression: this.getResponseCompression() ?? undefined,
+      ...data
     };
   }
 

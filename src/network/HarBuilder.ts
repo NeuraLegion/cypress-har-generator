@@ -1,19 +1,11 @@
 import { Entry, Har } from 'har-format';
-import { NetworkRequest } from './NetworkRequest';
-import { EntryBuilder } from './EntryBuilder';
 
 export class HarBuilder {
-  constructor(private readonly chromeRequests: NetworkRequest[]) {}
+  constructor(private readonly entries: Entry[]) {}
 
-  public async build(): Promise<Har> {
+  public build(): Har {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { name, version, homepage: comment } = require('../../package.json');
-
-    const entries: Entry[] = await Promise.all(
-      this.chromeRequests.map((request: NetworkRequest) =>
-        new EntryBuilder(request).build()
-      )
-    );
 
     return {
       log: {
@@ -24,7 +16,7 @@ export class HarBuilder {
           version,
           comment
         },
-        entries
+        entries: this.entries
       }
     };
   }

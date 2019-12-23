@@ -7,9 +7,13 @@ import {
   writeFile as writeFileCb
 } from 'fs';
 import { promisify } from 'util';
-import { ChromeRemoteInterface } from 'chrome-remote-interface';
-import { HarBuilder, NetworkObserver, NetworkRequest } from './network';
-import { Har } from 'har-format';
+import {
+  EntryBuilder,
+  HarBuilder,
+  NetworkObserver,
+  NetworkRequest
+} from './network';
+import { Entry, Har } from 'har-format';
 import { PluginOptions } from './PluginOptions';
 
 const access = promisify(accessCb);
@@ -18,7 +22,8 @@ const writeFile = promisify(writeFileCb);
 
 export class Plugin {
   private rdpPort?: number;
-  private readonly requests: NetworkRequest[] = [];
+  private readonly entries: Entry[] = [];
+  private connection?: CRIConnection;
 
   constructor(private readonly logger: Logger, private options: PluginOptions) {
     this.validatePluginOptions(options);
@@ -55,36 +60,49 @@ export class Plugin {
   }
 
   public async recordHar(): Promise<void> {
-    const factory: CRIConnection = new CRIConnection(
+    await this.closeConnection();
+
+    this.connection = new CRIConnection(
       { port: this.rdpPort },
       this.logger,
       new RetryStrategy(20, 5, 100)
     );
 
-    const chromeRemoteInterface: ChromeRemoteInterface = await factory.open();
+    await this.connection.open();
 
-    const networkObservable: NetworkObserver = new NetworkObserver(
-      chromeRemoteInterface,
-      this.logger,
-      this.options
-    );
-
-    await networkObservable.subscribe((request: NetworkRequest) =>
-      this.requests.push(request)
-    );
+    await this.subscribeToRequests();
 
     return null;
   }
 
   public async saveHar(): Promise<void> {
     try {
-      const har: Har = await new HarBuilder(this.requests).build();
+      const har: Har = new HarBuilder(this.entries).build();
       await writeFile(this.options.file, JSON.stringify(har, null, 2));
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     }
 
     return null;
+  }
+
+  private async subscribeToRequests(): Promise<void> {
+    const networkObservable: NetworkObserver = new NetworkObserver(
+      this.connection,
+      this.logger,
+      this.options
+    );
+
+    await networkObservable.subscribe(async (request: NetworkRequest) =>
+      this.entries.push(await new EntryBuilder(request).build())
+    );
+  }
+
+  private async closeConnection(): Promise<void> {
+    if (this.connection) {
+      await this.connection.close();
+      delete this.connection;
+    }
   }
 
   private validatePluginOptions(options: PluginOptions): void | never {
