@@ -71,8 +71,8 @@ By default, a HAR is saved to a file with a name including the current spec’s 
 
 ### recordHar
 
-Starts recording network logs. The plugin records all network requests so long as  browser session is open.
-                              
+Starts recording network logs. The plugin records all network requests so long as the browser session is open.                              
+
 ```js
 cy.recordHar();
 ```
@@ -102,4 +102,3 @@ cypress run --browser chrome --env hars_folders=cypress/hars
 Copyright © 2019 [NeuraLegion](https://github.com/NeuraLegion).
 
 This project is licensed under the MIT License - see the [LICENSE file](LICENSE) for details.
-
