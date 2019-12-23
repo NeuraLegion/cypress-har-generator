@@ -1,57 +1,41 @@
 import { Plugin } from './Plugin';
-import { Logger } from './utils';
-import { PluginOptions } from './PluginOptions';
+import { FileManager, Logger } from './utils';
+import { join } from 'path';
 
-type CypressInstallationCallback = (
-  browser: Cypress.Browser,
-  args: string[]
-) => Promise<string[]> | string[];
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Cypress {
+    interface Chainable<Subject = any> {
+      saveHar(fileName?: string): Chainable<Subject>;
+      recordHar(): Chainable<Subject>;
+    }
+  }
+}
+
+export interface SaveOptions {
+  harsFolder: string;
+  fileName: string;
+}
 
 interface CypressTasks {
-  saveHar(options: PluginOptions): Promise<void>;
-  recordHar(options: PluginOptions): Promise<void>;
-  removeHar(options: PluginOptions): Promise<void>;
+  saveHar(options: SaveOptions): Promise<void>;
+
+  recordHar(): Promise<void>;
 }
 
-type InstallationArg = CypressInstallationCallback | CypressTasks;
+type CypressCallback = (event: 'task', arg?: CypressTasks) => void;
 
-type CypressPluginEvent = 'before:browser:launch' | 'task';
+const plugin: Plugin = new Plugin(Logger.Instance, FileManager.Instance);
 
-type CypressCallback = (
-  event: CypressPluginEvent,
-  arg?: InstallationArg
-) => void;
-
-const DEFAULT_OPTIONS: PluginOptions = {
-  file: './archive.har',
-  stubPath: '/__cypress/xhrs/'
+export const install = (on: CypressCallback): void => {
+  on('task', {
+    saveHar: ({ harsFolder, fileName }: SaveOptions): Promise<void> =>
+      plugin.saveHar(join(harsFolder, fileName)),
+    recordHar: (): Promise<void> => plugin.recordHar()
+  });
 };
 
-const plugin: Plugin = new Plugin(Logger.Instance, DEFAULT_OPTIONS);
-
-export function install(
-  on: CypressCallback,
-  config: Cypress.ConfigOptions
-): void {
-  const env: { [key: string]: any } = config?.env ?? {};
-
-  const pluginOptions: PluginOptions = {
-    file: env?.HAR_FILE ?? DEFAULT_OPTIONS.file,
-    stubPath: env?.STUB_PATH ?? DEFAULT_OPTIONS.stubPath
-  };
-
-  plugin.configure(pluginOptions);
-
-  on('task', {
-    saveHar: (): Promise<void> => plugin.saveHar(),
-    recordHar: (): Promise<void> => plugin.recordHar(),
-    removeHar: (): Promise<void> => plugin.removeHar()
-  });
-}
-
-export function ensureRequiredBrowserFlags(
+export const ensureRequiredBrowserFlags = (
   browser: Cypress.Browser,
   args: string[]
-): string[] {
-  return plugin.ensureRequiredBrowserFlags(browser, args);
-}
+): string[] => plugin.ensureRequiredBrowserFlags(browser, args);

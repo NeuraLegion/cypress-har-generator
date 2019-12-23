@@ -7,7 +7,7 @@ export interface RequestExtraInfo {
 
 export interface ResponseExtraInfo {
   responseHeaders: Header[];
-  responseHeadersText: string;
+  responseHeadersText?: string;
 }
 
 export class ExtraInfoBuilder {
@@ -19,8 +19,13 @@ export class ExtraInfoBuilder {
 
   constructor(private readonly deleteCallback: () => void) {}
 
+  public addRequest(request: NetworkRequest): void {
+    this._requests.push(request);
+  }
+
   public addRequestExtraInfo(info: RequestExtraInfo): void {
     this._requestExtraInfo.push(info);
+    this._hasExtraInfo = true;
     this.sync();
   }
 
@@ -54,7 +59,7 @@ export class ExtraInfoBuilder {
     return this._requests[this._requests.length - 1];
   }
 
-  private getRequestIndex(req: NetworkRequest): number | undefined {
+  private getRequestIndex(req: NetworkRequest): number {
     return this._requests.indexOf(req);
   }
 
@@ -65,21 +70,21 @@ export class ExtraInfoBuilder {
       return;
     }
 
-    const index: number | undefined = this.getRequestIndex(req);
+    const index: number = this.getRequestIndex(req);
 
     const requestExtraInfo: RequestExtraInfo | undefined = this
       ._requestExtraInfo[index];
 
     if (requestExtraInfo) {
       req.addExtraRequestInfo(requestExtraInfo);
-      this._requestExtraInfo[index] = null;
+      delete this._requestExtraInfo[index];
     }
 
     const responseExtraInfo: ResponseExtraInfo | undefined = this
       ._responseExtraInfo[index];
     if (responseExtraInfo) {
       req.addExtraResponseInfo(responseExtraInfo);
-      this._responseExtraInfo[index] = null;
+      delete this._responseExtraInfo[index];
     }
 
     this.deleteIfComplete();

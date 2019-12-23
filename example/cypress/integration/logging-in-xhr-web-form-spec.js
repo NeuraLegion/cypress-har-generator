@@ -1,19 +1,20 @@
 /// <reference types="cypress" />
 
-// This recipe is very similar to the 'Logging In - HTML web form'
-// except that is uses AJAX (XHR's) under the hood instead
-// of using a regular HTML form submission.
-//
-// We are going to test a few things:
-// 1. Test login form using XHR's
-// 2. Test error states
-// 3. Stub login XHR with errors and success
-// 4. Stub Login.redirect method
-
 // Be sure to run `npm start` to start the server
 // before running the tests below.
 
 describe('Logging In - XHR Web Form', function() {
+  before(() => {
+    // start recording
+    cy.recordHar();
+  });
+
+  after(() => {
+    // HAR will be saved as users.spec.har
+    // at the root of the project
+    cy.saveHar();
+  });
+
   // normally sensitive information like username and password
   // should be passed via environment variables
   // https://on.cypress.io/env

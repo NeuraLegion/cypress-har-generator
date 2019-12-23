@@ -424,12 +424,12 @@ export class NetworkRequest {
     return this._parsedQueryParameters;
   }
 
-  get requestContentType(): string {
+  get requestContentType(): string | undefined {
     return this.requestHeaderValue('Content-Type');
   }
 
   get priority(): Protocol.Network.ResourcePriority | undefined {
-    return this._currentPriority || this._initialPriority || null;
+    return this._currentPriority ?? this._initialPriority ?? undefined;
   }
 
   set priority(priority: Protocol.Network.ResourcePriority) {
@@ -442,7 +442,7 @@ export class NetworkRequest {
     public readonly documentURL: string,
     public readonly frameId: Protocol.Page.FrameId = '',
     public readonly loaderId: Protocol.Network.LoaderId,
-    public readonly initiator: Protocol.Network.Initiator
+    public readonly initiator?: Protocol.Network.Initiator
   ) {
     this.setUrl(url);
   }
@@ -571,7 +571,7 @@ export class NetworkRequest {
   public responseHttpVersion(): string {
     if (this._responseHeadersText) {
       const firstLine: string = this._responseHeadersText.split(/\r\n/)[0];
-      const match: RegExpMatchArray | undefined = firstLine.match(
+      const match: RegExpMatchArray | null = firstLine.match(
         /^(HTTP\/\d+\.\d+)/
       );
 
@@ -661,20 +661,22 @@ export class NetworkRequest {
 
     if (extraResponseInfo.responseHeadersText) {
       this.responseHeadersText = extraResponseInfo.responseHeadersText;
-    } else {
-      let requestHeadersText: string = `${this._requestMethod} ${this.parsedURL.path}`;
 
-      if (this.parsedURL.query) {
-        requestHeadersText += `?${this.parsedURL.query}`;
+      if (this.requestHeadersText) {
+        let requestHeadersText: string = `${this._requestMethod} ${this.parsedURL.path}`;
+
+        if (this.parsedURL.query) {
+          requestHeadersText += `?${this.parsedURL.query}`;
+        }
+
+        requestHeadersText += ` HTTP/1.1\r\n`;
+
+        for (const { name, value } of this.requestHeaders) {
+          requestHeadersText += `${name}: ${value}\r\n`;
+        }
+
+        this.requestHeadersText = requestHeadersText;
       }
-
-      requestHeadersText += ` HTTP/1.1\r\n`;
-
-      for (const { name, value } of this.requestHeaders) {
-        requestHeadersText += `${name}: ${value}\r\n`;
-      }
-
-      this.requestHeadersText = requestHeadersText;
     }
 
     this._hasExtraResponseInfo = true;

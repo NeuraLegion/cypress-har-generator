@@ -23,7 +23,10 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "typeRoots": ["node_modules/@types", "typings"],
+    "typeRoots": [
+      "node_modules/@types",
+      "@types"
+    ],
     "types": ["cypress", "node", "chrome-remote-interface"],
     "skipLibCheck": true,
     "newLine": "LF",
@@ -32,5 +35,5 @@
     "inlineSourceMap": true
   },
   "include": ["src"],
-  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "webpack", "**/*.spec.ts"]
 }

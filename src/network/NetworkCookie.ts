@@ -69,14 +69,12 @@ export class NetworkCookie {
     return this._attributes.get(CookieAttribute.Domain);
   }
 
-  get expires(): string {
+  get expires(): string | undefined {
     return this._attributes.get(CookieAttribute.Expires);
   }
 
-  get maxAge(): number {
-    const maxAge: string | undefined = this._attributes.get(
-      CookieAttribute.MaxAge
-    );
+  get maxAge(): number | undefined {
+    const maxAge: string = this._attributes.get(CookieAttribute.MaxAge) ?? '';
 
     return isNaN(+maxAge) ? undefined : +maxAge;
   }
@@ -104,7 +102,7 @@ export class NetworkCookie {
     return;
   }
 
-  public addAttribute(key: string, value: string): void {
+  public addAttribute(key: string, value?: string): void {
     this._attributes[key.toLowerCase()] = value;
   }
 }

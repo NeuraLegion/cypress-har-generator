@@ -30,14 +30,33 @@ module.exports = (on, config) => {
 };
 ```
 
-After then, you should register tasks that perform the manipulation with the HAR file. 
+After then, you should register commands that perform the manipulation with the HAR file. 
 For that add this module to your support file `cypress/support/index.js`:
 
 ```js
-require('@neuralegion/cypress-har-generator/support');
+require('@neuralegion/cypress-har-generator/commands');
 ```
 
-Once the configuration is completed, start the tests with:
+Once the configuration is completed, add the following code into each test:
+
+```js
+// cypress/integration/users.spec.js
+
+describe('my tests', () => {
+  before(() => {
+    // start recording
+    cy.recordHar();
+  });
+
+  after(() => {
+    // HAR will be saved as users.spec.har 
+    // at the root of the project 
+    cy.saveHar();
+  });
+});
+```
+
+After then, you can start the tests with:
 
 ```bash
 cypress run --browser chrome
@@ -45,13 +64,41 @@ cypress run --browser chrome
 
 > ✴  Now only Chrome family browsers are supported.
 
-When the cypress finished executing tests, the plugin will save a new archive `archive.har` at the root of the project.
+When the cypress finished executing tests, the plugin will save a new archive at the root of the project.
+By default, a HAR is saved to a file with a name including the current spec’s name: `{specName}.har`
 
-> ✴  If you want to change the path to the file, you can specify it by setting the `CYPRESS_HAR_FILE` environment variable.
+## Commands
+
+### recordHar
+
+Starts recording network logs. The plugin records all network requests so long as the browser session is open.                              
+
+```js
+cy.recordHar();
+```
+
+### saveHar
+
+Stops recording and save all requests that have occurred since you run recording to the HAR file.
+                              
+```js
+cy.saveHar();
+```
+
+Pass a filename to change the default naming behavior. 
+
+```js
+cy.saveHar(fileName);
+```
+
+If you want to change the path to the files, you can specify it by setting the `hars_folder` environment variable.
+ 
+```bash
+cypress run --browser chrome --env hars_folders=cypress/hars
+```
 
 ## License
 
 Copyright © 2019 [NeuraLegion](https://github.com/NeuraLegion).
 
 This project is licensed under the MIT License - see the [LICENSE file](LICENSE) for details.
-
