@@ -661,20 +661,22 @@ export class NetworkRequest {
 
     if (extraResponseInfo.responseHeadersText) {
       this.responseHeadersText = extraResponseInfo.responseHeadersText;
-    } else {
-      let requestHeadersText: string = `${this._requestMethod} ${this.parsedURL.path}`;
 
-      if (this.parsedURL.query) {
-        requestHeadersText += `?${this.parsedURL.query}`;
+      if (this.requestHeadersText) {
+        let requestHeadersText: string = `${this._requestMethod} ${this.parsedURL.path}`;
+
+        if (this.parsedURL.query) {
+          requestHeadersText += `?${this.parsedURL.query}`;
+        }
+
+        requestHeadersText += ` HTTP/1.1\r\n`;
+
+        for (const { name, value } of this.requestHeaders) {
+          requestHeadersText += `${name}: ${value}\r\n`;
+        }
+
+        this.requestHeadersText = requestHeadersText;
       }
-
-      requestHeadersText += ` HTTP/1.1\r\n`;
-
-      for (const { name, value } of this.requestHeaders) {
-        requestHeadersText += `${name}: ${value}\r\n`;
-      }
-
-      this.requestHeadersText = requestHeadersText;
     }
 
     this._hasExtraResponseInfo = true;

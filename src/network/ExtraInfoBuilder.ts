@@ -19,8 +19,13 @@ export class ExtraInfoBuilder {
 
   constructor(private readonly deleteCallback: () => void) {}
 
+  public addRequest(request: NetworkRequest): void {
+    this._requests.push(request);
+  }
+
   public addRequestExtraInfo(info: RequestExtraInfo): void {
     this._requestExtraInfo.push(info);
+    this._hasExtraInfo = true;
     this.sync();
   }
 

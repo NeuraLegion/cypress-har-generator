@@ -112,6 +112,8 @@ export class NetworkObserver {
     entry.setIssueTime(timestamp, wallTime);
     entry.resourceType = type ?? 'Other';
 
+    this.getExtraInfoBuilder(requestId).addRequest(entry);
+
     this.startRequest(entry);
   }
 
@@ -320,12 +322,6 @@ export class NetworkObserver {
     requestId,
     headers
   }: Protocol.Network.RequestWillBeSentExtraInfoEvent): void {
-    const entry: NetworkRequest | undefined = this._entries.get(requestId);
-
-    if (!entry) {
-      return;
-    }
-
     this.getExtraInfoBuilder(requestId).addRequestExtraInfo({
       requestHeaders: this.headersMapToHeadersArray(headers)
     });
@@ -336,12 +332,6 @@ export class NetworkObserver {
     headers,
     headersText
   }: Protocol.Network.ResponseReceivedExtraInfoEvent): void {
-    const entry: NetworkRequest | undefined = this._entries.get(requestId);
-
-    if (!entry) {
-      return;
-    }
-
     this.getExtraInfoBuilder(requestId).addResponseExtraInfo({
       responseHeaders: this.headersMapToHeadersArray(headers),
       responseHeadersText: headersText
