@@ -8,7 +8,7 @@ import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 
 export class NetworkObserver {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
-  private readonly _extraInfoBulders: Map<
+  private readonly _extraInfoBuilders: Map<
     Protocol.Network.RequestId,
     ExtraInfoBuilder
   >;
@@ -18,13 +18,10 @@ export class NetworkObserver {
 
   constructor(
     private readonly connection: CRIConnection,
-    private readonly logger: Logger,
-    private readonly options: {
-      stubPath: string;
-    }
+    private readonly logger: Logger
   ) {
     this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
-    this._extraInfoBulders = new Map<
+    this._extraInfoBuilders = new Map<
       Protocol.Network.RequestId,
       ExtraInfoBuilder
     >();
@@ -354,16 +351,16 @@ export class NetworkObserver {
   private getExtraInfoBuilder(
     requestId: Protocol.Network.RequestId
   ): ExtraInfoBuilder {
-    if (!this._extraInfoBulders.has(requestId)) {
-      this._extraInfoBulders.set(
+    if (!this._extraInfoBuilders.has(requestId)) {
+      this._extraInfoBuilders.set(
         requestId,
         new ExtraInfoBuilder((): void => {
-          this._extraInfoBulders.delete(requestId);
+          this._extraInfoBuilders.delete(requestId);
         })
       );
     }
 
-    return this._extraInfoBulders.get(requestId);
+    return this._extraInfoBuilders.get(requestId);
   }
 
   private _appendRedirect(
@@ -473,7 +470,7 @@ export class NetworkObserver {
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,
-      this.stripStubPathFromUrl(url),
+      url,
       documentURL,
       frameId,
       loaderId,
@@ -481,18 +478,12 @@ export class NetworkObserver {
     );
   }
 
-  private stripStubPathFromUrl(url: string): string {
-    const indexOfStubPath: number = url.indexOf(this.options.stubPath);
-
-    return indexOfStubPath !== -1 ? url.substring(indexOfStubPath) : url;
-  }
-
   private updateNetworkRequestWithResponse(
     networkRequest: NetworkRequest,
     response: Protocol.Network.Response
   ): void {
     if (response.url && networkRequest.url !== response.url) {
-      networkRequest.setUrl(this.stripStubPathFromUrl(response.url));
+      networkRequest.setUrl(response.url);
     }
     networkRequest.mimeType = response.mimeType;
     networkRequest.statusCode = response.status;

@@ -14,7 +14,6 @@ import {
   NetworkRequest
 } from './network';
 import { Entry, Har } from 'har-format';
-import { PluginOptions } from './PluginOptions';
 
 const access = promisify(accessCb);
 const unlink = promisify(unlinkCb);
@@ -22,17 +21,10 @@ const writeFile = promisify(writeFileCb);
 
 export class Plugin {
   private rdpPort?: number;
-  private readonly entries: Entry[] = [];
+  private entries: Entry[] = [];
   private connection?: CRIConnection;
 
-  constructor(private readonly logger: Logger, private options: PluginOptions) {
-    this.validatePluginOptions(options);
-  }
-
-  public configure(options: PluginOptions): void {
-    this.validatePluginOptions(options);
-    this.options = options;
-  }
+  constructor(private readonly logger: Logger) {}
 
   public ensureRequiredBrowserFlags(
     browser: Cypress.Browser,
@@ -48,15 +40,6 @@ export class Plugin {
     args = this.ensureRdpPort(args);
 
     return args;
-  }
-
-  public async removeHar(): Promise<void> {
-    try {
-      await access(this.options.file, constants.F_OK);
-      await unlink(this.options.file);
-    } catch (e) {}
-
-    return null;
   }
 
   public async recordHar(): Promise<void> {
@@ -75,13 +58,34 @@ export class Plugin {
     return null;
   }
 
-  public async saveHar(): Promise<void> {
+  public async saveHar(fileName: string): Promise<void> {
+    this.fileIsDefined(fileName);
+
+    await this.removeHar(fileName);
+
     try {
-      const har: Har = new HarBuilder(this.entries).build();
-      await writeFile(this.options.file, JSON.stringify(har, null, 2));
+      const har: string = this.buildHar();
+      await writeFile(fileName, har);
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
+    } finally {
+      this.entries = [];
     }
+
+    return null;
+  }
+
+  private buildHar(): string {
+    const har: Har = new HarBuilder(this.entries).build();
+
+    return JSON.stringify(har, null, 2);
+  }
+
+  private async removeHar(fileName: string): Promise<void> {
+    try {
+      await access(fileName, constants.F_OK);
+      await unlink(fileName);
+    } catch (e) {}
 
     return null;
   }
@@ -89,8 +93,7 @@ export class Plugin {
   private async subscribeToRequests(): Promise<void> {
     const networkObservable: NetworkObserver = new NetworkObserver(
       this.connection,
-      this.logger,
-      this.options
+      this.logger
     );
 
     await networkObservable.subscribe(async (request: NetworkRequest) =>
@@ -102,19 +105,6 @@ export class Plugin {
     if (this.connection) {
       await this.connection.close();
       delete this.connection;
-    }
-  }
-
-  private validatePluginOptions(options: PluginOptions): void | never {
-    this.stubPathIsDefined(options.stubPath);
-    this.fileIsDefined(options.file);
-  }
-
-  private stubPathIsDefined(
-    stubPath: string | undefined
-  ): asserts stubPath is string {
-    if (typeof stubPath !== 'string') {
-      throw new Error('Stub path path must be a string.');
     }
   }
 
