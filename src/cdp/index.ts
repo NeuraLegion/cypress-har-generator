@@ -1,2 +1,6 @@
-export { CRIConnection } from './CRIConnection';
+export {
+  CRIConnection,
+  ChromeRemoteInterfaceEvent,
+  ChromeRemoteInterfaceMethod
+} from './CRIConnection';
 export { RetryStrategy } from './RetryStrategy';

@@ -1,9 +1,9 @@
 import Protocol from 'devtools-protocol';
 import { parse as parseUrl, UrlWithStringQuery } from 'url';
 import { Header, Param, QueryString } from 'har-format';
-import { Network } from 'chrome-remote-interface';
 import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
+import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
 
 export interface ContentData {
   error?: string;
@@ -26,7 +26,7 @@ export interface WebSocket {
 }
 
 export class NetworkRequest {
-  private _contentData?: ContentData;
+  private _contentData?: Promise<ContentData>;
   private _wallIssueTime: Protocol.Network.TimeSinceEpoch = -1;
   private _requestHeaderValues: Map<string, string> = new Map<string, string>();
   private _responseHeaderValues: Map<string, string> = new Map<
@@ -35,9 +35,9 @@ export class NetworkRequest {
   >();
   private _parsedQueryParameters?: QueryString[];
   private _currentPriority?: Protocol.Network.ResourcePriority;
-  private _requestFormDataPromise: Promise<
-    string | undefined
-  > = Promise.resolve(undefined);
+  private _requestFormData: Promise<string | undefined> = Promise.resolve(
+    undefined
+  );
   private _formParametersPromise?: Promise<Param[]>;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
@@ -442,8 +442,7 @@ export class NetworkRequest {
     public readonly documentURL: string,
     public readonly frameId: Protocol.Page.FrameId = '',
     public readonly loaderId: Protocol.Network.LoaderId,
-    public readonly initiator: Protocol.Network.Initiator,
-    private readonly network: Network
+    public readonly initiator: Protocol.Network.Initiator
   ) {
     this.setUrl(url);
   }
@@ -509,24 +508,12 @@ export class NetworkRequest {
   }
 
   public requestFormData(): Promise<string | undefined> {
-    try {
-      // eslint-disable-next-line @typescript-eslint/tslint/config
-      if (!this._requestFormDataPromise) {
-        this._requestFormDataPromise = this.network
-          .getRequestPostData({ requestId: this.requestId })
-          .then(
-            ({ postData }: Protocol.Network.GetRequestPostDataResponse) =>
-              postData
-          );
-      }
-
-      return this._requestFormDataPromise;
-    } catch (e) {}
+    return this._requestFormData;
   }
 
-  public setRequestFormData(hasData: boolean, data: string): void {
-    this._requestFormDataPromise =
-      hasData && data === null ? null : Promise.resolve(data);
+  public setRequestFormData(data: string | Promise<string | undefined>): void {
+    this._requestFormData =
+      typeof data === 'string' ? Promise.resolve(data) : data;
     this._formParametersPromise = null;
   }
 
@@ -602,29 +589,29 @@ export class NetworkRequest {
     return this.getFilteredProtocolName();
   }
 
-  public async contentData(): Promise<ContentData> {
-    if (this._contentData) {
-      return this._contentData;
-    }
-
+  public setContentData(
+    data?: Promise<Protocol.Network.GetResponseBodyResponse>
+  ): void {
     if (this.resourceType === 'WebSocket') {
-      return {
+      this._contentData = Promise.resolve({
         error: 'Content for WebSockets is currently not supported'
-      };
+      });
     }
 
-    try {
-      const response: Protocol.Network.GetResponseBodyResponse = await this.network.getResponseBody(
-        { requestId: this.requestId }
-      );
-      this._contentData = {
-        text: response.body,
-        encoding: response.base64Encoded ? 'base64' : undefined
-      };
-    } catch (e) {
-      this._contentData = { error: e.message };
-    }
+    this._contentData = data
+      .then(
+        ({
+          body: text,
+          base64Encoded
+        }: Protocol.Network.GetResponseBodyResponse) => ({
+          text,
+          encoding: base64Encoded ? 'base64' : undefined
+        })
+      )
+      .catch((e: Error) => ({ error: e.message }));
+  }
 
+  public contentData(): Promise<ContentData> | undefined {
     return this._contentData;
   }
 
@@ -663,18 +650,13 @@ export class NetworkRequest {
     this._requestId = `${this.requestId}:redirected.${redirectCount}`;
   }
 
-  public addExtraRequestInfo(extraRequestInfo: {
-    requestHeaders: Header[];
-  }): void {
+  public addExtraRequestInfo(extraRequestInfo: RequestExtraInfo): void {
     this.requestHeaders = extraRequestInfo.requestHeaders;
     this._hasExtraRequestInfo = true;
     this.requestHeadersText = '';
   }
 
-  public addExtraResponseInfo(extraResponseInfo: {
-    responseHeaders: Header[];
-    responseHeadersText: string;
-  }): void {
+  public addExtraResponseInfo(extraResponseInfo: ResponseExtraInfo): void {
     this.responseHeaders = extraResponseInfo.responseHeaders;
 
     if (extraResponseInfo.responseHeadersText) {

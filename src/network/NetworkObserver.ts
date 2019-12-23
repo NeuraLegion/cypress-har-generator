@@ -1,32 +1,36 @@
 import Protocol from 'devtools-protocol';
-import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
-import { ChromeRemoteInterface, Network } from 'chrome-remote-interface';
+import { Network, Security } from 'chrome-remote-interface';
 import { Logger } from '../utils';
 import { Header } from 'har-format';
 import { NetworkRequest } from './NetworkRequest';
-
-export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
-
-export type ChromeRemoteInterfaceEvent = {
-  method: ChromeRemoteInterfaceMethod;
-  params?: ProtocolMapping.Events[ChromeRemoteInterfaceMethod][0];
-};
+import { ChromeRemoteInterfaceEvent, CRIConnection } from '../cdp';
+import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 
 export class NetworkObserver {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
+  private readonly _extraInfoBulders: Map<
+    Protocol.Network.RequestId,
+    ExtraInfoBuilder
+  >;
   private readonly network: Network;
   private destination: (chromeEntry: NetworkRequest) => void;
+  private readonly security: Security;
 
   constructor(
-    private readonly chromeRemoteInterface: ChromeRemoteInterface,
+    private readonly connection: CRIConnection,
     private readonly logger: Logger,
     private readonly options: {
       stubPath: string;
     }
   ) {
     this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
-    const { Network: network } = this.chromeRemoteInterface;
+    this._extraInfoBulders = new Map<
+      Protocol.Network.RequestId,
+      ExtraInfoBuilder
+    >();
+    const { network: network, security: security } = this.connection;
     this.network = network;
+    this.security = security;
   }
 
   public async subscribe(
@@ -34,14 +38,19 @@ export class NetworkObserver {
   ): Promise<void> {
     this.destination = (entry: NetworkRequest): void => callback(entry);
 
-    this.chromeRemoteInterface.on(
-      'event',
-      (event: ChromeRemoteInterfaceEvent) => this.handleEvent(event)
+    await this.connection.subscribe((event: ChromeRemoteInterfaceEvent) =>
+      this.handleEvent(event)
     );
 
-    await this.network.enable();
-    await this.network.setCacheDisabled({ cacheDisabled: true });
-    await this.network.setBypassServiceWorker({ bypass: true });
+    this.security.certificateError(({ eventId }) =>
+      this.security.handleCertificateError({ eventId, action: 'continue' })
+    );
+
+    await Promise.all([
+      this.security.setOverrideCertificateErrors({ override: true }),
+      this.network.setCacheDisabled({ cacheDisabled: true }),
+      this.network.setBypassServiceWorker({ bypass: true })
+    ]);
   }
 
   public signedExchangeReceived(
@@ -320,7 +329,7 @@ export class NetworkObserver {
       return;
     }
 
-    entry.addExtraRequestInfo({
+    this.getExtraInfoBuilder(requestId).addRequestExtraInfo({
       requestHeaders: this.headersMapToHeadersArray(headers)
     });
   }
@@ -336,10 +345,25 @@ export class NetworkObserver {
       return;
     }
 
-    entry.addExtraResponseInfo({
+    this.getExtraInfoBuilder(requestId).addResponseExtraInfo({
       responseHeaders: this.headersMapToHeadersArray(headers),
       responseHeadersText: headersText
     });
+  }
+
+  private getExtraInfoBuilder(
+    requestId: Protocol.Network.RequestId
+  ): ExtraInfoBuilder {
+    if (!this._extraInfoBulders.has(requestId)) {
+      this._extraInfoBulders.set(
+        requestId,
+        new ExtraInfoBuilder((): void => {
+          this._extraInfoBulders.delete(requestId);
+        })
+      );
+    }
+
+    return this._extraInfoBulders.get(requestId);
   }
 
   private _appendRedirect(
@@ -397,7 +421,12 @@ export class NetworkObserver {
       }
     }
 
+    networkRequest.setContentData(
+      this.network.getResponseBody({ requestId: networkRequest.requestId })
+    );
+
     this._entries.delete(networkRequest.requestId);
+    this.getExtraInfoBuilder(networkRequest.requestId).finished();
     this.destination(networkRequest);
   }
 
@@ -414,10 +443,24 @@ export class NetworkObserver {
       request.headers
     );
     chromeRequest.setRequestFormData(
-      !!request.hasPostData,
-      request.postData ?? null
+      this.getRequestPostData(chromeRequest.requestId, request)
     );
     chromeRequest.initialPriority = request.initialPriority;
+  }
+
+  private getRequestPostData(
+    requestId: Protocol.Network.RequestId,
+    request: Protocol.Network.Request
+  ): string | Promise<string | undefined> {
+    return request.hasPostData && !!request.postData
+      ? request.postData
+      : this.network
+          .getRequestPostData({ requestId })
+          .then(
+            ({ postData }: Protocol.Network.GetRequestPostDataResponse) =>
+              postData
+          )
+          .catch(() => undefined);
   }
 
   private createRequest(
@@ -434,8 +477,7 @@ export class NetworkObserver {
       documentURL,
       frameId,
       loaderId,
-      initiator,
-      this.network
+      initiator
     );
   }
 
@@ -502,6 +544,7 @@ export class NetworkObserver {
 
   private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {
     const methodName: string = method.substring(method.indexOf('.') + 1);
+
     const handler: Function | undefined = this[methodName];
 
     if (handler) {

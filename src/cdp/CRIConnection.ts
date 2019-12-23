@@ -1,20 +1,40 @@
 import connect, {
   ChromeRemoteInterface,
-  ChromeRemoteInterfaceOptions
+  ChromeRemoteInterfaceOptions,
+  Network,
+  Security
 } from 'chrome-remote-interface';
 import { RetryStrategy } from './RetryStrategy';
 import { Logger } from '../utils';
-import Timeout = NodeJS.Timeout;
 import * as CRIOutputMessages from './CRIOutputMessages';
+import Timeout = NodeJS.Timeout;
+import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
+
+export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
+
+export type ChromeRemoteInterfaceEvent = {
+  method: ChromeRemoteInterfaceMethod;
+  params?: ProtocolMapping.Events[ChromeRemoteInterfaceMethod][0];
+};
 
 export class CRIConnection {
+  private chromeRemoteInterface?: ChromeRemoteInterface;
+
   constructor(
     private readonly options: ChromeRemoteInterfaceOptions,
     private readonly logger: Logger,
     private readonly retryStrategy: RetryStrategy
   ) {}
 
-  public async open(): Promise<ChromeRemoteInterface> {
+  get network(): Network | undefined {
+    return this.chromeRemoteInterface?.Network;
+  }
+
+  get security(): Security | undefined {
+    return this.chromeRemoteInterface?.Security;
+  }
+
+  public async open(): Promise<void> {
     try {
       this.logger.debug(CRIOutputMessages.ATTEMPT_TO_CONNECT);
 
@@ -25,22 +45,13 @@ export class CRIConnection {
         port
       });
 
-      const { Security } = chromeRemoteInterface;
-
-      await Security.enable();
-      await Security.setOverrideCertificateErrors({ override: true });
-
-      Security.certificateError(({ eventId }) =>
-        Security.handleCertificateError({ eventId, action: 'continue' })
-      );
-
       this.logger.debug(CRIOutputMessages.CONNECTED);
 
       chromeRemoteInterface.once('disconnect', () =>
         this.logger.debug(CRIOutputMessages.DISCONNECTED)
       );
 
-      return chromeRemoteInterface;
+      this.chromeRemoteInterface = chromeRemoteInterface;
     } catch (e) {
       this.logger.debug(
         `${CRIOutputMessages.FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`
@@ -50,7 +61,30 @@ export class CRIConnection {
     }
   }
 
-  private async scheduleReconnect(): Promise<ChromeRemoteInterface> {
+  public async close(): Promise<void> {
+    if (this.chromeRemoteInterface) {
+      await this.chromeRemoteInterface.close();
+      this.chromeRemoteInterface.removeAllListeners();
+      delete this.chromeRemoteInterface;
+      this.logger.debug(CRIOutputMessages.DISCONNECTED);
+    }
+  }
+
+  public async subscribe(
+    callback: (event: ChromeRemoteInterfaceEvent) => void
+  ): Promise<void> {
+    if (!this.chromeRemoteInterface) {
+      this.logger.debug(CRIOutputMessages.CONNECTION_IS_NOT_DEFINED);
+
+      return;
+    }
+
+    this.chromeRemoteInterface.on('event', callback);
+
+    await Promise.all([this.security.enable(), this.network.enable()]);
+  }
+
+  private async scheduleReconnect(): Promise<void> {
     const timeout: number | undefined = this.retryStrategy.getNextTime();
 
     if (!timeout) {

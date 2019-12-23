@@ -2,6 +2,7 @@ export const FAILED_ATTEMPT_TO_CONNECT = `Failed to connect to Chrome Debugging 
 export const ATTEMPT_TO_CONNECT = `Attempting to connect to Chrome Debugging Protocol`;
 export const CONNECTED = `Connected to Chrome Debugging Protocol`;
 export const DISCONNECTED = `Chrome Debugging Protocol disconnected`;
+export const CONNECTION_IS_NOT_DEFINED = `Connection to Chrome Debugging Protocol isn't defined yet.`;
 export const FAILED_TO_CONNECT = `${FAILED_ATTEMPT_TO_CONNECT}
 
 Common situations why this would fail:
