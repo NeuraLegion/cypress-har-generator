@@ -1,1 +1,1 @@
-require('../../../support');
+require('../../../commands');

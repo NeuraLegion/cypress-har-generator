@@ -1,9 +1,11 @@
 const { install, ensureRequiredBrowserFlags } = require('../../../dist');
 
-module.exports = (on, config) => {
-  install(on, config);
+module.exports = (on) => {
+  install(on);
 
-  on('before:browser:launch', (browser = {}, args) =>
-    ensureRequiredBrowserFlags(browser, args)
-  );
+  on('before:browser:launch', (browser = {}, args) => {
+    args = ensureRequiredBrowserFlags(browser, args);
+    args.push('--headless');
+    return args;
+  });
 };

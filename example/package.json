@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Log into the server using XHR from end-to-end tests",
   "scripts": {
-    "cypress:run": "CYPRESS_HAR_FILE=./archive.har CYPRESS_STUB_PATH=/__cyrpess/xhrs/ cypress run --browser chrome",
+    "cypress:run": "cypress run --browser chrome --env hars_folders=cypress/hars",
     "start": "node src/index.js --port 7079",
     "test": "npm run --prefix ../ build && start-test 7079 cypress:run"
   },

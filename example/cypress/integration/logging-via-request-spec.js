@@ -4,6 +4,17 @@ describe('Logging in using XHR request', function() {
   const username = 'jane.lane';
   const password = 'password123';
 
+  before(() => {
+    // start recording
+    cy.recordHar();
+  });
+
+  after(() => {
+    // HAR will be saved as users.spec.har
+    // at the root of the project
+    cy.saveHar();
+  });
+
   it('can bypass the UI and yet still log in', function() {
     // oftentimes once we have a proper e2e test around logging in
     // there is NO more reason to actually use our UI to log in users
