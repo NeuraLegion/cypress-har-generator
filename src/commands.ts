@@ -1,5 +1,3 @@
-import { SaveOptions } from './index';
-
 const filename = (path: string): string | undefined => {
   const startIndex: number =
     path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/');
@@ -23,8 +21,10 @@ Cypress.Commands.add('saveHar', (fileName?: string) => {
   const specFileName: string | undefined = Cypress.spec.name;
   const harsFolder: string = Cypress.env('hars_folders') ?? '.';
 
-  cy.task('saveHar', {
-    harsFolder,
-    fileName: harFileName(fileName ?? specFileName)
-  } as SaveOptions);
+  fileName = harFileName(fileName ?? specFileName);
+
+  return cy.task('saveHar', {
+    fileName,
+    harsFolder
+  });
 });
