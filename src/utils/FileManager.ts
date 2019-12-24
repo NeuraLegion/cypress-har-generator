@@ -19,10 +19,10 @@ export class FileManager {
     return this._instance;
   }
 
-  public readonly _access = promisify(accessCb);
-  public readonly _unlink = promisify(unlinkCb);
-  public readonly _writeFile = promisify(writeFileCb);
-  public readonly _mkdir = promisify(mkdirCb);
+  private readonly _access = promisify(accessCb);
+  private readonly _unlink = promisify(unlinkCb);
+  private readonly _writeFile = promisify(writeFileCb);
+  private readonly _mkdir = promisify(mkdirCb);
 
   public async writeFile(path: string, data: string): Promise<void> {
     try {
@@ -33,7 +33,7 @@ export class FileManager {
     }
   }
 
-  public async createIfIsNotExist(path: string): Promise<void> {
+  public async createFolder(path: string): Promise<void> {
     try {
       if (await this.exists(path)) {
         return;

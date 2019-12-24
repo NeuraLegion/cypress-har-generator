@@ -61,7 +61,7 @@ export class Plugin {
     }
 
     try {
-      await this.fileManager.createIfIsNotExist(resolve(fileName, '..'));
+      await this.fileManager.createFolder(resolve(fileName, '..'));
       const har: string = this.buildHar();
       await this.fileManager.writeFile(fileName, har);
     } catch (e) {
