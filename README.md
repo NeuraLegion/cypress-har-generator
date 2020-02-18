@@ -19,14 +19,15 @@ npm i --save-dev @neuralegion/cypress-har-generator
 Next, go to the cypress's directory and put this code is in your `cypress/plugins/index.js` file:
 
 ```js
-const { install, ensureRequiredBrowserFlags } = require('@neuralegion/cypress-har-generator');
+const { install, ensureBrowserFlags } = require('@neuralegion/cypress-har-generator');
 
 module.exports = (on, config) => {
   install(on, config);
   
-  on('before:browser:launch', (browser = {}, args) =>
-    ensureRequiredBrowserFlags(browser, args)
-  );
+  on('before:browser:launch', (browser = {}, launchOptions) => {
+    ensureBrowserFlags(browser, launchOptions);
+    return launchOptions;
+  });
 };
 ```
 

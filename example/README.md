@@ -6,9 +6,9 @@ You can find test files in [cypress/integration](cypress/integration) folder.
 
 ## Install
 
-Run `npm i` to install dependencies.
+Run `npm ci` to install dependencies.
 
 
 ## How to run
 
-Run `npm run test` to trigger tests and run recording.
+Run `npm test` to trigger tests and run recording.

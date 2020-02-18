@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Log into the server using XHR from end-to-end tests",
   "scripts": {
-    "cypress:run": "cypress run --browser chrome --env hars_folders=cypress/hars",
+    "cypress:run": "cypress run --browser chrome --headless --env hars_folders=cypress/hars",
     "start": "node src/index.js --port 7079",
     "test": "npm run --prefix ../ build && start-test 7079 cypress:run"
   },
@@ -11,13 +11,13 @@
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
-    "hbs": "4.0.1",
+    "hbs": "^4.1.0",
     "jquery": "^3.4.1",
     "minimist": "^1.2.0",
     "morgan": "^1.9.1"
   },
   "devDependencies": {
-    "cypress": "^3.7.0",
-    "start-server-and-test": "1.10.6"
+    "cypress": "^4.0.2",
+    "start-server-and-test": "^1.10.8"
   }
 }

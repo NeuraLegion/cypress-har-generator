@@ -19,20 +19,21 @@ export class Plugin {
     private readonly fileManager: FileManager
   ) {}
 
-  public ensureRequiredBrowserFlags(
+  public ensureBrowserFlags(
     browser: Cypress.Browser,
     args: string[]
   ): string[] {
-    if (!this.isChromeFamily(browser)) {
+    if (!this.isSupportedBrowser(browser)) {
       throw new Error(
         `An unsupported browser family was used: ${browser.name}`
       );
     }
 
-    args = this.ensureTestingFlags(args);
-    args = this.ensureRdpPort(args);
+    const browserFlags: string[] = this.ensureRdpPort(
+      this.ensureTestingFlags([...args])
+    );
 
-    return args;
+    return browserFlags.filter((x: string): boolean => !args.includes(x));
   }
 
   public async recordHar(): Promise<void> {
@@ -52,7 +53,7 @@ export class Plugin {
   }
 
   public async saveHar(fileName: string): Promise<void> {
-    this.fileIsDefined(fileName);
+    this.assertFilePath(fileName);
 
     if (!this.connection) {
       this.logger.err(`Failed to save HAR. First you should start recording.`);
@@ -85,8 +86,9 @@ export class Plugin {
       this.logger
     );
 
-    await networkObservable.subscribe(async (request: NetworkRequest) =>
-      this.entries.push(await new EntryBuilder(request).build())
+    await networkObservable.subscribe(
+      async (request: NetworkRequest): Promise<number> =>
+        this.entries.push(await new EntryBuilder(request).build())
     );
   }
 
@@ -97,14 +99,14 @@ export class Plugin {
     }
   }
 
-  private fileIsDefined(file: string | undefined): asserts file is string {
-    if (typeof file !== 'string') {
+  private assertFilePath(path: string | undefined): asserts path is string {
+    if (typeof path !== 'string') {
       throw new Error('File path must be a string.');
     }
   }
 
-  private isChromeFamily(browser: Cypress.Browser): boolean {
-    return ['chrome', 'chromium', 'canary'].includes(browser?.name);
+  private isSupportedBrowser(browser: Cypress.Browser): boolean {
+    return ['chromium'].includes(browser?.family);
   }
 
   private ensureTestingFlags(args: string[]): string[] {
@@ -116,8 +118,7 @@ export class Plugin {
         '--disable-web-security',
         '--reduce-security-for-testing',
         '--allow-insecure-localhost',
-        '--ignore-certificate-errors',
-        '--disable-gpu'
+        '--ignore-certificate-errors'
       ])
     ];
   }
@@ -135,7 +136,7 @@ export class Plugin {
   }
 
   private getRdpPortFromArgs(args: string[]): number | undefined {
-    const existing: string | undefined = args.find((arg) =>
+    const existing: string | undefined = args.find((arg: string): boolean =>
       arg.startsWith('--remote-debugging-port=')
     );
 
