@@ -603,12 +603,12 @@ export class NetworkRequest {
         ({
           body: text,
           base64Encoded
-        }: Protocol.Network.GetResponseBodyResponse) => ({
+        }: Protocol.Network.GetResponseBodyResponse): ContentData => ({
           text,
           encoding: base64Encoded ? 'base64' : undefined
         })
       )
-      .catch((e: Error) => ({ error: e.message }));
+      .catch((e: Error): ContentData => ({ error: e.message }));
   }
 
   public contentData(): Promise<ContentData> | undefined {
@@ -716,7 +716,7 @@ export class NetworkRequest {
       new RegExp(`--${sanitizedBoundary}(?:--\s*$)?`, 'g')
     );
 
-    return fields.reduce((result: Param[], field: string) => {
+    return fields.reduce((result: Param[], field: string): Param[] => {
       const [match, name, value] = field.match(keyValuePattern) || [];
 
       if (!match) {
@@ -755,17 +755,19 @@ export class NetworkRequest {
   }
 
   private parseParameters(queryString: string): QueryString[] {
-    return queryString.split('&').map((pair: string) => {
-      const position: number = pair.indexOf('=');
-      if (position === -1) {
-        return { name: pair, value: '' };
-      } else {
-        return {
-          name: pair.substring(0, position),
-          value: pair.substring(position + 1)
-        };
+    return queryString.split('&').map(
+      (pair: string): QueryString => {
+        const position: number = pair.indexOf('=');
+        if (position === -1) {
+          return { name: pair, value: '' };
+        } else {
+          return {
+            name: pair.substring(0, position),
+            value: pair.substring(position + 1)
+          };
+        }
       }
-    });
+    );
   }
 
   private computeHeaderValue(
@@ -775,11 +777,11 @@ export class NetworkRequest {
     headerName = headerName.toLowerCase();
 
     const values: string[] = headers
-      .filter(({ name }: Header) => name.toLowerCase() === headerName)
-      .map(({ value }) => value);
+      .filter(({ name }: Header): boolean => name.toLowerCase() === headerName)
+      .map(({ value }: Header): string => value);
 
     if (!values.length) {
-      return undefined;
+      return;
     }
 
     // Set-Cookie values should be separated by '\n', not comma, otherwise cookies could not be parsed.

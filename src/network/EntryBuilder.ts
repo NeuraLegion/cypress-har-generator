@@ -33,8 +33,9 @@ export class EntryBuilder {
 
     const timings: Timings = this.buildTimings();
 
-    const time: any = Object.values(timings).reduce(
-      (acc: number, t: number) => (acc += Math.max(t, 0))
+    const time: number = Object.values(timings).reduce(
+      (acc: number, t: number): number => (acc += Math.max(t, 0)),
+      0
     );
 
     const entry: any = {
@@ -220,7 +221,9 @@ export class EntryBuilder {
   }
 
   private leastNonNegative(values: number[]): number {
-    const value: number | undefined = values.find((item: number) => item >= 0);
+    const value: number | undefined = values.find(
+      (item: number): boolean => item >= 0
+    );
 
     return value ?? -1;
   }

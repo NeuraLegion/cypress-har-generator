@@ -47,7 +47,7 @@ export class CRIConnection {
 
       this.logger.debug(CRIOutputMessages.CONNECTED);
 
-      chromeRemoteInterface.once('disconnect', () =>
+      chromeRemoteInterface.once('disconnect', (): void =>
         this.logger.debug(CRIOutputMessages.DISCONNECTED)
       );
 
