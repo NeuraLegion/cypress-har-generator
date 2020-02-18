@@ -15,16 +15,22 @@ const filename = (path: string): string | undefined => {
 const harFileName = (path: string): string | undefined =>
   `${filename(path)}.har`;
 
-Cypress.Commands.add('recordHar', () => cy.task('recordHar'));
+Cypress.Commands.add(
+  'recordHar',
+  (): Cypress.Chainable => cy.task('recordHar')
+);
 
-Cypress.Commands.add('saveHar', (fileName?: string) => {
-  const specFileName: string | undefined = Cypress.spec.name;
-  const harsFolder: string = Cypress.env('hars_folders') ?? '.';
+Cypress.Commands.add(
+  'saveHar',
+  (fileName?: string): Cypress.Chainable => {
+    const specFileName: string | undefined = Cypress.spec.name;
+    const harsFolder: string = Cypress.env('hars_folders') ?? '.';
 
-  fileName = harFileName(fileName ?? specFileName);
+    fileName = harFileName(fileName ?? specFileName);
 
-  return cy.task('saveHar', {
-    fileName,
-    harsFolder
-  });
-});
+    return cy.task('saveHar', {
+      fileName,
+      harsFolder
+    });
+  }
+);

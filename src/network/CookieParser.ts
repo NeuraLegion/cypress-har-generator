@@ -110,9 +110,9 @@ export class CookieParser {
 
   private toCamelCase(str: string): string {
     return str
-      .replace(/\s(.)/g, ($1: string) => $1.toUpperCase())
+      .replace(/\s(.)/g, (m: string): string => m.toUpperCase())
       .replace(/\s/g, '')
-      .replace(/^(.)/, ($1: string) => $1.toLowerCase());
+      .replace(/^(.)/, (m: string): string => m.toLowerCase());
   }
 
   private advanceAndCheckCookieDelimiter(): boolean {

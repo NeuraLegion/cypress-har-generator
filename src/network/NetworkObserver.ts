@@ -35,12 +35,13 @@ export class NetworkObserver {
   ): Promise<void> {
     this.destination = (entry: NetworkRequest): void => callback(entry);
 
-    await this.connection.subscribe((event: ChromeRemoteInterfaceEvent) =>
+    await this.connection.subscribe((event: ChromeRemoteInterfaceEvent): void =>
       this.handleEvent(event)
     );
 
-    this.security.certificateError(({ eventId }) =>
-      this.security.handleCertificateError({ eventId, action: 'continue' })
+    this.security.certificateError(
+      ({ eventId }): Promise<void> =>
+        this.security.handleCertificateError({ eventId, action: 'continue' })
     );
 
     await Promise.all([
@@ -444,10 +445,11 @@ export class NetworkObserver {
       : this.network
           .getRequestPostData({ requestId })
           .then(
-            ({ postData }: Protocol.Network.GetRequestPostDataResponse) =>
+            ({
               postData
+            }: Protocol.Network.GetRequestPostDataResponse): string => postData
           )
-          .catch(() => undefined);
+          .catch((): string => undefined);
   }
 
   private createRequest(
@@ -514,13 +516,16 @@ export class NetworkObserver {
   private headersMapToHeadersArray(
     headersMap: Protocol.Network.Headers
   ): Header[] {
-    return Object.keys(headersMap).reduce((acc: Header[], name: string) => {
-      const values: string[] = headersMap[name].split('\n');
+    return Object.keys(headersMap).reduce(
+      (acc: Header[], name: string): Header[] => {
+        const values: string[] = headersMap[name].split('\n');
 
-      acc.push(...values.map((value: string) => ({ name, value })));
+        acc.push(...values.map((value: string): Header => ({ name, value })));
 
-      return acc;
-    }, []);
+        return acc;
+      },
+      []
+    );
   }
 
   private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {

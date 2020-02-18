@@ -35,7 +35,11 @@ export const install = (on: CypressCallback): void => {
   });
 };
 
-export const ensureRequiredBrowserFlags = (
+export const ensureBrowserFlags = (
   browser: Cypress.Browser,
-  args: string[]
-): string[] => plugin.ensureRequiredBrowserFlags(browser, args);
+  launchOptions: Cypress.BrowserLaunchOptions
+): void => {
+  launchOptions.args.push(
+    ...plugin.ensureBrowserFlags(browser, launchOptions.args)
+  );
+};
