@@ -1,3 +1,5 @@
+import { RecordOptions, SaveOptions } from './Plugin';
+
 const filename = (path: string): string | undefined => {
   const startIndex: number =
     path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/');
@@ -17,20 +19,20 @@ const harFileName = (path: string): string | undefined =>
 
 Cypress.Commands.add(
   'recordHar',
-  (): Cypress.Chainable => cy.task('recordHar')
+  (options?: RecordOptions): Cypress.Chainable =>
+    cy.task('recordHar', Object.assign({ content: true }, options))
 );
 
 Cypress.Commands.add(
   'saveHar',
-  (fileName?: string): Cypress.Chainable => {
-    const specFileName: string | undefined = Cypress.spec.name;
-    const harsFolder: string = Cypress.env('hars_folders') ?? '.';
+  (options?: SaveOptions): Cypress.Chainable => {
+    const fallbackFileName: string = Cypress.spec.name;
+    const outDir: string = Cypress.env('hars_folders') ?? './';
 
-    fileName = harFileName(fileName ?? specFileName);
-
-    return cy.task('saveHar', {
-      fileName,
-      harsFolder
+    options = Object.assign({ outDir }, options, {
+      fileName: harFileName(options?.fileName ?? fallbackFileName)
     });
+
+    return cy.task('saveHar', options);
   }
 );

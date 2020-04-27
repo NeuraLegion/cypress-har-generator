@@ -124,14 +124,16 @@ export class EntryBuilder {
   }
 
   private async buildContent(): Promise<Content> {
-    const data: ContentData = await this.request.contentData();
+    const data: ContentData | undefined = await this.request.contentData();
 
-    return {
-      size: this.request.resourceSize,
-      mimeType: this.request.mimeType || 'x-unknown',
-      compression: this.getResponseCompression() ?? undefined,
-      ...data
-    };
+    return Object.assign(
+      {
+        size: this.request.resourceSize,
+        mimeType: this.request.mimeType || 'x-unknown',
+        compression: this.getResponseCompression() ?? undefined
+      },
+      data
+    );
   }
 
   private buildTimings(): Timings {

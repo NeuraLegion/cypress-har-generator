@@ -78,6 +78,13 @@ Starts recording network logs. The plugin records all network requests so long a
 cy.recordHar();
 ```
 
+You can set `content` flag to `false` to skip loading `content` fields in the HAR. 
+
+```js
+cy.recordHar({ content: false });
+```
+
+
 ### saveHar
 
 Stops recording and save all requests that have occurred since you run recording to the HAR file.
@@ -89,8 +96,16 @@ cy.saveHar();
 Pass a filename to change the default naming behavior. 
 
 ```js
-cy.saveHar(fileName);
+cy.saveHar({ fileName: 'example.com.har' });
 ```
+
+Pass an output directory to change the destination folder manually. 
+It allows overriding the value, that is specified in the `cypress.json`
+
+```js
+cy.saveHar({ outDir: './hars' });
+```
+
 
 If you want to change the path to the files, you can specify it by setting the `hars_folder` environment variable.
  
