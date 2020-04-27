@@ -21,7 +21,7 @@ export interface WebSocket {
   type: WebSocketFrameType;
   data: string;
   time: Protocol.Network.MonotonicTime;
-  opCode: number;
+  opcode: number;
   mask: boolean;
 }
 
@@ -623,7 +623,7 @@ export class NetworkRequest {
       type: WebSocketFrameType.Error,
       data: errorMessage,
       time,
-      opCode: -1,
+      opcode: -1,
       mask: false
     });
   }
@@ -641,7 +641,7 @@ export class NetworkRequest {
       type,
       data: response.payloadData,
       time,
-      opCode: response.opcode,
+      opcode: response.opcode,
       mask: response.mask
     });
   }
