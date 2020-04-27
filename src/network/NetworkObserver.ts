@@ -5,6 +5,7 @@ import { Header } from 'har-format';
 import { NetworkRequest } from './NetworkRequest';
 import { ChromeRemoteInterfaceEvent, CRIConnection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
+import { RecordOptions } from '../Plugin';
 
 export class NetworkObserver {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
@@ -17,6 +18,7 @@ export class NetworkObserver {
   private readonly security: Security;
 
   constructor(
+    private readonly options: RecordOptions,
     private readonly connection: CRIConnection,
     private readonly logger: Logger
   ) {
@@ -41,7 +43,10 @@ export class NetworkObserver {
 
     this.security.certificateError(
       ({ eventId }): Promise<void> =>
-        this.security.handleCertificateError({ eventId, action: 'continue' })
+        this.security.handleCertificateError({
+          eventId,
+          action: 'continue'
+        })
     );
 
     await Promise.all([
@@ -409,9 +414,13 @@ export class NetworkObserver {
       }
     }
 
-    networkRequest.setContentData(
-      this.network.getResponseBody({ requestId: networkRequest.requestId })
-    );
+    if (this.options.content) {
+      networkRequest.setContentData(
+        this.network.getResponseBody({
+          requestId: networkRequest.requestId
+        })
+      );
+    }
 
     this._entries.delete(networkRequest.requestId);
     this.getExtraInfoBuilder(networkRequest.requestId).finished();

@@ -590,7 +590,7 @@ export class NetworkRequest {
   }
 
   public setContentData(
-    data?: Promise<Protocol.Network.GetResponseBodyResponse>
+    data: Promise<Protocol.Network.GetResponseBodyResponse>
   ): void {
     if (this.resourceType === 'WebSocket') {
       this._contentData = Promise.resolve({

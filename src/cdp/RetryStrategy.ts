@@ -1,6 +1,8 @@
+import Timeout = NodeJS.Timeout;
+
 export class RetryStrategy {
   private _times: number;
-  private initialBackoff: number;
+  private backoffTime: number;
   private readonly maximumBackoff: number;
   private readonly maxRetries: number;
 
@@ -11,21 +13,40 @@ export class RetryStrategy {
   ) {
     this._times = 0;
     this.maxRetries = maxRetries;
-    this.initialBackoff = initialBackoff;
+    this.backoffTime = initialBackoff;
     this.maximumBackoff = maximumBackoff;
   }
 
-  public getNextTime(): number | undefined {
-    if (this._times >= this.maxRetries) {
-      return;
+  // eslint-disable-next-line space-before-function-paren
+  public async execute<T extends (...args: any[]) => unknown>(
+    task: T
+  ): Promise<number> {
+    const timeout: number | undefined = this.nextTime();
+
+    if (timeout) {
+      await this.delay(timeout);
+
+      await task();
     }
 
-    return this.getIncreaseBackoffTime();
+    return this.maxRetries - this._times;
   }
 
-  private getIncreaseBackoffTime(): number {
-    this.initialBackoff *= Math.pow(2, ++this._times - 1);
+  private delay(timeout: number): Promise<void> {
+    return new Promise<void>(
+      (resolve): Timeout => setTimeout(resolve, timeout)
+    );
+  }
 
-    return Math.min(this.initialBackoff, this.maximumBackoff);
+  private nextTime(): number | undefined {
+    if (this._times < this.maxRetries) {
+      return this.increaseBackoffTime();
+    }
+  }
+
+  private increaseBackoffTime(): number {
+    this.backoffTime *= Math.pow(2, ++this._times - 1);
+
+    return Math.min(this.backoffTime, this.maximumBackoff);
   }
 }

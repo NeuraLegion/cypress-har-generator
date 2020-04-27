@@ -7,7 +7,6 @@ import connect, {
 import { RetryStrategy } from './RetryStrategy';
 import { Logger } from '../utils';
 import * as CRIOutputMessages from './CRIOutputMessages';
-import Timeout = NodeJS.Timeout;
 import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
@@ -57,7 +56,11 @@ export class CRIConnection {
         `${CRIOutputMessages.FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`
       );
 
-      return this.scheduleReconnect();
+      if (
+        !(await this.retryStrategy.execute((): Promise<void> => this.open()))
+      ) {
+        throw new Error(CRIOutputMessages.FAILED_TO_CONNECT);
+      }
     }
   }
 
@@ -82,23 +85,5 @@ export class CRIConnection {
     this.chromeRemoteInterface.on('event', callback);
 
     await Promise.all([this.security?.enable(), this.network?.enable()]);
-  }
-
-  private async scheduleReconnect(): Promise<void> {
-    const timeout: number | undefined = this.retryStrategy.getNextTime();
-
-    if (!timeout) {
-      throw new Error(CRIOutputMessages.FAILED_TO_CONNECT);
-    }
-
-    await this.delay(timeout);
-
-    return this.open();
-  }
-
-  private delay(timeout: number): Promise<void> {
-    return new Promise<void>(
-      (resolve): Timeout => setTimeout(resolve, timeout)
-    );
   }
 }

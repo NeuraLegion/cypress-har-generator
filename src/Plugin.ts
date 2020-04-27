@@ -7,7 +7,16 @@ import {
   NetworkRequest
 } from './network';
 import { Entry, Har } from 'har-format';
-import { resolve } from 'path';
+import { join } from 'path';
+
+export interface SaveOptions {
+  fileName: string;
+  outDir: string;
+}
+
+export interface RecordOptions {
+  content: boolean;
+}
 
 export class Plugin {
   private rdpPort?: number;
@@ -36,7 +45,7 @@ export class Plugin {
     return browserFlags.filter((x: string): boolean => !args.includes(x));
   }
 
-  public async recordHar(): Promise<void> {
+  public async recordHar(options: RecordOptions): Promise<void> {
     await this.closeConnection();
 
     this.connection = new CRIConnection(
@@ -47,13 +56,15 @@ export class Plugin {
 
     await this.connection.open();
 
-    await this.subscribeToRequests();
+    await this.listenNetworkEvents(options);
 
     return null;
   }
 
-  public async saveHar(fileName: string): Promise<void> {
-    this.assertFilePath(fileName);
+  public async saveHar(options: SaveOptions): Promise<void> {
+    const filePath: string = join(options.outDir, options.fileName);
+
+    this.assertFilePath(filePath);
 
     if (!this.connection) {
       this.logger.err(`Failed to save HAR. First you should start recording.`);
@@ -62,9 +73,9 @@ export class Plugin {
     }
 
     try {
-      await this.fileManager.createFolder(resolve(fileName, '..'));
+      await this.fileManager.createFolder(options.outDir);
       const har: string = this.buildHar();
-      await this.fileManager.writeFile(fileName, har);
+      await this.fileManager.writeFile(filePath, har);
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     } finally {
@@ -80,8 +91,9 @@ export class Plugin {
     return JSON.stringify(har, null, 2);
   }
 
-  private async subscribeToRequests(): Promise<void> {
+  private async listenNetworkEvents(options: RecordOptions): Promise<void> {
     const networkObservable: NetworkObserver = new NetworkObserver(
+      options,
       this.connection,
       this.logger
     );

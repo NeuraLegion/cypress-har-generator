@@ -1,26 +1,21 @@
-import { Plugin } from './Plugin';
+import { Plugin, RecordOptions, SaveOptions } from './Plugin';
 import { FileManager, Logger } from './utils';
-import { join } from 'path';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable<Subject = any> {
-      saveHar(fileName?: string): Chainable<Subject>;
-      recordHar(): Chainable<Subject>;
+      saveHar(options?: SaveOptions): Chainable<Subject>;
+
+      recordHar(options?: RecordOptions): Chainable<Subject>;
     }
   }
-}
-
-export interface SaveOptions {
-  harsFolder: string;
-  fileName: string;
 }
 
 interface CypressTasks {
   saveHar(options: SaveOptions): Promise<void>;
 
-  recordHar(): Promise<void>;
+  recordHar(options: RecordOptions): Promise<void>;
 }
 
 type CypressCallback = (event: 'task', arg?: CypressTasks) => void;
@@ -29,9 +24,9 @@ const plugin: Plugin = new Plugin(Logger.Instance, FileManager.Instance);
 
 export const install = (on: CypressCallback): void => {
   on('task', {
-    saveHar: ({ harsFolder, fileName }: SaveOptions): Promise<void> =>
-      plugin.saveHar(join(harsFolder, fileName)),
-    recordHar: (): Promise<void> => plugin.recordHar()
+    saveHar: (options: SaveOptions): Promise<void> => plugin.saveHar(options),
+    recordHar: (options: RecordOptions): Promise<void> =>
+      plugin.recordHar(options)
   });
 };
 
@@ -43,3 +38,5 @@ export const ensureBrowserFlags = (
     ...plugin.ensureBrowserFlags(browser, launchOptions.args)
   );
 };
+
+export { SaveOptions, RecordOptions } from './Plugin';
