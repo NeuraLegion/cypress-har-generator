@@ -115,6 +115,6 @@ cypress run --browser chrome --env hars_folders=cypress/hars
 
 ## License
 
-Copyright © 2019 [NeuraLegion](https://github.com/NeuraLegion).
+Copyright © 2020 [NeuraLegion](https://github.com/NeuraLegion).
 
 This project is licensed under the MIT License - see the [LICENSE file](LICENSE) for details.
