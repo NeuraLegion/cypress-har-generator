@@ -1,4 +1,4 @@
-import { ContentData, NetworkRequest, WebSocket } from './NetworkRequest';
+import { ContentData, NetworkRequest } from './NetworkRequest';
 import {
   Content,
   Cookie,
@@ -11,13 +11,6 @@ import {
 } from 'har-format';
 import Protocol from 'devtools-protocol';
 import { NetworkCookie } from './NetworkCookie';
-
-export interface WsarWebSocketFrame {
-  request?: string;
-  response?: string;
-  opcode: number;
-  mask: boolean;
-}
 
 export class EntryBuilder {
   constructor(private readonly request: NetworkRequest) {}
@@ -50,7 +43,7 @@ export class EntryBuilder {
       serverIPAddress: serverIPAddress.replace(/\[\]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,
-      _websocket: this.buildWebSockets(this.request.frames ?? [])
+      _webSocketMessages: this.request.frames ?? []
     };
 
     if (this.request.connectionId !== '0') {
@@ -255,20 +248,8 @@ export class EntryBuilder {
     return url.split('#', 2)[0];
   }
 
-  private buildWebSockets(frames: WebSocket[]): WsarWebSocketFrame[] {
-    return frames.map(this.buildSocket.bind(this));
-  }
-
   private buildCookies(cookies: NetworkCookie[]): Cookie[] {
     return cookies.map(this.buildCookie.bind(this));
-  }
-
-  private buildSocket(frame: WebSocket): WsarWebSocketFrame {
-    return ({
-      [frame.type]: frame.data,
-      opcode: frame.opCode,
-      mask: frame.mask
-    } as unknown) as WsarWebSocketFrame;
   }
 
   private buildCookie(cookie: NetworkCookie): Cookie {
