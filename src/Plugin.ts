@@ -127,7 +127,6 @@ export class Plugin {
         ...args,
         '--no-sandbox',
         '--disable-background-networking',
-        '--disable-web-security',
         '--reduce-security-for-testing',
         '--allow-insecure-localhost',
         '--ignore-certificate-errors'
