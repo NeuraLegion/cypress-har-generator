@@ -106,6 +106,27 @@ It allows overriding the value, that is specified in the `cypress.json`
 cy.saveHar({ outDir: './hars' });
 ```
 
+Generate HAR file only for chrome, if it is not interactive run, and if test failed.
+```
+beforeEach( function () {
+    const isInteractive = Cypress.config('isInteractive');
+    const isChrome = Cypress.browser.name === 'chrome';
+
+    if (!isInteractive && isChrome) {
+        cy.recordHar();
+    }
+});
+
+afterEach( function () {
+    const { state } = this.currentTest;
+    const isInteractive = Cypress.config('isInteractive');
+    const isChrome = Cypress.browser.name === 'chrome';
+
+    if (!isInteractive && isChrome && state !== 'passed') {
+        cy.saveHar();
+    }
+});
+```
 
 If you want to change the path to the files, you can specify it by setting the `hars_folder` environment variable.
  
