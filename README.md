@@ -108,14 +108,14 @@ cy.saveHar({ outDir: './hars' });
 
 Generate HAR file only for chrome, if it is not interactive run, and if test failed.
 ```
-beforeEach(function () {
+beforeEach(() => {
   const isInteractive = Cypress.config('isInteractive');
   const isChrome = Cypress.browser.name === 'chrome';
   if (!isInteractive && isChrome) {
     cy.recordHar();
   }
 });
-afterEach(function () {
+afterEach(() => {
   const { state } = this.currentTest;
   const isInteractive = Cypress.config('isInteractive');
   const isChrome = Cypress.browser.name === 'chrome';
