@@ -10,8 +10,8 @@ import { Entry, Har } from 'har-format';
 import { join } from 'path';
 
 export interface SaveOptions {
-  fileName: string;
-  outDir: string;
+  fileName?: string;
+  outDir?: string;
 }
 
 export interface RecordOptions {
