@@ -5,7 +5,7 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
     interface Chainable<Subject = any> {
-      saveHar(options?: SaveOptions): Chainable<Subject>;
+      saveHar(options?: Partial<SaveOptions>): Chainable<Subject>;
 
       recordHar(options?: RecordOptions): Chainable<Subject>;
     }
