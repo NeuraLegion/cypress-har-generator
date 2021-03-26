@@ -62,6 +62,10 @@ export class Plugin {
     return null;
   }
 
+  public async recordNetworkRequest(request: NetworkRequest): Promise<number> {
+    return this.entries.push(await new EntryBuilder(request).build());
+  }
+
   public async saveHar(options: SaveOptions): Promise<void> {
     const filePath: string = join(options.outDir, options.fileName);
 
@@ -111,7 +115,7 @@ export class Plugin {
           return this.entries.length;
         }
 
-        return this.entries.push(await new EntryBuilder(request).build());
+        return await this.recordNetworkRequest(request);
       }
     );
   }

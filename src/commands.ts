@@ -1,4 +1,5 @@
 import { RecordOptions, SaveOptions } from './Plugin';
+import { NetworkRequest } from './network';
 
 const filename = (path: string): string | undefined => {
   const startIndex: number =
@@ -21,6 +22,12 @@ Cypress.Commands.add(
   'recordHar',
   (options?: RecordOptions): Cypress.Chainable =>
     cy.task('recordHar', Object.assign({ content: true }, options))
+);
+
+Cypress.Commands.add(
+  'recordNetworkRequest',
+  (request: NetworkRequest): Cypress.Chainable =>
+    cy.task('recordNetworkRequest', request)
 );
 
 Cypress.Commands.add(

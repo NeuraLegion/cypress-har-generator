@@ -1,5 +1,6 @@
 import { Plugin, RecordOptions, SaveOptions } from './Plugin';
 import { FileManager, Logger } from './utils';
+import { NetworkRequest } from './network';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -8,6 +9,8 @@ declare global {
       saveHar(options?: Partial<SaveOptions>): Chainable<Subject>;
 
       recordHar(options?: RecordOptions): Chainable<Subject>;
+
+      recordNetworkRequest(request: NetworkRequest): Chainable<Subject>;
     }
   }
 }
@@ -16,6 +19,8 @@ interface CypressTasks {
   saveHar(options: SaveOptions): Promise<void>;
 
   recordHar(options: RecordOptions): Promise<void>;
+
+  recordNetworkRequest(request: NetworkRequest): Promise<number>;
 }
 
 type CypressCallback = (event: 'task', arg?: CypressTasks) => void;
@@ -26,7 +31,9 @@ export const install = (on: CypressCallback): void => {
   on('task', {
     saveHar: (options: SaveOptions): Promise<void> => plugin.saveHar(options),
     recordHar: (options: RecordOptions): Promise<void> =>
-      plugin.recordHar(options)
+      plugin.recordHar(options),
+    recordNetworkRequest: (request: NetworkRequest): Promise<number> =>
+      plugin.recordNetworkRequest(request)
   });
 };
 
