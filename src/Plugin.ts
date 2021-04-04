@@ -54,6 +54,8 @@ export class Plugin {
       new RetryStrategy(20, 5, 100)
     );
 
+    this.entries = [];
+
     await this.connection.open();
 
     await this.listenNetworkEvents(options);
@@ -74,8 +76,11 @@ export class Plugin {
 
     try {
       await this.fileManager.createFolder(options.outDir);
-      const har: string = this.buildHar();
-      await this.fileManager.writeFile(filePath, har);
+      const har: string | undefined = this.buildHar();
+
+      if (har) {
+        await this.fileManager.writeFile(filePath, har);
+      }
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     } finally {
@@ -85,10 +90,12 @@ export class Plugin {
     return null;
   }
 
-  private buildHar(): string {
-    const har: Har = new HarBuilder(this.entries).build();
+  private buildHar(): string | undefined {
+    if (this.entries.length) {
+      const har: Har = new HarBuilder(this.entries).build();
 
-    return JSON.stringify(har, null, 2);
+      return JSON.stringify(har, null, 2);
+    }
   }
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
