@@ -1,6 +1,7 @@
 import webpack from 'webpack';
-import { resolve } from 'path';
 import externals from 'webpack-node-externals';
+import { resolve } from 'path';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 
 const config: webpack.Configuration = {
@@ -12,19 +13,23 @@ const config: webpack.Configuration = {
   devtool: 'source-map',
   mode: 'production',
   target: 'node',
-  externals: [externals()],
+  externals: externals() as never,
   plugins: [
     new FileManagerPlugin({
-      onStart: [
-        {
-          delete: ['./dist', './commands.js']
-        }
-      ],
-      onEnd: [
-        {
-          move: [{ source: './dist/commands.js', destination: './commands.js' }]
-        }
-      ]
+      events: {
+        onStart: [
+          {
+            delete: ['./dist', './commands.js']
+          }
+        ],
+        onEnd: [
+          {
+            move: [
+              { source: './dist/commands.js', destination: './commands.js' }
+            ]
+          }
+        ]
+      }
     })
   ],
   resolve: {

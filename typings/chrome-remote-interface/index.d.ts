@@ -7,23 +7,17 @@ declare module 'chrome-remote-interface' {
       /**
        * Tells whether clearing browser cache is supported.
        */
-      canClearBrowserCache(): Promise<
-        Protocol.Network.CanClearBrowserCacheResponse
-      >;
+      canClearBrowserCache(): Promise<Protocol.Network.CanClearBrowserCacheResponse>;
 
       /**
        * Tells whether clearing browser cookies is supported.
        */
-      canClearBrowserCookies(): Promise<
-        Protocol.Network.CanClearBrowserCookiesResponse
-      >;
+      canClearBrowserCookies(): Promise<Protocol.Network.CanClearBrowserCookiesResponse>;
 
       /**
        * Tells whether emulation of network conditions is supported.
        */
-      canEmulateNetworkConditions(): Promise<
-        Protocol.Network.CanEmulateNetworkConditionsResponse
-      >;
+      canEmulateNetworkConditions(): Promise<Protocol.Network.CanEmulateNetworkConditionsResponse>;
 
       /**
        * Clears browser cache.
@@ -120,9 +114,7 @@ declare module 'chrome-remote-interface' {
        */
       takeResponseBodyForInterceptionAsStream(
         params: Protocol.Network.TakeResponseBodyForInterceptionAsStreamRequest
-      ): Promise<
-        Protocol.Network.TakeResponseBodyForInterceptionAsStreamResponse
-      >;
+      ): Promise<Protocol.Network.TakeResponseBodyForInterceptionAsStreamResponse>;
 
       /**
        * This method sends a new XMLHttpRequest which is identical to the original one. The following
