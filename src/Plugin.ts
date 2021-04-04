@@ -16,6 +16,7 @@ export interface SaveOptions {
 
 export interface RecordOptions {
   content: boolean;
+  excludePaths: string[];
 }
 
 export class Plugin {

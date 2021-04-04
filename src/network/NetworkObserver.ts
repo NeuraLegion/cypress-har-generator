@@ -424,7 +424,10 @@ export class NetworkObserver {
 
     this._entries.delete(networkRequest.requestId);
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
-    this.destination(networkRequest);
+
+    if (!this.excludeRequest(networkRequest)) {
+      this.destination(networkRequest);
+    }
   }
 
   private startRequest(networkRequest: NetworkRequest): void {
@@ -535,6 +538,14 @@ export class NetworkObserver {
         return acc;
       },
       []
+    );
+  }
+
+  private excludeRequest(request: NetworkRequest): boolean {
+    const { path = '/' } = request.parsedURL;
+
+    return !!this.options.excludePaths?.some((excludedPath: string): boolean =>
+      new RegExp(excludedPath).test(path)
     );
   }
 
