@@ -84,6 +84,12 @@ You can set `content` flag to `false` to skip loading `content` fields in the HA
 cy.recordHar({ content: false });
 ```
 
+To exclude some requests, you can specify a list of paths to be excluded using `excludePaths`.
+
+```js
+cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
+```
+
 
 ### saveHar
 
@@ -115,6 +121,7 @@ beforeEach(() => {
     cy.recordHar();
   }
 });
+
 afterEach(() => {
   const { state } = this.currentTest;
   const isInteractive = Cypress.config('isInteractive');

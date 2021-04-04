@@ -107,19 +107,8 @@ export class Plugin {
     );
 
     await networkObservable.subscribe(
-      async (request: NetworkRequest): Promise<number> => {
-        const requestPath = request.parsedURL.path;
-        const isRequestExcluded = options.excludePaths?.some(
-          (excludedPath: string): boolean =>
-            requestPath?.startsWith(excludedPath)
-        );
-
-        if (isRequestExcluded) {
-          return this.entries.length;
-        }
-
-        return this.entries.push(await new EntryBuilder(request).build());
-      }
+      async (request: NetworkRequest): Promise<number> =>
+        this.entries.push(await new EntryBuilder(request).build())
     );
   }
 
