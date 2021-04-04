@@ -1,0 +1,23 @@
+name: Semantic release
+
+on:
+  push:
+    branches:
+      - master
+      - next
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GPR_TOKEN }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+
+      - run: npm ci -q
+      - run: npm run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}

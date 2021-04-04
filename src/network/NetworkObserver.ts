@@ -1,11 +1,11 @@
-import Protocol from 'devtools-protocol';
-import { Network, Security } from 'chrome-remote-interface';
 import { Logger } from '../utils';
-import { Header } from 'har-format';
 import { NetworkRequest } from './NetworkRequest';
 import { ChromeRemoteInterfaceEvent, CRIConnection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { RecordOptions } from '../Plugin';
+import { Header } from 'har-format';
+import { Network, Security } from 'chrome-remote-interface';
+import Protocol from 'devtools-protocol';
 
 export class NetworkObserver {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
@@ -356,7 +356,7 @@ export class NetworkObserver {
       );
     }
 
-    return this._extraInfoBuilders.get(requestId)!;
+    return this._extraInfoBuilders.get(requestId);
   }
 
   private _appendRedirect(
@@ -368,7 +368,7 @@ export class NetworkObserver {
       requestId
     ) as NetworkRequest;
 
-    let redirectCount: number = 0;
+    let redirectCount = 0;
     let redirect: NetworkRequest | undefined =
       originalNetworkRequest.redirectSource;
 
@@ -479,6 +479,7 @@ export class NetworkObserver {
     );
   }
 
+  // eslint-disable-next-line complexity
   private updateNetworkRequestWithResponse(
     networkRequest: NetworkRequest,
     response: Protocol.Network.Response
@@ -540,7 +541,9 @@ export class NetworkObserver {
   private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {
     const methodName: string = method.substring(method.indexOf('.') + 1);
 
-    const handler: Function | undefined = this[methodName];
+    const handler: (...args: unknown[]) => unknown | undefined = this[
+      methodName
+    ];
 
     if (handler) {
       handler.call(this, params);

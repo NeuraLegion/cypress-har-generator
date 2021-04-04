@@ -1,4 +1,5 @@
 import { ContentData, NetworkRequest } from './NetworkRequest';
+import { NetworkCookie } from './NetworkCookie';
 import {
   Content,
   Cookie,
@@ -10,7 +11,6 @@ import {
   Timings
 } from 'har-format';
 import Protocol from 'devtools-protocol';
-import { NetworkCookie } from './NetworkCookie';
 
 export class EntryBuilder {
   constructor(private readonly request: NetworkRequest) {}
@@ -40,7 +40,7 @@ export class EntryBuilder {
       response: await this.buildResponse(),
       cache: {},
       timings,
-      serverIPAddress: serverIPAddress.replace(/\[\]/g, ''),
+      serverIPAddress: serverIPAddress.replace(/\[]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,
       _webSocketMessages: this.request.frames ?? []
@@ -83,7 +83,7 @@ export class EntryBuilder {
   private async buildRequest(): Promise<Request> {
     const res: Request = {
       method: this.request.requestMethod,
-      url: this.buildRequestURL(this.request.url!),
+      url: this.buildRequestURL(this.request.url),
       httpVersion: this.request.requestHttpVersion,
       headers: this.request.requestHeaders,
       queryString: [...(this.request.queryParameters ?? [])],
@@ -129,6 +129,7 @@ export class EntryBuilder {
     );
   }
 
+  // eslint-disable-next-line complexity
   private buildTimings(): Timings {
     const timing: Protocol.Network.ResourceTiming = this.request.timing;
     const issueTime: number = this.request.issueTime;
@@ -238,7 +239,7 @@ export class EntryBuilder {
     const formParameters: Param[] = await this.request.formParameters();
 
     if (formParameters) {
-      res.params = [...formParameters];
+      res.params = [...formParameters] as never;
     }
 
     return res as PostData;

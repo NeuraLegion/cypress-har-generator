@@ -1,3 +1,4 @@
+import { Logger } from './Logger';
 import { promisify } from 'util';
 import {
   access as accessCb,
@@ -6,7 +7,6 @@ import {
   unlink as unlinkCb,
   writeFile as writeFileCb
 } from 'fs';
-import { Logger } from './Logger';
 
 export class FileManager {
   private static _instance: FileManager;

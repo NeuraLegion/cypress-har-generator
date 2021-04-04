@@ -1,12 +1,12 @@
+import { RetryStrategy } from './RetryStrategy';
+import { Logger } from '../utils';
+import * as CRIOutputMessages from './CRIOutputMessages';
 import connect, {
   ChromeRemoteInterface,
   ChromeRemoteInterfaceOptions,
   Network,
   Security
 } from 'chrome-remote-interface';
-import { RetryStrategy } from './RetryStrategy';
-import { Logger } from '../utils';
-import * as CRIOutputMessages from './CRIOutputMessages';
 import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
@@ -19,12 +19,6 @@ export type ChromeRemoteInterfaceEvent = {
 export class CRIConnection {
   private chromeRemoteInterface?: ChromeRemoteInterface;
 
-  constructor(
-    private readonly options: ChromeRemoteInterfaceOptions,
-    private readonly logger: Logger,
-    private readonly retryStrategy: RetryStrategy
-  ) {}
-
   get network(): Network | undefined {
     return this.chromeRemoteInterface?.Network;
   }
@@ -32,6 +26,12 @@ export class CRIConnection {
   get security(): Security | undefined {
     return this.chromeRemoteInterface?.Security;
   }
+
+  constructor(
+    private readonly options: ChromeRemoteInterfaceOptions,
+    private readonly logger: Logger,
+    private readonly retryStrategy: RetryStrategy
+  ) {}
 
   public async open(): Promise<void> {
     try {

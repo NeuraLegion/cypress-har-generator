@@ -1,9 +1,9 @@
-import Protocol from 'devtools-protocol';
-import { parse as parseUrl, UrlWithStringQuery } from 'url';
-import { Header, Param, QueryString } from 'har-format';
 import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
 import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
+import { Header, Param, QueryString } from 'har-format';
+import Protocol from 'devtools-protocol';
+import { parse as parseUrl, UrlWithStringQuery } from 'url';
 
 export interface ContentData {
   error?: string;
@@ -12,9 +12,9 @@ export interface ContentData {
 }
 
 export enum WebSocketFrameType {
-  Request = 'request',
-  Response = 'response',
-  Error = 'error'
+  REQUEST = 'request',
+  RESPONSE = 'response',
+  ERROR = 'error'
 }
 
 export interface WebSocket {
@@ -40,7 +40,7 @@ export class NetworkRequest {
   );
   private _formParametersPromise?: Promise<Param[]>;
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   private _signedExchangeInfo?: Protocol.Network.SignedExchangeInfo;
 
@@ -154,7 +154,7 @@ export class NetworkRequest {
     return this._endTime || -1;
   }
 
-  set endTime(x) {
+  set endTime(x: number) {
     if (this.timing && this.timing.requestTime) {
       this._endTime = Math.max(x, this.responseReceivedTime);
     } else {
@@ -517,42 +517,6 @@ export class NetworkRequest {
     this._formParametersPromise = null;
   }
 
-  public async _parseFormParameters(): Promise<Param[]> {
-    if (
-      this.requestContentType?.match(
-        /^application\/x-www-form-urlencoded\s*(;.*)?$/i
-      )
-    ) {
-      const formUrlencoded: string = await this.requestFormData();
-
-      if (!formUrlencoded) {
-        return;
-      }
-
-      return this.parseParameters(formUrlencoded);
-    }
-
-    const multipartDetails: RegExpMatchArray = this.requestContentType.match(
-      /^multipart\/form-data\s*;\s*boundary\s*=\s*(\S+)\s*$/
-    );
-
-    if (!multipartDetails) {
-      return;
-    }
-
-    const boundary: string = multipartDetails[1];
-    if (!boundary) {
-      return;
-    }
-
-    const formData: string = await this.requestFormData();
-    if (!formData) {
-      return;
-    }
-
-    return this.parseMultipartFormDataParameters(formData, boundary);
-  }
-
   public getWallTime(monotonicTime: Protocol.Network.MonotonicTime): number {
     return this._wallIssueTime
       ? this._wallIssueTime - this._issueTime + monotonicTime
@@ -560,9 +524,8 @@ export class NetworkRequest {
   }
 
   public formParameters(): Promise<Param[]> {
-    // eslint-disable-next-line @typescript-eslint/tslint/config
     if (!this._formParametersPromise) {
-      this._formParametersPromise = this._parseFormParameters();
+      this._formParametersPromise = this.parseFormParameters();
     }
 
     return this._formParametersPromise;
@@ -620,7 +583,7 @@ export class NetworkRequest {
     time: Protocol.Network.MonotonicTime
   ): void {
     this.addFrame({
-      type: WebSocketFrameType.Error,
+      type: WebSocketFrameType.ERROR,
       data: errorMessage,
       time,
       opcode: -1,
@@ -634,8 +597,8 @@ export class NetworkRequest {
     sent: boolean
   ): void {
     const type: WebSocketFrameType = sent
-      ? WebSocketFrameType.Request
-      : WebSocketFrameType.Response;
+      ? WebSocketFrameType.REQUEST
+      : WebSocketFrameType.RESPONSE;
 
     this.addFrame({
       type,
@@ -663,14 +626,16 @@ export class NetworkRequest {
       this.responseHeadersText = extraResponseInfo.responseHeadersText;
 
       if (this.requestHeadersText) {
-        let requestHeadersText: string = `${this._requestMethod} ${this.parsedURL.path}`;
+        let requestHeadersText = `${this._requestMethod} ${this.parsedURL.path}`;
 
+        // eslint-disable-next-line max-depth
         if (this.parsedURL.query) {
           requestHeadersText += `?${this.parsedURL.query}`;
         }
 
         requestHeadersText += ` HTTP/1.1\r\n`;
 
+        // eslint-disable-next-line max-depth
         for (const { name, value } of this.requestHeaders) {
           requestHeadersText += `${name}: ${value}\r\n`;
         }
@@ -693,12 +658,48 @@ export class NetworkRequest {
     return this._responseHeaderValues.get(headerName);
   }
 
+  private async parseFormParameters(): Promise<Param[]> {
+    if (
+      this.requestContentType?.match(
+        /^application\/x-www-form-urlencoded\s*(;.*)?$/i
+      )
+    ) {
+      const formUrlencoded: string = await this.requestFormData();
+
+      if (!formUrlencoded) {
+        return;
+      }
+
+      return this.parseParameters(formUrlencoded);
+    }
+
+    const multipartDetails: RegExpMatchArray = this.requestContentType.match(
+      /^multipart\/form-data\s*;\s*boundary\s*=\s*(\S+)\s*$/
+    );
+
+    if (!multipartDetails) {
+      return;
+    }
+
+    const boundary: string = multipartDetails[1];
+    if (!boundary) {
+      return;
+    }
+
+    const formData: string = await this.requestFormData();
+    if (!formData) {
+      return;
+    }
+
+    return this.parseMultipartFormDataParameters(formData, boundary);
+  }
+
   private parseMultipartFormDataParameters(
     data: string,
     boundary: string
   ): Param[] {
     const sanitizedBoundary: string = NetworkRequest.escapeCharacters(boundary);
-    const keyValuePattern: RegExp = new RegExp(
+    const keyValuePattern = new RegExp(
       // Header with an optional file name.
       '^\\r\\ncontent-disposition\\s*:\\s*form-data\\s*;\\s*name="([^"]*)"(?:\\s*;\\s*filename="([^"]*)")?' +
         // Optional secondary header with the content type.
@@ -717,6 +718,7 @@ export class NetworkRequest {
     );
 
     return fields.reduce((result: Param[], field: string): Param[] => {
+      // eslint-disable-next-line @typescript-eslint/typedef
       const [match, name, value] = field.match(keyValuePattern) || [];
 
       if (!match) {
