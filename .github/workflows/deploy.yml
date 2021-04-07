@@ -21,7 +21,7 @@ jobs:
           node-version: 12
           registry-url: 'https://registry.npmjs.org'
 
-      - run: npm ci -q
+      - run: npm ci -q --ignore-scripts
       - run: npm run build
       - run: npm version --no-git-tag-version $VERSION
 

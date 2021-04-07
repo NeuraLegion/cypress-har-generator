@@ -17,7 +17,7 @@ jobs:
         with:
           node-version: 12
 
-      - run: npm ci -q
+      - run: npm ci -q --ignore-scripts
       - run: npm run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}

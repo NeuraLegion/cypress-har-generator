@@ -12,17 +12,9 @@ declare global {
   }
 }
 
-interface CypressTasks {
-  saveHar(options: SaveOptions): Promise<void>;
+const plugin = new Plugin(Logger.Instance, FileManager.Instance);
 
-  recordHar(options: RecordOptions): Promise<void>;
-}
-
-type CypressCallback = (event: 'task', arg?: CypressTasks) => void;
-
-const plugin: Plugin = new Plugin(Logger.Instance, FileManager.Instance);
-
-export const install = (on: CypressCallback): void => {
+export const install = (on: Cypress.PluginEvents): void => {
   on('task', {
     saveHar: (options: SaveOptions): Promise<void> => plugin.saveHar(options),
     recordHar: (options: RecordOptions): Promise<void> =>

@@ -19,13 +19,17 @@ const config: webpack.Configuration = {
       events: {
         onStart: [
           {
-            delete: ['./dist', './commands.js']
+            delete: ['./dist', './commands.js', './commands.js.map']
           }
         ],
         onEnd: [
           {
             move: [
-              { source: './dist/commands.js', destination: './commands.js' }
+              { source: './dist/commands.js', destination: './commands.js' },
+              {
+                source: './dist/commands.js.map',
+                destination: './commands.js.map'
+              }
             ]
           }
         ]
