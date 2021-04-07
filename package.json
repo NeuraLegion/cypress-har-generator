@@ -6,12 +6,12 @@
     "type": "git",
     "url": "git+https://github.com/NeuraLegion/cypress-har-generator.git"
   },
-  "main": "./dist/index.js",
-  "typings": "./dist/index.d.ts",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
   "files": [
-    "./dist",
-    "./commands.js",
-    "./commands.js.map"
+    "dist",
+    "commands.js",
+    "commands.js.map"
   ],
   "author": {
     "name": "Artem Derevnjuk",
