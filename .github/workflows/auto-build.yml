@@ -13,7 +13,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: 12
-      - run: npm ci -q
+      - run: npm ci -q --ignore-scripts
       - run: npm run lint
       - run: npm run format
       - run: npm run build

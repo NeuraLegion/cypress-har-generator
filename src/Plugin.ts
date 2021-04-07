@@ -40,7 +40,7 @@ export class Plugin {
     }
 
     const browserFlags: string[] = this.ensureRdpPort(
-      this.ensureTestingFlags([...args])
+      this.ensureTestingFlags(args)
     );
 
     return browserFlags.filter((x: string): boolean => !args.includes(x));
@@ -131,14 +131,12 @@ export class Plugin {
 
   private ensureTestingFlags(args: string[]): string[] {
     return [
-      ...new Set([
-        ...args,
-        '--no-sandbox',
-        '--disable-background-networking',
-        '--reduce-security-for-testing',
-        '--allow-insecure-localhost',
-        '--ignore-certificate-errors'
-      ])
+      ...args,
+      '--no-sandbox',
+      '--disable-background-networking',
+      '--reduce-security-for-testing',
+      '--allow-insecure-localhost',
+      '--ignore-certificate-errors'
     ];
   }
 
