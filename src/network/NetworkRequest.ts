@@ -673,7 +673,7 @@ export class NetworkRequest {
       return this.parseParameters(formUrlencoded);
     }
 
-    const multipartDetails: RegExpMatchArray = this.requestContentType.match(
+    const multipartDetails: RegExpMatchArray = this.requestContentType?.match(
       /^multipart\/form-data\s*;\s*boundary\s*=\s*(\S+)\s*$/
     );
 
