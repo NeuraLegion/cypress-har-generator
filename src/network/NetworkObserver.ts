@@ -542,9 +542,19 @@ export class NetworkObserver {
   }
 
   private excludeRequest(request: NetworkRequest): boolean {
-    const { path = '/' } = request.parsedURL;
+    const { host, path = '/' } = request.parsedURL;
+    const { hostPatterns, excludePaths } = this.options;
+    if (hostPatterns && hostPatterns.length > 0) {
+      if (
+        !hostPatterns.some((hostPattern: string): boolean =>
+          new RegExp(hostPattern).test(host)
+        )
+      ) {
+        return true;
+      }
+    }
 
-    return !!this.options.excludePaths?.some((excludedPath: string): boolean =>
+    return !!excludePaths?.some((excludedPath: string): boolean =>
       new RegExp(excludedPath).test(path)
     );
   }
