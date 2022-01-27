@@ -543,10 +543,10 @@ export class NetworkObserver {
 
   private excludeRequest(request: NetworkRequest): boolean {
     const { host, path = '/' } = request.parsedURL;
-    const { hostPatterns, excludePaths } = this.options;
-    if (hostPatterns && hostPatterns.length > 0) {
+    const { includeHosts, excludePaths } = this.options;
+    if (includeHosts && includeHosts.length > 0) {
       if (
-        !hostPatterns.some((hostPattern: string): boolean =>
+        !includeHosts.some((hostPattern: string): boolean =>
           new RegExp(hostPattern).test(host)
         )
       ) {

@@ -84,10 +84,10 @@ You can set `content` flag to `false` to skip loading `content` fields in the HA
 cy.recordHar({ content: false });
 ```
 
-To include only requests on specific hosts, you can specify a list of hosts using `hostPatterns`.
+To include only requests on specific hosts, you can specify a list of hosts using `includeHosts`.
 
 ```js
-cy.recordHar({ hostPatterns: [ '.*.execute-api.eu-west-1.amazonaws.com'] });
+cy.recordHar({ includeHosts: [ '.*.execute-api.eu-west-1.amazonaws.com'] });
 ```
 
 To exclude some requests, you can specify a list of paths to be excluded using `excludePaths`.
