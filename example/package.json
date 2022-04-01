@@ -13,7 +13,7 @@
     "express-session": "^1.17.1",
     "hbs": "^4.1.1",
     "jquery": "^3.6.0",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
