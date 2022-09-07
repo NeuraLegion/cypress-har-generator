@@ -10,7 +10,7 @@ import {
   Response,
   Timings
 } from 'har-format';
-import Protocol from 'devtools-protocol';
+import type Protocol from 'devtools-protocol';
 
 export class EntryBuilder {
   constructor(private readonly request: NetworkRequest) {}
@@ -36,10 +36,10 @@ export class EntryBuilder {
         this.request.getWallTime(this.request.issueTime) * 1000
       ).toJSON(),
       time,
+      timings,
       request: await this.buildRequest(),
       response: await this.buildResponse(),
       cache: {},
-      timings,
       serverIPAddress: serverIPAddress.replace(/\[]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,

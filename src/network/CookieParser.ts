@@ -14,6 +14,7 @@ export class CookieParser {
   private _cookies?: NetworkCookie[];
 
   public parseCookie(cookieHeader: string): NetworkCookie[] | undefined {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (!this._initialize(cookieHeader!)) {
       return;
     }
@@ -56,6 +57,7 @@ export class CookieParser {
     return this._cookies;
   }
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   private _initialize(headerValue: string): boolean {
     this._input = headerValue;
     if (typeof headerValue !== 'string') {
@@ -63,6 +65,7 @@ export class CookieParser {
     }
     this._cookies = [];
     this._lastCookie = undefined;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._originalInputLength = this._input!.length;
 
     return true;
@@ -70,15 +73,18 @@ export class CookieParser {
 
   private flushCookie(): void {
     if (this._lastCookie) {
+      /* eslint-disable @typescript-eslint/no-non-null-assertion */
       this._lastCookie.size =
         this._originalInputLength! -
         this._input!.length -
         this._lastCookiePosition;
+      /* eslint-enable @typescript-eslint/no-non-null-assertion */
     }
 
     delete this._lastCookie;
   }
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   private _extractKeyValue(): KeyValue | undefined {
     if (!this._input?.length) {
       return;
@@ -100,6 +106,7 @@ export class CookieParser {
     const result: KeyValue = {
       key: this.toCamelCase(keyValueMatch[1]),
       value: keyValueMatch[2]?.trim(),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       position: this._originalInputLength! - this._input.length
     };
 
@@ -116,12 +123,14 @@ export class CookieParser {
   }
 
   private advanceAndCheckCookieDelimiter(): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const match: RegExpExecArray | null = /^\s*[\n;]\s*/.exec(this._input!);
 
     if (!match) {
       return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._input = this._input!.slice(match[0].length);
 
     return match[0].match('\n') !== null;
@@ -138,6 +147,7 @@ export class CookieParser {
         : new NetworkCookie('', keyValue.key);
 
     this._lastCookiePosition = keyValue.position;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     this._cookies!.push(this._lastCookie);
   }
 }

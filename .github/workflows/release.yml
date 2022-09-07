@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - next
 
 jobs:
   release:
@@ -13,11 +12,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           token: ${{ secrets.GPR_TOKEN }}
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
 
-      - run: npm ci -q --ignore-scripts
-      - run: npm run semantic-release
+      - name: Install deps
+        uses: ./.github/workflows/composite/npm
+
+      - name: Release a new version
+        run: npm run semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GPR_TOKEN }}

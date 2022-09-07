@@ -2,7 +2,7 @@ import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
 import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
 import { Header, Param, QueryString } from 'har-format';
-import Protocol from 'devtools-protocol';
+import type Protocol from 'devtools-protocol';
 import { parse as parseUrl, UrlWithStringQuery } from 'url';
 
 export interface ContentData {
@@ -35,9 +35,8 @@ export class NetworkRequest {
   >();
   private _parsedQueryParameters?: QueryString[];
   private _currentPriority?: Protocol.Network.ResourcePriority;
-  private _requestFormData: Promise<string | undefined> = Promise.resolve(
-    undefined
-  );
+  private _requestFormData: Promise<string | undefined> =
+    Promise.resolve(undefined);
   private _formParametersPromise?: Promise<Param[]>;
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -279,9 +278,8 @@ export class NetworkRequest {
   }
 
   get contentLength(): number {
-    const contentLength: string | undefined = this.requestHeaderValue(
-      'Content-Length'
-    );
+    const contentLength: string | undefined =
+      this.requestHeaderValue('Content-Length');
 
     return isNaN(+contentLength) ? 0 : parseInt(contentLength, 10);
   }
@@ -437,12 +435,13 @@ export class NetworkRequest {
   }
 
   constructor(
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     private _requestId: Protocol.Network.RequestId,
     url: string,
     public readonly documentURL: string,
-    public readonly frameId: Protocol.Page.FrameId = '',
     public readonly loaderId: Protocol.Network.LoaderId,
-    public readonly initiator?: Protocol.Network.Initiator
+    public readonly initiator?: Protocol.Network.Initiator,
+    public readonly frameId: Protocol.Page.FrameId = ''
   ) {
     this.setUrl(url);
   }
@@ -534,9 +533,8 @@ export class NetworkRequest {
   public responseHttpVersion(): string {
     if (this._responseHeadersText) {
       const firstLine: string = this._responseHeadersText.split(/\r\n/)[0];
-      const match: RegExpMatchArray | null = firstLine.match(
-        /^(HTTP\/\d+\.\d+)/
-      );
+      const match: RegExpMatchArray | null =
+        firstLine.match(/^(HTTP\/\d+\.\d+)/);
 
       return match ? match[1] : 'HTTP/0.9';
     }
@@ -583,9 +581,9 @@ export class NetworkRequest {
     time: Protocol.Network.MonotonicTime
   ): void {
     this.addFrame({
+      time,
       type: WebSocketFrameType.ERROR,
       data: errorMessage,
-      time,
       opcode: -1,
       mask: false
     });
@@ -602,8 +600,8 @@ export class NetworkRequest {
 
     this.addFrame({
       type,
-      data: response.payloadData,
       time,
+      data: response.payloadData,
       opcode: response.opcode,
       mask: response.mask
     });
@@ -757,19 +755,17 @@ export class NetworkRequest {
   }
 
   private parseParameters(queryString: string): QueryString[] {
-    return queryString.split('&').map(
-      (pair: string): QueryString => {
-        const position: number = pair.indexOf('=');
-        if (position === -1) {
-          return { name: pair, value: '' };
-        } else {
-          return {
-            name: pair.substring(0, position),
-            value: pair.substring(position + 1)
-          };
-        }
+    return queryString.split('&').map((pair: string): QueryString => {
+      const position: number = pair.indexOf('=');
+      if (position === -1) {
+        return { name: pair, value: '' };
+      } else {
+        return {
+          name: pair.substring(0, position),
+          value: pair.substring(position + 1)
+        };
       }
-    );
+    });
   }
 
   private computeHeaderValue(

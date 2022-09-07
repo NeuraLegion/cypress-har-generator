@@ -6,6 +6,7 @@ const debug = debuglog('cypress-har-generator');
 export class Logger {
   private static _instance: Logger;
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   static get Instance(): Logger {
     if (!this._instance) {
       this._instance = new Logger();

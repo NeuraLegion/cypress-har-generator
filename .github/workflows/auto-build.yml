@@ -5,15 +5,37 @@ on:
     branches:
       - '**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
+  install-deps:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          node-version: 12
-      - run: npm ci -q --ignore-scripts
-      - run: npm run lint
-      - run: npm run format
-      - run: npm run build
+          fetch-depth: 0
+
+      - name: Install deps
+        uses: ./.github/workflows/composite/npm
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    needs: install-deps
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ['lint', 'format', 'build']
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install deps
+        uses: ./.github/workflows/composite/npm
+
+      - name: Execute ${{ matrix.target }} npm script
+        run: npm run ${{ matrix.target }}

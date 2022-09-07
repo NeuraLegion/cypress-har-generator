@@ -4,10 +4,7 @@
       "@semantic-release/commit-analyzer",
       {
         "parserOpts": {
-          "noteKeywords": [
-            "BREAKING CHANGE",
-            "BREAKING CHANGES"
-          ]
+          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
         }
       }
     ],
@@ -16,16 +13,10 @@
       {
         "preset": "angular",
         "parserOpts": {
-          "noteKeywords": [
-            "BREAKING CHANGE",
-            "BREAKING CHANGES"
-          ]
+          "noteKeywords": ["BREAKING CHANGE", "BREAKING CHANGES"]
         },
         "writerOpts": {
-          "commitsSort": [
-            "subject",
-            "scope"
-          ]
+          "commitsSort": ["subject", "scope"]
         }
       }
     ],
@@ -33,6 +24,19 @@
       "@semantic-release/npm",
       {
         "npmPublish": false
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "npm version --no-git-tag-version --allow-same-version ${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": ["package*.json"],
+        "message": "chore(release): cut the ${nextRelease.version} release [skip ci]"
       }
     ],
     [
@@ -46,6 +50,10 @@
       }
     ]
   ],
-  "branch": "master",
+  "branches": [
+    {
+      "name": "master"
+    }
+  ],
   "ci": true
 }
