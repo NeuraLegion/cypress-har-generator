@@ -46,7 +46,7 @@ jobs:
             README.md
             LICENSE
 
-  publish-to-gpr:
+  publish-to-npm:
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -62,10 +62,23 @@ jobs:
       - name: Install deps
         uses: ./.github/workflows/composite/npm
 
-      - name: Publish package to GPR
+      - name: Publish package to NPM
         run: npm publish --tag $TAG
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-to-gpr:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ${{ env.TARGET_REF }}
+          token: ${{ secrets.GPR_TOKEN }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: build
 
       - name: Install deps
         uses: ./.github/workflows/composite/npm
