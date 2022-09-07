@@ -1,21 +1,20 @@
 import { RecordOptions, SaveOptions } from './Plugin';
 
-const filename = (path: string): string | undefined => {
-  const startIndex: number =
+const normalizeName = (path: string, options?: { ext?: string }): string => {
+  const fileNameIdx =
     path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/');
-  let name: string = path.substring(startIndex);
+  let name = path.substring(fileNameIdx);
 
   if (name.indexOf('\\') === 0 || name.indexOf('/') === 0) {
     name = name.substring(1);
   }
 
-  const startExtIndex: number = name.lastIndexOf('.');
+  const extIdx = name.lastIndexOf('.');
+  const ext = options?.ext ?? name.substring(extIdx);
+  const nameWithoutExt = name.substring(0, extIdx);
 
-  return name.substring(0, startExtIndex);
+  return `${nameWithoutExt}${ext ?? '.har'}`;
 };
-
-const harFileName = (path: string): string | undefined =>
-  `${filename(path)}.har`;
 
 Cypress.Commands.add(
   'recordHar',
@@ -26,11 +25,14 @@ Cypress.Commands.add(
 Cypress.Commands.add(
   'saveHar',
   (options?: Partial<SaveOptions>): Cypress.Chainable => {
-    const fallbackFileName: string = Cypress.spec.name;
-    const outDir: string = Cypress.env('hars_folders') ?? './';
+    const fallbackFileName = Cypress.spec.name;
+    const outDir = (Cypress.env('hars_folders') as string) ?? './';
 
     options = Object.assign({ outDir }, options, {
-      fileName: harFileName(options?.fileName ?? fallbackFileName)
+      fileName: normalizeName(
+        options?.fileName ?? fallbackFileName,
+        !options?.fileName ? { ext: '.har' } : undefined
+      )
     });
 
     return cy.task('saveHar', options);
