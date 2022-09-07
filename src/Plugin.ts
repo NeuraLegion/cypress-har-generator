@@ -20,10 +20,17 @@ export interface RecordOptions {
   includeHosts: string[];
 }
 
+interface Addr {
+  port?: number;
+  host?: string;
+}
+
 export class Plugin {
-  private rdpPort?: number;
+  private addr?: Addr;
   private entries: Entry[] = [];
   private connection?: CRIConnection;
+  private readonly PORT_OPTION_NAME = '--remote-debugging-port';
+  private readonly ADDRESS_OPTION_NAME = '--remote-debugging-address';
 
   constructor(
     private readonly logger: Logger,
@@ -51,7 +58,7 @@ export class Plugin {
     await this.closeConnection();
 
     this.connection = new CRIConnection(
-      { port: this.rdpPort },
+      this.addr,
       this.logger,
       new RetryStrategy(20, 5, 100)
     );
@@ -142,24 +149,52 @@ export class Plugin {
   }
 
   private ensureRdpPort(args: string[]): string[] {
-    this.rdpPort = this.getRdpPortFromArgs(args);
+    const {
+      host = 'localhost',
+      port = 40000 + Math.round(Math.random() * 25000)
+    } = this.extractAddrFromArgs(args);
 
-    if (this.rdpPort) {
-      return args;
-    }
+    this.addr = { host, port };
 
-    this.rdpPort = 40000 + Math.round(Math.random() * 25000);
-
-    return [...args, `--remote-debugging-port=${this.rdpPort}`];
+    return [
+      ...args,
+      `${this.PORT_OPTION_NAME}=${port}`,
+      `${this.ADDRESS_OPTION_NAME}=${host}`
+    ];
   }
 
-  private getRdpPortFromArgs(args: string[]): number | undefined {
-    const existing: string | undefined = args.find((arg: string): boolean =>
-      arg.startsWith('--remote-debugging-port=')
+  private extractAddrFromArgs(args: string[]): Addr {
+    const port: number | undefined = +this.findAndParseIfPossible(
+      args,
+      this.PORT_OPTION_NAME
+    );
+    const host: string | undefined = this.findAndParseIfPossible(
+      args,
+      this.ADDRESS_OPTION_NAME
     );
 
-    if (existing) {
-      return +existing.split('=')[1];
+    let addr: { port?: number; host?: string } = {};
+
+    if (!isNaN(port) && isFinite(port)) {
+      addr = { port };
     }
+
+    if (host) {
+      addr = { ...addr, host };
+    }
+
+    return addr;
+  }
+
+  private findAndParseIfPossible(
+    args: string[],
+    optionName: string
+  ): string | undefined {
+    const arg: string | undefined = args.find((x: string): boolean =>
+      x.startsWith(optionName)
+    );
+    const [, value]: string[] = arg?.split('=', 2) ?? [];
+
+    return value;
   }
 }
