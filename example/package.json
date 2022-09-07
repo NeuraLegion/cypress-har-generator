@@ -8,16 +8,16 @@
     "test": "npm run --prefix ../ build && start-test 7079 cypress:run"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "express": "^4.17.1",
-    "express-session": "^1.17.1",
-    "hbs": "^4.1.1",
-    "jquery": "^3.6.0",
+    "body-parser": "^1.20.0",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "hbs": "^4.2.0",
+    "jquery": "^3.6.1",
     "minimist": "^1.2.6",
     "morgan": "^1.10.0"
   },
   "devDependencies": {
     "cypress": "^7.0.0",
-    "start-server-and-test": "^1.12.1"
+    "start-server-and-test": "^1.14.0"
   }
 }

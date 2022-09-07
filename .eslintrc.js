@@ -5,20 +5,29 @@ module.exports = {
     node: true
   },
   extends: [
-    'eslint:recommended',
     'prettier',
-    'plugin:@typescript-eslint/recommended'
+    'eslint:recommended',
+    'plugin:import/typescript',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/eslint-recommended'
   ],
-  ignorePatterns: ['node_modules', 'dist'],
+  settings: {
+    'import/parsers': {
+      '@typescript-eslint/parser': ['.ts']
+    },
+    'import/resolver': {
+      typescript: {}
+    }
+  },
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: 'tsconfig.json',
-    createDefaultProgram: true
+    project: ['tsconfig.json'],
+    tsconfigRootDir: __dirname
   },
   plugins: ['@typescript-eslint', 'import'],
   rules: {
     '@typescript-eslint/explicit-member-accessibility': [
-      'off',
+      'error',
       {
         accessibility: 'explicit',
         overrides: {
@@ -27,12 +36,7 @@ module.exports = {
         }
       }
     ],
-    '@typescript-eslint/no-explicit-any': [
-      'warn',
-      {
-        ignoreRestArgs: true
-      }
-    ],
+    '@typescript-eslint/consistent-indexed-object-style': ['error', 'record'],
     '@typescript-eslint/member-ordering': [
       'error',
       {
@@ -56,57 +60,47 @@ module.exports = {
         ]
       }
     ],
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/naming-convention': [
       'error',
       {
+        selector: 'default',
         format: ['camelCase'],
         leadingUnderscore: 'forbid',
-        selector: 'default',
         trailingUnderscore: 'forbid'
       },
       {
-        format: ['camelCase', 'UPPER_CASE', 'PascalCase', 'snake_case'],
-        selector: 'variableLike'
+        selector: 'enumMember',
+        format: ['UPPER_CASE']
       },
       {
-        format: ['UPPER_CASE', 'camelCase'],
-        leadingUnderscore: 'forbid',
-        selector: 'memberLike'
+        selector: 'typeLike',
+        format: ['PascalCase']
       },
       {
-        format: ['UPPER_CASE', 'camelCase', 'PascalCase'],
-        leadingUnderscore: 'forbid',
-        modifiers: ['static'],
-        selector: 'memberLike'
+        selector: 'function',
+        format: ['PascalCase', 'camelCase']
       },
       {
-        format: ['camelCase', 'UPPER_CASE'],
-        leadingUnderscore: 'allow',
-        modifiers: ['private'],
-        selector: 'memberLike'
+        selector: 'variable',
+        format: ['camelCase', 'UPPER_CASE', 'PascalCase', 'snake_case']
       },
       {
-        format: ['PascalCase'],
-        selector: 'typeLike'
-      },
-      {
-        format: ['UPPER_CASE'],
-        selector: 'enumMember'
-      },
-      {
+        selector: 'method',
         format: ['camelCase', 'PascalCase'],
-        selector: 'function'
+        modifiers: ['static']
       },
       {
+        selector: 'property',
         format: ['camelCase', 'UPPER_CASE', 'PascalCase', 'snake_case'],
-        leadingUnderscore: 'allow',
-        modifiers: ['public'],
-        selector: 'property'
+        leadingUnderscore: 'allow'
       },
+      // https://github.com/typescript-eslint/typescript-eslint/issues/1510#issuecomment-580593245
       {
+        selector: 'parameter',
         format: ['camelCase'],
-        leadingUnderscore: 'allow',
-        selector: 'parameter'
+        leadingUnderscore: 'allow'
       }
     ],
     '@typescript-eslint/no-inferrable-types': [
@@ -116,13 +110,20 @@ module.exports = {
         ignoreProperties: true
       }
     ],
+    '@typescript-eslint/default-param-last': ['error'],
+    '@typescript-eslint/consistent-type-assertions': 'error',
+    '@typescript-eslint/no-duplicate-imports': 'error',
+    '@typescript-eslint/no-non-null-assertion': 'error',
+    '@typescript-eslint/unified-signatures': 'error',
+    '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'error',
     '@typescript-eslint/no-parameter-properties': 'off',
-    '@typescript-eslint/quotes': [
+    '@typescript-eslint/typedef': [
       'error',
-      'single',
       {
-        allowTemplateLiterals: true,
-        avoidEscape: true
+        arrayDestructuring: true,
+        arrowParameter: false,
+        memberVariableDeclaration: false,
+        variableDeclarationIgnoreFunction: true
       }
     ],
     '@typescript-eslint/no-shadow': [
@@ -131,13 +132,11 @@ module.exports = {
         hoist: 'all'
       }
     ],
-    '@typescript-eslint/typedef': [
+    '@typescript-eslint/array-type': [
       'error',
       {
-        arrayDestructuring: true,
-        arrowParameter: false,
-        memberVariableDeclaration: false,
-        variableDeclarationIgnoreFunction: true
+        default: 'array',
+        readonly: 'array'
       }
     ],
     'arrow-body-style': 'error',
@@ -148,9 +147,25 @@ module.exports = {
         max: 10
       }
     ],
-    'curly': 'error',
     'eqeqeq': ['error', 'smart'],
     'guard-for-in': 'error',
+    'import/no-self-import': 'error',
+    'import/no-absolute-path': 'error',
+    'import/no-duplicates': 'error',
+    'import/no-extraneous-dependencies': [
+      'error',
+      {
+        devDependencies: false,
+        optionalDependencies: true,
+        peerDependencies: true
+      }
+    ],
+    'import/no-useless-path-segments': [
+      'error',
+      {
+        noUselessIndex: true
+      }
+    ],
     'import/order': [
       'error',
       {
@@ -170,11 +185,11 @@ module.exports = {
         max: 2
       }
     ],
+    'default-param-last': 'off',
     'no-bitwise': 'error',
     'no-caller': 'error',
-    'no-console': 'off',
+    'no-console': 'error',
     'no-eval': 'error',
-    'no-new-wrappers': 'error',
     'no-restricted-syntax': ['error', 'ForInStatement'],
     'no-throw-literal': 'error',
     'no-undef-init': 'error',
@@ -189,6 +204,25 @@ module.exports = {
       }
     ],
     'prefer-arrow-callback': 'error',
+    'prefer-const': 'error',
+    'prefer-rest-params': 'error',
+    'prefer-spread': 'error',
+    'no-new-func': 'error',
+    'no-new-wrappers': 'error',
     'radix': 'error'
-  }
+  },
+  overrides: [
+    {
+      env: {
+        jest: true
+      },
+      files: ['**/*.spec.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': [
+          'error',
+          { devDependencies: true }
+        ]
+      }
+    }
+  ]
 };

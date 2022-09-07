@@ -1,10 +1,9 @@
-import webpack from 'webpack';
-import externals from 'webpack-node-externals';
-import { resolve } from 'path';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+const externals = require('webpack-node-externals');
+const { resolve } = require('path');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
 
-const config: webpack.Configuration = {
+/** @type {import('webpack').Configuration} */
+module.exports = {
   context: process.cwd(),
   entry: {
     commands: resolve('src/commands.ts'),
@@ -13,7 +12,7 @@ const config: webpack.Configuration = {
   devtool: 'source-map',
   mode: 'production',
   target: 'node',
-  externals: externals() as never,
+  externals: externals(),
   plugins: [
     new FileManagerPlugin({
       events: {
@@ -54,5 +53,3 @@ const config: webpack.Configuration = {
     filename: '[name].js'
   }
 };
-
-export default config;

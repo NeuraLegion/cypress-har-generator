@@ -7,7 +7,7 @@ import connect, {
   Network,
   Security
 } from 'chrome-remote-interface';
-import ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
+import type ProtocolMapping from 'devtools-protocol/types/protocol-mapping';
 
 export type ChromeRemoteInterfaceMethod = keyof ProtocolMapping.Events;
 

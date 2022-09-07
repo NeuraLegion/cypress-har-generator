@@ -72,16 +72,16 @@ export class ExtraInfoBuilder {
 
     const index: number = this.getRequestIndex(req);
 
-    const requestExtraInfo: RequestExtraInfo | undefined = this
-      ._requestExtraInfo[index];
+    const requestExtraInfo: RequestExtraInfo | undefined =
+      this._requestExtraInfo[index];
 
     if (requestExtraInfo) {
       req.addExtraRequestInfo(requestExtraInfo);
       delete this._requestExtraInfo[index];
     }
 
-    const responseExtraInfo: ResponseExtraInfo | undefined = this
-      ._responseExtraInfo[index];
+    const responseExtraInfo: ResponseExtraInfo | undefined =
+      this._responseExtraInfo[index];
     if (responseExtraInfo) {
       req.addExtraResponseInfo(responseExtraInfo);
       delete this._responseExtraInfo[index];

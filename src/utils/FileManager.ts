@@ -11,6 +11,7 @@ import {
 export class FileManager {
   private static _instance: FileManager;
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   static get Instance(): FileManager {
     if (!this._instance) {
       this._instance = new FileManager();

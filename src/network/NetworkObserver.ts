@@ -5,7 +5,7 @@ import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { RecordOptions } from '../Plugin';
 import { Header } from 'har-format';
 import { Network, Security } from 'chrome-remote-interface';
-import Protocol from 'devtools-protocol';
+import type Protocol from 'devtools-protocol';
 
 export class NetworkObserver {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
@@ -96,9 +96,9 @@ export class NetworkObserver {
           requestId,
           loaderId,
           timestamp,
+          frameId,
           type: 'Other',
-          response: redirectResponse,
-          frameId
+          response: redirectResponse
         });
       }
       entry = this._appendRedirect(requestId, timestamp, request.url);
@@ -145,7 +145,7 @@ export class NetworkObserver {
     response,
     timestamp,
     type
-  }: Protocol.Network.ResponseReceivedEvent): void {
+  }: Omit<Protocol.Network.ResponseReceivedEvent, 'hasExtraInfo'>): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -359,6 +359,7 @@ export class NetworkObserver {
     return this._extraInfoBuilders.get(requestId);
   }
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   private _appendRedirect(
     requestId: Protocol.Network.RequestId,
     time: Protocol.Network.MonotonicTime,
@@ -476,9 +477,9 @@ export class NetworkObserver {
       requestId,
       url,
       documentURL,
-      frameId,
       loaderId,
-      initiator
+      initiator,
+      frameId
     );
   }
 
@@ -562,9 +563,8 @@ export class NetworkObserver {
   private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {
     const methodName: string = method.substring(method.indexOf('.') + 1);
 
-    const handler: (...args: unknown[]) => unknown | undefined = this[
-      methodName
-    ];
+    const handler: (...args: unknown[]) => unknown | undefined =
+      this[methodName];
 
     if (handler) {
       handler.call(this, params);

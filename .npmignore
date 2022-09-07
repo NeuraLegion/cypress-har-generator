@@ -1,10 +1,9 @@
-node_modules
-src
-example
-tmp
-.github
-.git
-npm-debug.log
-**/*.spec.ts
-.idea
-.npmrc
+# Add files here to ignore them from npm publishing
+
+/node_modules
+/src
+/coverage
+/example
+/typings
+/.idea
+**/.*
