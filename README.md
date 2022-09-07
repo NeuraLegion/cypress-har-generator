@@ -97,6 +97,23 @@ cypress run --browser chrome
 > ✴ Now only Chrome family browsers are supported.
 
 When the cypress finished executing tests, the plugin will save a new archive at the root of the project.
+
+You can override the destination folder by setting `CYPRESS_HARS_FOLDERS` environment variable or in `env` object in Cypress config file like this:
+
+```json
+{
+  "env": {
+    "hars_folders": "cypress/hars"
+  }
+}
+```
+
+You can also pass it in the CLI using the `--env` option to set the `hars_folder` environment variable:
+
+```bash
+cypress run --browser chrome --env hars_folders=cypress/hars
+```
+
 By default, a HAR is saved to a file with a name including the current spec’s name: `{specName}.har`
 
 ## Commands
@@ -141,7 +158,7 @@ Pass a filename to change the default naming behavior.
 cy.saveHar({ fileName: 'example.com.har' });
 ```
 
-Pass an output directory to change the destination folder manually. It allows overriding the value, that is specified in the `cypress.json`
+Pass an output directory to change the destination folder overriding any previous settings:
 
 ```js
 cy.saveHar({ outDir: './hars' });
@@ -166,12 +183,6 @@ afterEach(() => {
     cy.saveHar();
   }
 });
-```
-
-If you want to change the path to the files, you can specify it by setting the `hars_folder` environment variable.
-
-```bash
-cypress run --browser chrome --env hars_folders=cypress/hars
 ```
 
 ## License
