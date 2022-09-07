@@ -1,6 +1,6 @@
 # cypress-har-generator
 
-Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/)  while running tests
+Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) while running tests
 
 ## Install
 
@@ -19,11 +19,14 @@ npm i --save-dev @neuralegion/cypress-har-generator
 Next, go to the cypress's directory and put this code is in your `cypress/plugins/index.js` file:
 
 ```js
-const { install, ensureBrowserFlags } = require('@neuralegion/cypress-har-generator');
+const {
+  install,
+  ensureBrowserFlags
+} = require('@neuralegion/cypress-har-generator');
 
 module.exports = (on, config) => {
   install(on, config);
-  
+
   on('before:browser:launch', (browser = {}, launchOptions) => {
     ensureBrowserFlags(browser, launchOptions);
     return launchOptions;
@@ -31,12 +34,40 @@ module.exports = (on, config) => {
 };
 ```
 
-After then, you should register commands that perform the manipulation with the HAR file. 
+> The plugins file is no longer supported as of Cypress version 10.0.0. Instead, you have to update your `cypress.config.js` as follows (for details see [the migration guide](https://docs.cypress.io/guides/references/migration-guide#Plugins-File-Removed)):
+>
+> ```js
+> const { defineConfig } = require('cypress');
+> const {
+>   install,
+>   ensureBrowserFlags
+> } = require('@neuralegion/cypress-har-generator');
+>
+> module.exports = defineConfig({
+>   // setupNodeEvents can be defined in either
+>   // the e2e or component configuration
+>   e2e: {
+>     setupNodeEvents(on, config) {
+>       install(on, config);
+>
+>       on('before:browser:launch', (browser = {}, launchOptions) => {
+>         ensureBrowserFlags(browser, launchOptions);
+>
+>         return launchOptions;
+>       });
+>     }
+>   }
+> });
+> ```
+
+After then, you should register commands that perform the manipulation with the HAR file.
 For that add this module to your support file `cypress/support/index.js`:
 
 ```js
 require('@neuralegion/cypress-har-generator/commands');
 ```
+
+> Starting from Cypress 10 version 10.0.0, `supportFile` is set to look for the following file: `cypress/support/e2e.js` by default.
 
 Once the configuration is completed, add the following code into each test:
 
@@ -50,8 +81,8 @@ describe('my tests', () => {
   });
 
   after(() => {
-    // HAR will be saved as users.spec.har 
-    // at the root of the project 
+    // HAR will be saved as users.spec.har
+    // at the root of the project
     cy.saveHar();
   });
 });
@@ -63,7 +94,7 @@ After then, you can start the tests with:
 cypress run --browser chrome
 ```
 
-> ✴  Now only Chrome family browsers are supported.
+> ✴ Now only Chrome family browsers are supported.
 
 When the cypress finished executing tests, the plugin will save a new archive at the root of the project.
 By default, a HAR is saved to a file with a name including the current spec’s name: `{specName}.har`
@@ -72,13 +103,13 @@ By default, a HAR is saved to a file with a name including the current spec’s 
 
 ### recordHar
 
-Starts recording network logs. The plugin records all network requests so long as the browser session is open.                              
+Starts recording network logs. The plugin records all network requests so long as the browser session is open.
 
 ```js
 cy.recordHar();
 ```
 
-You can set `content` flag to `false` to skip loading `content` fields in the HAR. 
+You can set `content` flag to `false` to skip loading `content` fields in the HAR.
 
 ```js
 cy.recordHar({ content: false });
@@ -87,7 +118,7 @@ cy.recordHar({ content: false });
 To include only requests on specific hosts, you can specify a list of hosts using `includeHosts`.
 
 ```js
-cy.recordHar({ includeHosts: [ '.*.execute-api.eu-west-1.amazonaws.com'] });
+cy.recordHar({ includeHosts: ['.*.execute-api.eu-west-1.amazonaws.com'] });
 ```
 
 To exclude some requests, you can specify a list of paths to be excluded using `excludePaths`.
@@ -96,29 +127,28 @@ To exclude some requests, you can specify a list of paths to be excluded using `
 cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
 ```
 
-
 ### saveHar
 
 Stops recording and save all requests that have occurred since you run recording to the HAR file.
-                              
+
 ```js
 cy.saveHar();
 ```
 
-Pass a filename to change the default naming behavior. 
+Pass a filename to change the default naming behavior.
 
 ```js
 cy.saveHar({ fileName: 'example.com.har' });
 ```
 
-Pass an output directory to change the destination folder manually. 
-It allows overriding the value, that is specified in the `cypress.json`
+Pass an output directory to change the destination folder manually. It allows overriding the value, that is specified in the `cypress.json`
 
 ```js
 cy.saveHar({ outDir: './hars' });
 ```
 
 Generate HAR file only for chrome, if it is not interactive run, and if test failed.
+
 ```js
 beforeEach(() => {
   const isInteractive = Cypress.config('isInteractive');
@@ -139,7 +169,7 @@ afterEach(() => {
 ```
 
 If you want to change the path to the files, you can specify it by setting the `hars_folder` environment variable.
- 
+
 ```bash
 cypress run --browser chrome --env hars_folders=cypress/hars
 ```
