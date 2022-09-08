@@ -6,8 +6,9 @@ import {
   NetworkObserver,
   NetworkRequest
 } from './network';
-import { Entry, Har } from 'har-format';
 import { join } from 'path';
+import { WriteStream } from 'fs';
+import { EOL } from 'os';
 
 export interface SaveOptions {
   fileName: string;
@@ -26,8 +27,18 @@ interface Addr {
 }
 
 export class Plugin {
+  private buffer?: WriteStream;
+
+  private get tmpPath() {
+    if (this.buffer) {
+      const { path } = this.buffer;
+
+      return Buffer.isBuffer(path) ? path.toString('utf-8') : path;
+    }
+  }
+
+  private networkObservable?: NetworkObserver;
   private addr?: Addr;
-  private entries: Entry[] = [];
   private connection?: CRIConnection;
   private readonly PORT_OPTION_NAME = '--remote-debugging-port';
   private readonly ADDRESS_OPTION_NAME = '--remote-debugging-address';
@@ -63,8 +74,6 @@ export class Plugin {
       new RetryStrategy(20, 5, 100)
     );
 
-    this.entries = [];
-
     await this.connection.open();
 
     await this.listenNetworkEvents(options);
@@ -73,7 +82,7 @@ export class Plugin {
   }
 
   public async saveHar(options: SaveOptions): Promise<void> {
-    const filePath: string = join(options.outDir, options.fileName);
+    const filePath = join(options.outDir, options.fileName);
 
     this.assertFilePath(filePath);
 
@@ -85,7 +94,7 @@ export class Plugin {
 
     try {
       await this.fileManager.createFolder(options.outDir);
-      const har: string | undefined = this.buildHar();
+      const har: string | undefined = await this.buildHar();
 
       if (har) {
         await this.fileManager.writeFile(filePath, har);
@@ -93,31 +102,52 @@ export class Plugin {
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     } finally {
-      this.entries = [];
+      await this.dispose();
     }
 
     return null;
   }
 
-  private buildHar(): string | undefined {
-    if (this.entries.length) {
-      const har: Har = new HarBuilder(this.entries).build();
+  public async dispose(): Promise<void> {
+    await this.networkObservable?.unsubscribe();
+    delete this.networkObservable;
 
-      return JSON.stringify(har, null, 2);
+    if (this.tmpPath) {
+      await this.fileManager.removeFile(this.tmpPath);
+      delete this.buffer;
+    }
+  }
+
+  private async buildHar(): Promise<string | undefined> {
+    if (this.tmpPath) {
+      const content = await this.fileManager.readFile(this.tmpPath);
+
+      if (content) {
+        const entries = content
+          .split(EOL)
+          .filter(Boolean)
+          .map(x => JSON.parse(x));
+
+        const har = new HarBuilder(entries).build();
+
+        return JSON.stringify(har, null, 2);
+      }
     }
   }
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
-    const networkObservable: NetworkObserver = new NetworkObserver(
+    this.buffer = await this.fileManager.createTmpWriteStream();
+    this.networkObservable = new NetworkObserver(
       options,
       this.connection,
       this.logger
     );
 
-    await networkObservable.subscribe(
-      async (request: NetworkRequest): Promise<number> =>
-        this.entries.push(await new EntryBuilder(request).build())
-    );
+    return this.networkObservable.subscribe(async (request: NetworkRequest) => {
+      const entry = await new EntryBuilder(request).build();
+      const entryStr = JSON.stringify(entry);
+      this.buffer.write(`${entryStr}${EOL}`);
+    });
   }
 
   private async closeConnection(): Promise<void> {

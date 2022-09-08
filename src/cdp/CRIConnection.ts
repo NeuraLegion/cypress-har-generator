@@ -83,7 +83,5 @@ export class CRIConnection {
     }
 
     this.chromeRemoteInterface.on('event', callback);
-
-    await Promise.all([this.security?.enable(), this.network?.enable()]);
   }
 }

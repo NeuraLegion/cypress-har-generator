@@ -14,7 +14,7 @@ export class NetworkObserver {
     ExtraInfoBuilder
   >;
   private readonly network: Network;
-  private destination: (chromeEntry: NetworkRequest) => void;
+  private destination?: (chromeEntry: NetworkRequest) => void;
   private readonly security: Security;
 
   constructor(
@@ -41,6 +41,8 @@ export class NetworkObserver {
       this.handleEvent(event)
     );
 
+    await Promise.all([this.security?.enable(), this.network?.enable()]);
+
     this.security.certificateError(
       ({ eventId }): Promise<void> =>
         this.security.handleCertificateError({
@@ -54,6 +56,12 @@ export class NetworkObserver {
       this.network.setCacheDisabled({ cacheDisabled: true }),
       this.network.setBypassServiceWorker({ bypass: true })
     ]);
+  }
+
+  public async unsubscribe(): Promise<void> {
+    await Promise.all([this.security?.disable(), this.network?.disable()]);
+    delete this.destination;
+    this._entries.clear();
   }
 
   public signedExchangeReceived(
@@ -427,7 +435,7 @@ export class NetworkObserver {
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
 
     if (!this.excludeRequest(networkRequest)) {
-      this.destination(networkRequest);
+      this.destination?.(networkRequest);
     }
   }
 
