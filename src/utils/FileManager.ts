@@ -1,12 +1,19 @@
 import { Logger } from './Logger';
 import { promisify } from 'util';
 import {
-  access as accessCb,
+  access,
   constants,
-  mkdir as mkdirCb,
-  unlink as unlinkCb,
-  writeFile as writeFileCb
+  mkdir,
+  open,
+  unlink,
+  writeFile,
+  readFile,
+  WriteStream,
+  createWriteStream
 } from 'fs';
+import { randomBytes } from 'crypto';
+import { tmpdir } from 'os';
+import { join } from 'path';
 
 export class FileManager {
   private static _instance: FileManager;
@@ -20,15 +27,18 @@ export class FileManager {
     return this._instance;
   }
 
-  private readonly _access = promisify(accessCb);
-  private readonly _unlink = promisify(unlinkCb);
-  private readonly _writeFile = promisify(writeFileCb);
-  private readonly _mkdir = promisify(mkdirCb);
+  public async readFile(path: string): Promise<string | undefined> {
+    try {
+      return await promisify(readFile)(path, { encoding: 'utf-8' });
+    } catch (e) {
+      Logger.Instance.err(e);
+    }
+  }
 
   public async writeFile(path: string, data: string): Promise<void> {
     try {
       await this.removeFile(path);
-      await this._writeFile(path, data);
+      await promisify(writeFile)(path, data);
     } catch (e) {
       Logger.Instance.err(e);
     }
@@ -40,7 +50,7 @@ export class FileManager {
         return;
       }
 
-      await this._mkdir(path);
+      await promisify(mkdir)(path);
     } catch (e) {
       Logger.Instance.err(e);
     }
@@ -49,7 +59,7 @@ export class FileManager {
   public async removeFile(path: string): Promise<void> {
     try {
       if (await this.exists(path)) {
-        await this._unlink(path);
+        await promisify(unlink)(path);
       }
     } catch (e) {
       Logger.Instance.err(e);
@@ -58,11 +68,34 @@ export class FileManager {
 
   public async exists(path: string): Promise<boolean> {
     try {
-      await this._access(path, constants.F_OK);
+      await promisify(access)(path, constants.F_OK);
 
       return true;
     } catch (e) {
       return false;
     }
+  }
+
+  public async createTmpWriteStream(): Promise<WriteStream> {
+    const { fd, path } = await this.openTmpFd();
+
+    const stream = createWriteStream(path, {
+      fd,
+      flags: 'w',
+      mode: 0o666,
+      encoding: 'utf-8'
+    });
+
+    stream.path = path;
+
+    return stream;
+  }
+
+  private async openTmpFd(): Promise<{ path: string; fd: number }> {
+    const name = randomBytes(16).toString('hex').substring(16);
+    const path = join(tmpdir(), name);
+    const fd = await promisify(open)(path, 'w', 0o600);
+
+    return { path, fd };
   }
 }
