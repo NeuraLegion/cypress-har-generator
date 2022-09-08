@@ -47,7 +47,7 @@ export class Plugin {
       );
     }
 
-    const browserFlags: string[] = this.ensureRdpPort(
+    const browserFlags: string[] = this.ensureRdpAddrArgs(
       this.ensureTestingFlags(args)
     );
 
@@ -148,7 +148,7 @@ export class Plugin {
     ];
   }
 
-  private ensureRdpPort(args: string[]): string[] {
+  private ensureRdpAddrArgs(args: string[]): string[] {
     const {
       host = 'localhost',
       port = 40000 + Math.round(Math.random() * 25000)
