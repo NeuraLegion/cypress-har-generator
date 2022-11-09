@@ -112,10 +112,15 @@ export class Plugin {
     await this.networkObservable?.unsubscribe();
     delete this.networkObservable;
 
+    if (this.buffer) {
+      this.buffer.end();
+    }
+
     if (this.tmpPath) {
       await this.fileManager.removeFile(this.tmpPath);
-      delete this.buffer;
     }
+
+    delete this.buffer;
   }
 
   private async buildHar(): Promise<string | undefined> {
@@ -146,7 +151,10 @@ export class Plugin {
     return this.networkObservable.subscribe(async (request: NetworkRequest) => {
       const entry = await new EntryBuilder(request).build();
       const entryStr = JSON.stringify(entry);
-      this.buffer.write(`${entryStr}${EOL}`);
+      // @ts-expect-error type mismatch
+      if (this.buffer && !this.buffer.closed) {
+        this.buffer.write(`${entryStr}${EOL}`);
+      }
     });
   }
 
