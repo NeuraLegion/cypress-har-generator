@@ -19,18 +19,10 @@ npm i --save-dev @neuralegion/cypress-har-generator
 Next, go to the cypress's directory and put this code is in your `cypress/plugins/index.js` file:
 
 ```js
-const {
-  install,
-  ensureBrowserFlags
-} = require('@neuralegion/cypress-har-generator');
+const { install } = require('@neuralegion/cypress-har-generator');
 
-module.exports = (on, config) => {
-  install(on, config);
-
-  on('before:browser:launch', (browser = {}, launchOptions) => {
-    ensureBrowserFlags(browser, launchOptions);
-    return launchOptions;
-  });
+module.exports = on => {
+  install(on);
 };
 ```
 
@@ -38,23 +30,14 @@ module.exports = (on, config) => {
 >
 > ```js
 > const { defineConfig } = require('cypress');
-> const {
->   install,
->   ensureBrowserFlags
-> } = require('@neuralegion/cypress-har-generator');
+> const { install } = require('@neuralegion/cypress-har-generator');
 >
 > module.exports = defineConfig({
 >   // setupNodeEvents can be defined in either
 >   // the e2e or component configuration
 >   e2e: {
->     setupNodeEvents(on, config) {
->       install(on, config);
->
->       on('before:browser:launch', (browser = {}, launchOptions) => {
->         ensureBrowserFlags(browser, launchOptions);
->
->         return launchOptions;
->       });
+>     setupNodeEvents(on) {
+>       install(on);
 >     }
 >   }
 > });
