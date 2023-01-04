@@ -1,10 +1,9 @@
 import chalk from 'chalk';
 import { debuglog } from 'util';
 
-const debug = debuglog('cypress-har-generator');
-
 export class Logger {
   private static _instance: Logger;
+  private readonly _debug = debuglog('cypress-har-generator');
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
   static get Instance(): Logger {
@@ -28,7 +27,7 @@ export class Logger {
   }
 
   public debug(msg: string): void {
-    debug(msg);
+    this._debug(msg);
   }
 
   private log(msg: string): void {
