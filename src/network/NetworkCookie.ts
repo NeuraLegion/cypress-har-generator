@@ -1,4 +1,4 @@
-enum CookieAttribute {
+export enum CookieAttribute {
   NAME = 'name',
   VALUE = 'value',
   SIZE = 'size',
