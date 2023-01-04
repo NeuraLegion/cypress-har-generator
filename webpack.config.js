@@ -1,6 +1,7 @@
 const externals = require('webpack-node-externals');
 const { resolve } = require('path');
 const FileManagerPlugin = require('filemanager-webpack-plugin');
+const configFile = resolve('./tsconfig.build.json');
 
 /** @type {import('webpack').Configuration} */
 module.exports = {
@@ -42,8 +43,14 @@ module.exports = {
     rules: [
       {
         test: /\.ts$/,
-        use: 'ts-loader',
-        exclude: /node_modules/
+        use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile
+            }
+          }
+        ]
       }
     ]
   },

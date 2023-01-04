@@ -1,10 +1,6 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "rootDir": "src",
-    "baseUrl": "src",
-    "outDir": "dist",
-    "declaration": true,
     "target": "es2016",
     "lib": ["es2020"],
     "newLine": "LF",
@@ -33,5 +29,5 @@
     "typeRoots": ["node_modules/@types", "typings"],
     "types": ["cypress", "node", "chrome-remote-interface"]
   },
-  "exclude": ["node_modules", "dist", "**/.*/", "**/*.spec.ts"]
+  "exclude": ["node_modules", "dist", "**/.*/"]
 }
