@@ -717,13 +717,14 @@ export class NetworkRequest {
 
     return fields.reduce((result: Param[], field: string): Param[] => {
       // eslint-disable-next-line @typescript-eslint/typedef
-      const [match, name, value] = field.match(keyValuePattern) || [];
+      const [match, name, fileName, contentType, value] =
+        field.match(keyValuePattern) || [];
 
       if (!match) {
         return result;
       }
 
-      result.push({ name, value });
+      result.push({ name, value, fileName, contentType });
 
       return result;
     }, []);
