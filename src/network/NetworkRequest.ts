@@ -3,7 +3,6 @@ import { NetworkCookie } from './NetworkCookie';
 import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
 import { Header, Param, QueryString } from 'har-format';
 import type Protocol from 'devtools-protocol';
-import { parse as parseUrl, UrlWithStringQuery } from 'url';
 
 export interface ContentData {
   error?: string;
@@ -117,9 +116,9 @@ export class NetworkRequest {
     this._statusText = value ?? '';
   }
 
-  private _parsedURL?: UrlWithStringQuery;
+  private _parsedURL?: URL;
 
-  get parsedURL(): UrlWithStringQuery {
+  get parsedURL(): URL {
     return this._parsedURL;
   }
 
@@ -484,7 +483,7 @@ export class NetworkRequest {
     }
 
     this._url = value;
-    this._parsedURL = parseUrl(value);
+    this._parsedURL = new URL(value);
     delete this._queryString;
     delete this._parsedQueryParameters;
   }
@@ -557,6 +556,8 @@ export class NetworkRequest {
       this._contentData = Promise.resolve({
         error: 'Content for WebSockets is currently not supported'
       });
+
+      return;
     }
 
     this._contentData = data
@@ -624,11 +625,11 @@ export class NetworkRequest {
       this.responseHeadersText = extraResponseInfo.responseHeadersText;
 
       if (this.requestHeadersText) {
-        let requestHeadersText = `${this._requestMethod} ${this.parsedURL.path}`;
+        let requestHeadersText = `${this._requestMethod} ${this.parsedURL.pathname}`;
 
         // eslint-disable-next-line max-depth
-        if (this.parsedURL.query) {
-          requestHeadersText += `?${this.parsedURL.query}`;
+        if (this.parsedURL.search) {
+          requestHeadersText += this.parsedURL.search;
         }
 
         requestHeadersText += ` HTTP/1.1\r\n`;
