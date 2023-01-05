@@ -331,7 +331,7 @@ export class NetworkRequest {
   get responseCookies(): NetworkCookie[] | undefined {
     if (!this._responseCookies) {
       const cookie = this.responseHeaderValue('Set-Cookie');
-      this._requestCookies = new CookieParser().parseSetCookie(cookie);
+      this._responseCookies = new CookieParser().parseSetCookie(cookie);
     }
 
     return this._responseCookies;
