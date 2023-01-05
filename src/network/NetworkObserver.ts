@@ -551,7 +551,7 @@ export class NetworkObserver {
   }
 
   private excludeRequest(request: NetworkRequest): boolean {
-    const { host, path = '/' } = request.parsedURL;
+    const { host, pathname = '/' } = request.parsedURL;
     const { includeHosts, excludePaths } = this.options;
     if (includeHosts?.length > 0) {
       if (
@@ -564,7 +564,7 @@ export class NetworkObserver {
     }
 
     return !!excludePaths?.some((excludedPath: string): boolean =>
-      new RegExp(excludedPath).test(path)
+      new RegExp(excludedPath).test(pathname)
     );
   }
 
