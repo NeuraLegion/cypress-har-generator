@@ -2,8 +2,8 @@
 
 [![Maintainability](https://api.codeclimate.com/v1/badges/231b9635d2cc00131b69/maintainability)](https://codeclimate.com/github/NeuraLegion/cypress-har-generator/maintainability)
 [![Test Coverage](https://api.codeclimate.com/v1/badges/231b9635d2cc00131b69/test_coverage)](https://codeclimate.com/github/NeuraLegion/cypress-har-generator/test_coverage)
-![Build Status](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml/badge.svg?branch=master&event=push)
-![NPM Downloads](https://img.shields.io/npm/dw/@neuralegion/cypress-har-generator?label=NPM%20Downloads)
+[![Build Status](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml/badge.svg?branch=master&event=push)](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml?query=branch%3Amaster+event%3Apush)
+[![NPM Downloads](https://img.shields.io/npm/dw/@neuralegion/cypress-har-generator?label=NPM%20Downloads)](https://www.npmjs.com/package/@neuralegion/cypress-har-generator)
 
 Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) while running tests
 
