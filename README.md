@@ -154,6 +154,14 @@ To exclude some requests, you can pass an array of patterns specifying a list of
 cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
 ```
 
+You can also pass an array of MIME types for which to record requests:
+
+```js
+cy.recordHar({ includeMimes: ['application/json'] });
+```
+
+This will record only requests with a MIME type of `application/json`.
+
 ### saveHar
 
 Stops recording and saves all requests that have occurred since `recordHar` was run to a HAR file. By default, the file is saved to the root of the project with a file name that includes the current spec's name (e.g. `{specName}.har`).

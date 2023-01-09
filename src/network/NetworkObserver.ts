@@ -424,19 +424,23 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       }
     }
 
-    if (this.options.content) {
-      networkRequest.setContentData(
-        this.network.getResponseBody({
-          requestId: networkRequest.requestId
-        })
-      );
-    }
+    this.loadContent(networkRequest);
 
     this._entries.delete(networkRequest.requestId);
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
 
     if (!this.excludeRequest(networkRequest)) {
       this.destination?.(networkRequest);
+    }
+  }
+
+  private loadContent(networkRequest: NetworkRequest): void {
+    if (networkRequest.mimeType && this.options.content) {
+      networkRequest.setContentData(
+        this.network.getResponseBody({
+          requestId: networkRequest.requestId
+        })
+      );
     }
   }
 
@@ -553,7 +557,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
   private excludeRequest(request: NetworkRequest): boolean {
     const { host, pathname = '/' } = request.parsedURL;
-    const { includeHosts, excludePaths } = this.options;
+    const { includeHosts, excludePaths, includeMimes } = this.options;
+
     if (includeHosts?.length > 0) {
       if (
         !includeHosts.some((hostPattern: string): boolean =>
@@ -562,6 +567,15 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       ) {
         return true;
       }
+    }
+
+    const allowedMimeType =
+      includeMimes?.length > 0
+        ? includeMimes.includes(request.mimeType || 'x-unknown')
+        : true;
+
+    if (!allowedMimeType) {
+      return true;
     }
 
     return !!excludePaths?.some((excludedPath: string): boolean =>
