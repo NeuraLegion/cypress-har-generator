@@ -38,6 +38,17 @@ describe('ExtraInfoBuilder', () => {
       // assert
       expect(deleteCallback).not.toHaveBeenCalled();
     });
+
+    it('should add request extra info to the request if it is already present', () => {
+      // arrange
+      extraInfoBuilder.addRequestExtraInfo(requestExtraInfo);
+      // act
+      extraInfoBuilder.addRequest(request);
+      // assert
+      verify(
+        requestMock.addExtraRequestInfo(deepEqual(requestExtraInfo))
+      ).once();
+    });
   });
 
   describe('addRequestExtraInfo', () => {

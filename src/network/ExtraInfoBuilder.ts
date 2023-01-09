@@ -21,6 +21,7 @@ export class ExtraInfoBuilder {
 
   public addRequest(request: NetworkRequest): void {
     this._requests.push(request);
+    this.sync();
   }
 
   public addRequestExtraInfo(info: RequestExtraInfo): void {
