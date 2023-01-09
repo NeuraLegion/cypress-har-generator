@@ -4,8 +4,8 @@ import { ChromeRemoteInterfaceEvent, Connection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
 import { Observer } from './Observer';
-import { Header } from 'har-format';
-import { Network, Security } from 'chrome-remote-interface';
+import type { Header } from 'har-format';
+import type { Network, Security } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
 export class NetworkObserver implements Observer<NetworkRequest> {

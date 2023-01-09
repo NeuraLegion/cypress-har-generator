@@ -1,4 +1,4 @@
-import { Entry, Har } from 'har-format';
+import type { Entry, Har } from 'har-format';
 
 export class HarBuilder {
   constructor(private readonly entries: Entry[]) {}

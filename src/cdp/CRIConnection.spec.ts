@@ -7,7 +7,7 @@ import {
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT
 } from './CRIOutputMessages';
-import {
+import type {
   ChromeRemoteInterface,
   ChromeRemoteInterfaceOptions
 } from 'chrome-remote-interface';

@@ -1,20 +1,5 @@
 import { RecordOptions, SaveOptions } from './Plugin';
-
-const normalizeName = (path: string, options?: { ext?: string }): string => {
-  const fileNameIdx =
-    path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/');
-  let name = path.substring(fileNameIdx);
-
-  if (name.indexOf('\\') === 0 || name.indexOf('/') === 0) {
-    name = name.substring(1);
-  }
-
-  const extIdx = name.lastIndexOf('.');
-  const ext = options?.ext ?? name.substring(extIdx);
-  const nameWithoutExt = name.substring(0, extIdx);
-
-  return `${nameWithoutExt}${ext ?? '.har'}`;
-};
+import { StringUtils } from './utils';
 
 Cypress.Commands.add(
   'recordHar',
@@ -29,7 +14,7 @@ Cypress.Commands.add(
     const outDir = (Cypress.env('hars_folders') as string) ?? './';
 
     options = Object.assign({ outDir }, options, {
-      fileName: normalizeName(
+      fileName: StringUtils.normalizeName(
         options?.fileName ?? fallbackFileName,
         !options?.fileName ? { ext: '.har' } : undefined
       )
