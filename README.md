@@ -5,23 +5,21 @@
 [![Build Status](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml/badge.svg?branch=master&event=push)](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml?query=branch%3Amaster+event%3Apush)
 [![NPM Downloads](https://img.shields.io/npm/dw/@neuralegion/cypress-har-generator?label=NPM%20Downloads)](https://www.npmjs.com/package/@neuralegion/cypress-har-generator)
 
-Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) while running tests
+Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) files while running your Cypress tests.
 
 ## Install
 
-Run `npm i --save-dev @neuralegion/cypress-har-generator` to install the plugin.
+To install the plugin as development dependency, run the following command:
+
+```bash
+$ npm i --save-dev @neuralegion/cypress-har-generator
+```
 
 > ✴ For details about changes between versions, and information about updates on previous releases, see the Releases tab on GitHub: https://github.com/NeuraLegion/cypress-har-generator/releases
 
-## Quick Start
+## Setting Up the Plugin
 
-First, install `cypress-har-generator` as development dependency:
-
-```bash
-npm i --save-dev @neuralegion/cypress-har-generator
-```
-
-Next, go to the cypress's directory and put this code is in your `cypress/plugins/index.js` file:
+To use the plugin, you'll need to update the `cypress/plugins/index.js` file as follows:
 
 ```js
 const { install } = require('@neuralegion/cypress-har-generator');
@@ -31,37 +29,60 @@ module.exports = on => {
 };
 ```
 
-> The plugins file is no longer supported as of Cypress version 10.0.0. Instead, you have to update your `cypress.config.js` as follows (for details see [the migration guide](https://docs.cypress.io/guides/references/migration-guide#Plugins-File-Removed)):
+If you're using Cypress version 10.0.0 or higher, you'll need to update your `cypress.config.js` file as follows (for details see [the migration guide](https://docs.cypress.io/guides/references/migration-guide#Plugins-File-Removed)):
+
+```js
+const { defineConfig } = require('cypress');
+const { install } = require('@neuralegion/cypress-har-generator');
+
+module.exports = defineConfig({
+  e2e: {
+    setupNodeEvents(on) {
+      install(on);
+    }
+  }
+});
+```
+
+> ✴ `setupNodeEvents` can be defined in either the e2e or component configuration
+
+> ⚠ Please note that the `setupNodeEvents` does not support multiple `on` event listeners without overwriting previously defined listeners. To work around this issue, you can either call the `install` function at the end of the `setupNodeEvents` function, or use the deprecated `ensureBrowserFlags` as follows:
 >
 > ```js
 > const { defineConfig } = require('cypress');
-> const { install } = require('@neuralegion/cypress-har-generator');
+> const {
+>   install,
+>   ensureBrowserFlags
+> } = require('@neuralegion/cypress-har-generator');
 >
 > module.exports = defineConfig({
->   // setupNodeEvents can be defined in either
->   // the e2e or component configuration
 >   e2e: {
 >     setupNodeEvents(on) {
 >       install(on);
+>       on('before:browser:launch', (browser = {}, launchOptions) => {
+>         ensureBrowserFlags(browser, launchOptions);
+>         return launchOptions;
+>       });
 >     }
 >   }
 > });
 > ```
+>
+> For more information, see [this GitHub issue](https://github.com/cypress-io/cypress/issues/5240).
 
-After then, you should register commands that perform the manipulation with the HAR file.
-For that add this module to your support file `cypress/support/index.js`:
+Next, add the following line to your `cypress/support/index.js` file to register commands that perform the manipulation with a HAR file:
 
 ```js
 require('@neuralegion/cypress-har-generator/commands');
 ```
 
-> Starting from Cypress 10 version 10.0.0, `supportFile` is set to look for the following file: `cypress/support/e2e.js` by default.
+> ✴ Starting from Cypress version 10.0.0, `supportFile` is set to look for the following file: `cypress/support/e2e.js` by default.
 
-Once the configuration is completed, add the following code into each test:
+## Generating a HAR File
+
+To generate a HAR file, you'll need to include the following code in your test file(s):
 
 ```js
-// cypress/integration/users.spec.js
-
 describe('my tests', () => {
   before(() => {
     // start recording
@@ -69,24 +90,15 @@ describe('my tests', () => {
   });
 
   after(() => {
-    // HAR will be saved as users.spec.har
-    // at the root of the project
+    // save the HAR file
     cy.saveHar();
   });
 });
 ```
 
-After then, you can start the tests with:
+By default, the plugin will save the generated HAR file to the root of your project with a file name that includes the current spec's name (e.g. `{specName}.har`).
 
-```bash
-cypress run --browser chrome
-```
-
-> ✴ Now only Chrome family browsers are supported.
-
-When the cypress finished executing tests, the plugin will save a new archive at the root of the project.
-
-You can override the destination folder by setting `CYPRESS_HARS_FOLDERS` environment variable or in `env` object in Cypress config file like this:
+You can also specify a different destination folder for the generated HAR file by setting the `CYPRESS_HARS_FOLDERS` environment variable or the `hars_folders` field in the `env` object in your Cypress config file:
 
 ```json
 {
@@ -96,37 +108,47 @@ You can override the destination folder by setting `CYPRESS_HARS_FOLDERS` enviro
 }
 ```
 
-You can also pass it in the CLI using the `--env` option to set the `hars_folder` environment variable:
+Alternatively, you can pass the `hars_folders` variable in the CLI using the `--env` option:
 
 ```bash
 cypress run --browser chrome --env hars_folders=cypress/hars
 ```
 
-By default, a HAR is saved to a file with a name including the current spec’s name: `{specName}.har`
+Finally, to start running your tests, use the following command:
+
+```bash
+cypress run --browser chrome
+```
+
+> ✴ Currently, only Chrome family browsers are supported.
 
 ## Commands
 
+The plugin provides two main commands for work with HTTP Archive (HAR) files in your Cypress tests: `recordHar` and `saveHar`.
+
 ### recordHar
 
-Starts recording network logs. The plugin records all network requests so long as the browser session is open.
+Starts recording network logs. All network requests made during the browser session will be recorded.
+
+Here's an example of how to use the `recordHar` command:
 
 ```js
 cy.recordHar();
 ```
 
-You can set `content` flag to `false` to skip loading `content` fields in the HAR.
+You can set the `content` boolean flag to `false` to skip loading `content` field in the HAR.
 
 ```js
 cy.recordHar({ content: false });
 ```
 
-To include only requests on specific hosts, you can specify a list of hosts using `includeHosts`.
+To include only requests on specific hosts, you can pass an array of patterns specifying a list of hosts using the `includeHosts` for which to record requests:
 
 ```js
 cy.recordHar({ includeHosts: ['.*.execute-api.eu-west-1.amazonaws.com'] });
 ```
 
-To exclude some requests, you can specify a list of paths to be excluded using `excludePaths`.
+To exclude some requests, you can pass an array of patterns specifying a list of paths using the `excludePaths` to be excluded from the logs:
 
 ```js
 cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
@@ -134,25 +156,43 @@ cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
 
 ### saveHar
 
-Stops recording and save all requests that have occurred since you run recording to the HAR file.
+Stops recording and saves all requests that have occurred since `recordHar` was run to a HAR file. By default, the file is saved to the root of the project with a file name that includes the current spec's name (e.g. `{specName}.har`).
 
 ```js
 cy.saveHar();
 ```
 
-Pass a filename to change the default naming behavior.
+You can pass a file name to change the default naming behavior.
 
 ```js
 cy.saveHar({ fileName: 'example.com.har' });
 ```
 
-Pass an output directory to change the destination folder overriding any previous settings:
+You can customize a destination folder overriding any previous settings:
 
 ```js
 cy.saveHar({ outDir: './hars' });
 ```
 
-Generate HAR file only for chrome, if it is not interactive run, and if test failed.
+## Example Usage
+
+To generate a HAR file during your tests, you'll need to include the `recordHar` and `saveHar` commands in your test file(s). Here's an example of how you might use these commands in a test:
+
+```js
+describe('my tests', () => {
+  before(() => {
+    // start recording
+    cy.recordHar();
+  });
+
+  after(() => {
+    // save the HAR file
+    cy.saveHar();
+  });
+});
+```
+
+You can also generate a HAR file only for Chrome browser sessions, if it is not interactive run, and only if the test has failed:
 
 ```js
 beforeEach(() => {
