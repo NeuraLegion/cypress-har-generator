@@ -1,13 +1,14 @@
 import { Logger } from '../utils';
 import { NetworkRequest } from './NetworkRequest';
-import { ChromeRemoteInterfaceEvent, CRIConnection } from '../cdp';
+import { ChromeRemoteInterfaceEvent, Connection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
-import { RecordOptions } from '../Plugin';
+import { NetworkObserverOptions } from './NetworkObserverOptions';
+import { Observer } from './Observer';
 import { Header } from 'har-format';
 import { Network, Security } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
-export class NetworkObserver {
+export class NetworkObserver implements Observer<NetworkRequest> {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
   private readonly _extraInfoBuilders: Map<
     Protocol.Network.RequestId,
@@ -18,8 +19,8 @@ export class NetworkObserver {
   private readonly security: Security;
 
   constructor(
-    private readonly options: RecordOptions,
-    private readonly connection: CRIConnection,
+    private readonly options: NetworkObserverOptions,
+    private readonly connection: Connection,
     private readonly logger: Logger
   ) {
     this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();

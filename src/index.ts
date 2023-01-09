@@ -1,5 +1,7 @@
 import { Plugin, RecordOptions, SaveOptions } from './Plugin';
 import { FileManager, Logger } from './utils';
+import { DefaultConnectionFactory } from './cdp';
+import { DefaultObserverFactory } from './network';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -12,7 +14,12 @@ declare global {
   }
 }
 
-const plugin = new Plugin(Logger.Instance, FileManager.Instance);
+const plugin = new Plugin(
+  Logger.Instance,
+  FileManager.Instance,
+  new DefaultConnectionFactory(Logger.Instance),
+  new DefaultObserverFactory(Logger.Instance)
+);
 
 export const install = (on: Cypress.PluginEvents): void => {
   on('task', {

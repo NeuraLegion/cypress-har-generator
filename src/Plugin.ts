@@ -1,10 +1,12 @@
 import { FileManager, Logger } from './utils';
-import { CRIConnection, RetryStrategy } from './cdp';
+import { Connection, ConnectionFactory, RetryStrategy } from './cdp';
 import {
   EntryBuilder,
   HarBuilder,
-  NetworkObserver,
-  NetworkRequest
+  NetworkRequest,
+  Observer,
+  NetworkObserverOptions,
+  ObserverFactory
 } from './network';
 import { join } from 'path';
 import { WriteStream } from 'fs';
@@ -15,15 +17,11 @@ export interface SaveOptions {
   outDir: string;
 }
 
-export interface RecordOptions {
-  content: boolean;
-  excludePaths: string[];
-  includeHosts: string[];
-}
+export type RecordOptions = NetworkObserverOptions;
 
 interface Addr {
-  port?: number;
-  host?: string;
+  port: number;
+  host: string;
 }
 
 export class Plugin {
@@ -37,15 +35,17 @@ export class Plugin {
     }
   }
 
-  private networkObservable?: NetworkObserver;
+  private networkObservable?: Observer<NetworkRequest>;
   private addr?: Addr;
-  private connection?: CRIConnection;
+  private connection?: Connection;
   private readonly PORT_OPTION_NAME = '--remote-debugging-port';
   private readonly ADDRESS_OPTION_NAME = '--remote-debugging-address';
 
   constructor(
     private readonly logger: Logger,
-    private readonly fileManager: FileManager
+    private readonly fileManager: FileManager,
+    private readonly connectionFactory: ConnectionFactory,
+    private readonly observerFactory: ObserverFactory
   ) {}
 
   public ensureBrowserFlags(
@@ -68,11 +68,10 @@ export class Plugin {
   public async recordHar(options: RecordOptions): Promise<void> {
     await this.closeConnection();
 
-    this.connection = new CRIConnection(
-      this.addr,
-      this.logger,
-      new RetryStrategy(20, 5, 100)
-    );
+    this.connection = this.connectionFactory.create({
+      ...this.addr,
+      retryStrategy: new RetryStrategy(20, 5, 100)
+    });
 
     await this.connection.open();
 
@@ -142,10 +141,9 @@ export class Plugin {
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
     this.buffer = await this.fileManager.createTmpWriteStream();
-    this.networkObservable = new NetworkObserver(
-      options,
+    this.networkObservable = this.observerFactory.createNetworkObserver(
       this.connection,
-      this.logger
+      options
     );
 
     return this.networkObservable.subscribe(async (request: NetworkRequest) => {
@@ -201,7 +199,7 @@ export class Plugin {
     ];
   }
 
-  private extractAddrFromArgs(args: string[]): Addr {
+  private extractAddrFromArgs(args: string[]): Partial<Addr> {
     const port: number | undefined = +this.findAndParseIfPossible(
       args,
       this.PORT_OPTION_NAME
