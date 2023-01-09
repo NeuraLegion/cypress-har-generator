@@ -524,7 +524,7 @@ describe('NetworkObserver', () => {
     });
 
     // ADHOC: there is a bug in ExtraInfoBuilder preventing us to handle this case
-    it.skip('should handle a request extra info coming before browser events', async () => {
+    it('should handle a request extra info coming before browser events', async () => {
       // arrange
       when(
         networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
