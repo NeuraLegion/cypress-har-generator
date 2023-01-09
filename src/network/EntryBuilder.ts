@@ -1,6 +1,6 @@
 import { ContentData, NetworkRequest } from './NetworkRequest';
 import { NetworkCookie } from './NetworkCookie';
-import {
+import type {
   Content,
   Cookie,
   Entry,

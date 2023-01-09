@@ -15,7 +15,7 @@ import {
   when
 } from 'ts-mockito';
 import { beforeEach, describe, expect, it } from '@jest/globals';
-import { Entry } from 'har-format';
+import type { Entry } from 'har-format';
 import { WriteStream } from 'fs';
 import { EOL, tmpdir } from 'os';
 

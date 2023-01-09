@@ -1,7 +1,8 @@
 import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
 import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
-import { Header, Param, QueryString } from 'har-format';
+import { StringUtils } from '../utils';
+import type { Header, Param, QueryString } from 'har-format';
 import type Protocol from 'devtools-protocol';
 
 export interface ContentData {
@@ -445,38 +446,6 @@ export class NetworkRequest {
     this.setUrl(url);
   }
 
-  private static escapeCharacters(
-    str: string,
-    chars: string = '^[]{}()\\\\.$*+?|'
-  ): string {
-    let foundChar = false;
-
-    const length = chars.length;
-
-    for (let i = 0; i < length; ++i) {
-      if (str.indexOf(chars.charAt(i)) !== -1) {
-        foundChar = true;
-        break;
-      }
-    }
-
-    if (!foundChar) {
-      return str;
-    }
-
-    let result = '';
-
-    for (let j = 0; j < str.length; ++j) {
-      if (chars.indexOf(str.charAt(j)) !== -1) {
-        result += '\\';
-      }
-
-      result += str.charAt(j);
-    }
-
-    return result;
-  }
-
   public setUrl(value: string): void {
     if (this._url === value) {
       return;
@@ -697,7 +666,7 @@ export class NetworkRequest {
     data: string,
     boundary: string
   ): Param[] {
-    const sanitizedBoundary: string = NetworkRequest.escapeCharacters(boundary);
+    const sanitizedBoundary: string = StringUtils.escapeCharacters(boundary);
     const keyValuePattern = new RegExp(
       // Header with an optional file name.
       '^\\r\\ncontent-disposition\\s*:\\s*form-data\\s*;\\s*name="([^"]*)"(?:\\s*;\\s*filename="([^"]*)")?' +

@@ -1,5 +1,5 @@
 import { HarBuilder } from './HarBuilder';
-import { Entry } from 'har-format';
+import type { Entry } from 'har-format';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 
 const entries: Entry[] = [

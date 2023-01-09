@@ -1,5 +1,5 @@
 import { NetworkRequest } from './NetworkRequest';
-import { Header } from 'har-format';
+import type { Header } from 'har-format';
 
 export interface RequestExtraInfo {
   requestHeaders: Header[];
