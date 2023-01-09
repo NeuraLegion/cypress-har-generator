@@ -1,6 +1,14 @@
 import { RetryStrategy } from './RetryStrategy';
 import { Logger } from '../utils';
-import * as CRIOutputMessages from './CRIOutputMessages';
+import {
+  ATTEMPT_TO_CONNECT,
+  CONNECTED,
+  CONNECTION_IS_NOT_DEFINED,
+  DISCONNECTED,
+  FAILED_ATTEMPT_TO_CONNECT,
+  FAILED_TO_CONNECT
+} from './CRIOutputMessages';
+import { Connection } from './Connection';
 import connect, {
   ChromeRemoteInterface,
   ChromeRemoteInterfaceOptions,
@@ -16,7 +24,7 @@ export type ChromeRemoteInterfaceEvent = {
   params?: ProtocolMapping.Events[ChromeRemoteInterfaceMethod][0];
 };
 
-export class CRIConnection {
+export class CRIConnection implements Connection {
   private chromeRemoteInterface?: ChromeRemoteInterface;
 
   get network(): Network | undefined {
@@ -35,7 +43,7 @@ export class CRIConnection {
 
   public async open(): Promise<void> {
     try {
-      this.logger.debug(CRIOutputMessages.ATTEMPT_TO_CONNECT);
+      this.logger.debug(ATTEMPT_TO_CONNECT);
 
       const { host, port } = this.options;
 
@@ -44,22 +52,20 @@ export class CRIConnection {
         port
       });
 
-      this.logger.debug(CRIOutputMessages.CONNECTED);
+      this.logger.debug(CONNECTED);
 
       chromeRemoteInterface.once('disconnect', (): void =>
-        this.logger.debug(CRIOutputMessages.DISCONNECTED)
+        this.logger.debug(DISCONNECTED)
       );
 
       this.chromeRemoteInterface = chromeRemoteInterface;
     } catch (e) {
-      this.logger.debug(
-        `${CRIOutputMessages.FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`
-      );
+      this.logger.debug(`${FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`);
 
       if (
         !(await this.retryStrategy.execute((): Promise<void> => this.open()))
       ) {
-        throw new Error(CRIOutputMessages.FAILED_TO_CONNECT);
+        throw new Error(FAILED_TO_CONNECT);
       }
     }
   }
@@ -69,7 +75,7 @@ export class CRIConnection {
       await this.chromeRemoteInterface.close();
       this.chromeRemoteInterface.removeAllListeners();
       delete this.chromeRemoteInterface;
-      this.logger.debug(CRIOutputMessages.DISCONNECTED);
+      this.logger.debug(DISCONNECTED);
     }
   }
 
@@ -77,7 +83,7 @@ export class CRIConnection {
     callback: (event: ChromeRemoteInterfaceEvent) => void
   ): Promise<void> {
     if (!this.chromeRemoteInterface) {
-      this.logger.debug(CRIOutputMessages.CONNECTION_IS_NOT_DEFINED);
+      this.logger.debug(CONNECTION_IS_NOT_DEFINED);
 
       return;
     }
