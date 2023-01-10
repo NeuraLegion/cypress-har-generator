@@ -83,8 +83,6 @@ export class Plugin {
   public async saveHar(options: SaveOptions): Promise<void> {
     const filePath = join(options.outDir, options.fileName);
 
-    this.assertFilePath(filePath);
-
     if (!this.connection) {
       this.logger.err(`Failed to save HAR. First you should start recording.`);
 
@@ -101,13 +99,13 @@ export class Plugin {
     } catch (e) {
       this.logger.err(`Failed to save HAR: ${e.message}`);
     } finally {
-      await this.dispose();
+      await this.disposeOfHar();
     }
 
     return null;
   }
 
-  public async dispose(): Promise<void> {
+  public async disposeOfHar(): Promise<void> {
     await this.networkObservable?.unsubscribe();
     delete this.networkObservable;
 
@@ -120,6 +118,8 @@ export class Plugin {
     }
 
     delete this.buffer;
+
+    return null;
   }
 
   private async buildHar(): Promise<string | undefined> {
@@ -160,12 +160,6 @@ export class Plugin {
     if (this.connection) {
       await this.connection.close();
       delete this.connection;
-    }
-  }
-
-  private assertFilePath(path: string | undefined): asserts path is string {
-    if (typeof path !== 'string') {
-      throw new Error('File path must be a string.');
     }
   }
 

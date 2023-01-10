@@ -8,8 +8,8 @@ declare global {
   namespace Cypress {
     interface Chainable<Subject = any> {
       saveHar(options?: Partial<SaveOptions>): Chainable<Subject>;
-
       recordHar(options?: RecordOptions): Chainable<Subject>;
+      disposeOfHar(): Chainable<Subject>;
     }
   }
 }
@@ -25,7 +25,8 @@ export const install = (on: Cypress.PluginEvents): void => {
   on('task', {
     saveHar: (options: SaveOptions): Promise<void> => plugin.saveHar(options),
     recordHar: (options: RecordOptions): Promise<void> =>
-      plugin.recordHar(options)
+      plugin.recordHar(options),
+    disposeOfHar: (): Promise<void> => plugin.disposeOfHar()
   });
 
   on(

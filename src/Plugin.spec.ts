@@ -148,6 +148,37 @@ describe('Plugin', () => {
   });
 
   describe('saveHar', () => {
+    it(`should return null to satisfy Cypress's contract when connection is not established yet`, async () => {
+      // arrange
+      const options = {
+        fileName: 'file.har',
+        outDir: tmpdir()
+      } as SaveOptions;
+      // act
+      const result = await plugin.saveHar(options);
+      // assert
+      expect(result).toBe(null);
+    });
+
+    it(`should return null to satisfy Cypress's contract by default`, async () => {
+      // arrange
+      when(connectionFactoryMock.create(anything())).thenReturn(
+        instance(connectionMock)
+      );
+      when(
+        observerFactoryMock.createNetworkObserver(anything(), anything())
+      ).thenReturn(instance(networkObserverMock));
+      await plugin.recordHar({});
+      const options = {
+        fileName: 'file.har',
+        outDir: tmpdir()
+      } as SaveOptions;
+      // act
+      const result = await plugin.saveHar(options);
+      // assert
+      expect(result).toBe(null);
+    });
+
     it('should log an error message when the connection is corrupted', async () => {
       // arrange
       const options = {
@@ -216,6 +247,37 @@ describe('Plugin', () => {
       ).once();
     });
 
+    it('should log an error message when failing to build a HAR file', async () => {
+      // arrange
+      when(connectionFactoryMock.create(anything())).thenReturn(
+        instance(connectionMock)
+      );
+      when(
+        observerFactoryMock.createNetworkObserver(anything(), anything())
+      ).thenReturn(instance(networkObserverMock));
+      when(fileManagerMock.createTmpWriteStream()).thenResolve(
+        resolvableInstance(writableStreamMock)
+      );
+      // @ts-expect-error type mismatch
+      when(writableStreamMock.closed).thenReturn(true);
+      when(writableStreamMock.path).thenReturn('temp-file.txt');
+      await plugin.recordHar({});
+
+      const outDir = tmpdir();
+      const fileName = 'file.har';
+
+      when(fileManagerMock.readFile(anyString())).thenThrow(
+        new Error('something went wrong')
+      );
+      // act
+      await plugin.saveHar({
+        outDir,
+        fileName
+      });
+      // assert
+      verify(loggerMock.err(match(/^Failed to save HAR/))).once();
+    });
+
     it('should unsubscribe from the network events', async () => {
       // arrange
       when(connectionFactoryMock.create(anything())).thenReturn(
@@ -280,6 +342,19 @@ describe('Plugin', () => {
       when(
         observerFactoryMock.createNetworkObserver(anything(), anything())
       ).thenReturn(instance(networkObserverMock));
+    });
+
+    it(`should return null to satisfy Cypress's contract`, async () => {
+      // arrange
+      const options = {
+        content: true,
+        excludePaths: [],
+        includeHosts: []
+      } as RecordOptions;
+      // act
+      const result = await plugin.recordHar(options);
+      // assert
+      expect(result).toBe(null);
     });
 
     it('should open connection and listen to network events', async () => {
@@ -363,6 +438,55 @@ describe('Plugin', () => {
       await plugin.recordHar(options);
       // assert
       verify(writableStreamMock.write(match(`${EOL}`))).never();
+    });
+  });
+
+  describe('disposeOfHar', () => {
+    beforeEach(() => {
+      when(connectionFactoryMock.create(anything())).thenReturn(
+        instance(connectionMock)
+      );
+      when(
+        observerFactoryMock.createNetworkObserver(anything(), anything())
+      ).thenReturn(instance(networkObserverMock));
+      when(fileManagerMock.createTmpWriteStream()).thenResolve(
+        resolvableInstance(writableStreamMock)
+      );
+      // @ts-expect-error type mismatch
+      when(writableStreamMock.closed).thenReturn(true);
+      when(writableStreamMock.path).thenReturn('temp-file.txt');
+    });
+
+    it(`should return null to satisfy Cypress's contract`, async () => {
+      // act
+      const result = await plugin.disposeOfHar();
+      // assert
+      expect(result).toBe(null);
+    });
+
+    it('should dispose of a stream', async () => {
+      // arrange
+      await plugin.recordHar({});
+      // act
+      await plugin.disposeOfHar();
+      // assert
+      verify(writableStreamMock.end()).once();
+    });
+
+    it('should unsubscribe from the network events', async () => {
+      // arrange
+      await plugin.recordHar({});
+      // act
+      await plugin.disposeOfHar();
+      // assert
+      verify(networkObserverMock.unsubscribe()).once();
+    });
+
+    it('should do nothing when the recording is not started yet', async () => {
+      // act
+      await plugin.disposeOfHar();
+      // assert
+      verify(networkObserverMock.unsubscribe()).never();
     });
   });
 });

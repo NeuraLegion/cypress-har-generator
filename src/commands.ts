@@ -23,3 +23,8 @@ Cypress.Commands.add(
     return cy.task('saveHar', options);
   }
 );
+
+Cypress.Commands.add(
+  'disposeOfHar',
+  (): Cypress.Chainable => cy.task('disposeOfHar')
+);
