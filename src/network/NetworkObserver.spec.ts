@@ -2,9 +2,11 @@ import { Logger } from '../utils';
 import { Connection } from '../cdp';
 import { NetworkObserver } from './NetworkObserver';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
+import { RequestFilter } from './filters';
 import { beforeEach, jest, describe, it, expect } from '@jest/globals';
 import {
   anyFunction,
+  anything,
   deepEqual,
   instance,
   mock,
@@ -20,6 +22,7 @@ describe('NetworkObserver', () => {
   const securityMock = mock<Security>();
   const loggerMock = mock<Logger>();
   const connectionMock = mock<Connection>();
+  const requestFilterMock = mock<RequestFilter>();
   const callback = jest.fn();
   const timings = {
     requestTime: -1,
@@ -156,17 +159,19 @@ describe('NetworkObserver', () => {
     sut = new NetworkObserver(
       options,
       instance(connectionMock),
-      instance(loggerMock)
+      instance(loggerMock),
+      instance(requestFilterMock)
     );
   });
 
   afterEach(() => {
     callback.mockReset();
-    reset<Logger | Connection | Network | Security>(
+    reset<Logger | Connection | Network | Security | RequestFilter>(
       loggerMock,
       connectionMock,
       networkMock,
-      securityMock
+      securityMock,
+      requestFilterMock
     );
   });
 
@@ -511,9 +516,10 @@ describe('NetworkObserver', () => {
       );
     });
 
-    it('should exclude a request if host does not corresponds allowed', async () => {
+    it('should filter a request out when it does not match a filter criteria', async () => {
       // arrange
-      when(optionsSpy.includeHosts).thenReturn(['google.com']);
+      when(requestFilterMock.wouldApply(anything())).thenReturn(true);
+      when(requestFilterMock.apply(anything(), anything())).thenReturn(false);
       when(
         networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
       ).thenResolve({
@@ -530,48 +536,9 @@ describe('NetworkObserver', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    it('should exclude a request if path is in exclusions', async () => {
+    it('should not filter a request out when the filter criteria are not applicable', async () => {
       // arrange
-      when(optionsSpy.excludePaths).thenReturn(['^/login']);
-      when(
-        networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
-      ).thenResolve({
-        postData: ''
-      });
-      const url = 'http://localhost:8080/login';
-      when(connectionMock.subscribe(anyFunction())).thenCall(async cb => {
-        await cb({
-          ...requestWillBeSentEvent,
-          params: {
-            ...requestWillBeSentEvent.params,
-            documentURL: url,
-            request: {
-              ...requestWillBeSentEvent.params.request,
-              url
-            }
-          }
-        });
-        await cb({
-          ...responseReceivedEvent,
-          params: {
-            ...responseReceivedEvent.params,
-            response: {
-              ...responseReceivedEvent.params.response,
-              url
-            }
-          }
-        });
-        await cb(loadingFinishedEvent);
-      });
-      // act
-      await sut.subscribe(callback);
-      // assert
-      expect(callback).not.toHaveBeenCalled();
-    });
-
-    it('should exclude a request when mime is not allowed', async () => {
-      // arrange
-      when(optionsSpy.includeMimes).thenReturn(['application/json']);
+      when(requestFilterMock.wouldApply(anything())).thenReturn(false);
       when(
         networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
       ).thenResolve({
@@ -585,7 +552,11 @@ describe('NetworkObserver', () => {
       // act
       await sut.subscribe(callback);
       // assert
-      expect(callback).not.toHaveBeenCalled();
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestId: '1'
+        })
+      );
     });
 
     it('should handle a request extra info coming before browser events', async () => {
