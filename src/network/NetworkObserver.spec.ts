@@ -401,7 +401,7 @@ describe('NetworkObserver', () => {
       ).once();
     });
 
-    it('should load a response body', async () => {
+    it('should load a response body when content is enabled', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
       when(
@@ -423,7 +423,53 @@ describe('NetworkObserver', () => {
       verify(networkMock.getResponseBody(deepEqual({ requestId: '1' }))).once();
     });
 
-    it('should not load a response body if content capturing is disabled', async () => {
+    it('should load a response body when mime is in the list of allowed', async () => {
+      // arrange
+      when(optionsSpy.content).thenReturn(true);
+      when(optionsSpy.includeMimes).thenReturn(['text/html']);
+      when(
+        networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
+      ).thenResolve({
+        postData: ''
+      });
+      when(
+        networkMock.getResponseBody(deepEqual({ requestId: '1' }))
+      ).thenResolve({ body: '<html></html>', base64Encoded: false });
+      when(connectionMock.subscribe(anyFunction())).thenCall(async cb => {
+        await cb(requestWillBeSentEvent);
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(networkMock.getResponseBody(deepEqual({ requestId: '1' }))).once();
+    });
+
+    it('should skip a response body when mime is not defined', async () => {
+      // arrange
+      when(optionsSpy.content).thenReturn(true);
+      when(
+        networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
+      ).thenResolve({
+        postData: ''
+      });
+      when(
+        networkMock.getResponseBody(deepEqual({ requestId: '1' }))
+      ).thenReject(new Error('No resource with given identifier found'));
+      when(connectionMock.subscribe(anyFunction())).thenCall(async cb => {
+        await cb(requestWillBeSentEvent);
+        await cb(loadingFailedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(
+        networkMock.getResponseBody(deepEqual({ requestId: '1' }))
+      ).never();
+    });
+
+    it('should skip a response body if content is disabled', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
       when(
@@ -523,7 +569,25 @@ describe('NetworkObserver', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
-    // ADHOC: there is a bug in ExtraInfoBuilder preventing us to handle this case
+    it('should exclude a request when mime is not allowed', async () => {
+      // arrange
+      when(optionsSpy.includeMimes).thenReturn(['application/json']);
+      when(
+        networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
+      ).thenResolve({
+        postData: ''
+      });
+      when(connectionMock.subscribe(anyFunction())).thenCall(async cb => {
+        await cb(requestWillBeSentEvent);
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      expect(callback).not.toHaveBeenCalled();
+    });
+
     it('should handle a request extra info coming before browser events', async () => {
       // arrange
       when(
