@@ -2,6 +2,7 @@
   "name": "@neuralegion/cypress-har-generator",
   "version": "5.5.0",
   "private": false,
+  "description": "Generate HTTP Archive (HAR) files while running your Cypress tests.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/NeuraLegion/cypress-har-generator.git"
@@ -29,7 +30,13 @@
     "har",
     "cypress-plugin",
     "chrome",
-    "http-archive"
+    "http-archive",
+    "testing",
+    "qa",
+    "automation",
+    "typescript",
+    "chromium",
+    "qatools"
   ],
   "scripts": {
     "semantic-release": "semantic-release",
