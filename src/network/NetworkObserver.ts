@@ -4,6 +4,7 @@ import { ChromeRemoteInterfaceEvent, Connection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
 import { Observer } from './Observer';
+import { RequestFilter } from './filters';
 import type { Header } from 'har-format';
 import type { Network, Security } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
@@ -21,7 +22,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   constructor(
     private readonly options: NetworkObserverOptions,
     private readonly connection: Connection,
-    private readonly logger: Logger
+    private readonly logger: Logger,
+    private readonly requestFilter?: RequestFilter
   ) {
     this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
     this._extraInfoBuilders = new Map<
@@ -556,31 +558,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   private excludeRequest(request: NetworkRequest): boolean {
-    const { host, pathname = '/' } = request.parsedURL;
-    const { includeHosts, excludePaths, includeMimes } = this.options;
-
-    if (includeHosts?.length > 0) {
-      if (
-        !includeHosts.some((hostPattern: string): boolean =>
-          new RegExp(hostPattern).test(host)
-        )
-      ) {
-        return true;
-      }
-    }
-
-    const allowedMimeType =
-      includeMimes?.length > 0
-        ? includeMimes.includes(request.mimeType || 'x-unknown')
-        : true;
-
-    if (!allowedMimeType) {
-      return true;
-    }
-
-    return !!excludePaths?.some((excludedPath: string): boolean =>
-      new RegExp(excludedPath).test(pathname)
-    );
+    return this.requestFilter?.wouldApply(this.options)
+      ? !this.requestFilter.apply(request, this.options)
+      : false;
   }
 
   private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {
