@@ -3,13 +3,15 @@ import { NetworkRequest } from '../NetworkRequest';
 import { HostFilter } from './HostFilter';
 import { PathFilter } from './PathFilter';
 import { MimeFilter } from './MimeFilter';
+import { StatusCodeFilter } from './StatusCodeFilter';
 
 export class CompositeFilter implements RequestFilter {
   constructor(
     private readonly children: RequestFilter[] = [
       new HostFilter(),
       new PathFilter(),
-      new MimeFilter()
+      new MimeFilter(),
+      new StatusCodeFilter()
     ]
   ) {}
 
