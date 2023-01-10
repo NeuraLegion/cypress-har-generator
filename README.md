@@ -7,6 +7,17 @@
 
 Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) files while running your Cypress tests.
 
+## Table of contents
+
+- [Install](#install)
+- [Setting Up the Plugin](#setting-up-the-plugin)
+- [Generating a HAR File](#generating-a-har-file)
+- [Commands](#commands)
+  - [recordHar](#recordhar)
+  - [saveHar](#savehar)
+- [Example Usage](#example-usage)
+- [License](#license)
+
 ## Install
 
 To install the plugin as development dependency, run the following command:
