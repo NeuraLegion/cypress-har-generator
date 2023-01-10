@@ -162,6 +162,14 @@ cy.recordHar({ includeMimes: ['application/json'] });
 
 This will record only requests with a MIME type of `application/json`.
 
+To exclude requests based on their status code, you can use the `minStatusCodeToInclude` field.
+
+For example, to only include requests that have a status code of 400 or greater, you can pass the `minStatusCodeToInclude` option as follows:
+
+```js
+cy.recordHar({ minStatusCodeToInclude: 400 });
+```
+
 ### saveHar
 
 Stops recording and saves all requests that have occurred since `recordHar` was run to a HAR file. By default, the file is saved to the root of the project with a file name that includes the current spec's name (e.g. `{specName}.har`).

@@ -3,4 +3,5 @@ export interface NetworkObserverOptions {
   excludePaths?: string[];
   includeHosts?: string[];
   includeMimes?: string[];
+  minStatusCodeToInclude?: number;
 }
