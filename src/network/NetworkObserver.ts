@@ -65,6 +65,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     await Promise.all([this.security?.disable(), this.network?.disable()]);
     delete this.destination;
     this._entries.clear();
+    this._extraInfoBuilders.clear();
   }
 
   public signedExchangeReceived(

@@ -15,6 +15,7 @@ Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) f
 - [Commands](#commands)
   - [recordHar](#recordhar)
   - [saveHar](#savehar)
+  - [disposeOfHar](#disposeofhar)
 - [Example Usage](#example-usage)
 - [License](#license)
 
@@ -201,6 +202,27 @@ You can customize a destination folder overriding any previous settings:
 cy.saveHar({ outDir: './hars' });
 ```
 
+### disposeOfHar
+
+Stops the ongoing recording of network requests and disposes of the recorded logs, which will be not saved to a HAR file.
+
+You may use this command if you have started recording network logs with `recordHar` command, but you decide to refuse to save the recorded logs to a HAR file.
+Here's an example of how you might use this command to dispose of the HAR:
+
+```js
+describe('my tests', () => {
+  before(() => {
+    // start recording
+    cy.recordHar();
+  });
+
+  after(() => {
+    // decide not to save the recorded logs
+    cy.disposeOfHar();
+  });
+});
+```
+
 ## Example Usage
 
 To generate a HAR file during your tests, you'll need to include the `recordHar` and `saveHar` commands in your test file(s). Here's an example of how you might use these commands in a test:
@@ -222,21 +244,23 @@ describe('my tests', () => {
 You can also generate a HAR file only for Chrome browser sessions, if it is not interactive run, and only if the test has failed:
 
 ```js
-beforeEach(() => {
-  const isInteractive = Cypress.config('isInteractive');
-  const isChrome = Cypress.browser.name === 'chrome';
-  if (!isInteractive && isChrome) {
-    cy.recordHar();
-  }
-});
+describe('my tests', () => {
+  beforeEach(() => {
+    const isInteractive = Cypress.config('isInteractive');
+    const isChrome = Cypress.browser.name === 'chrome';
+    if (!isInteractive && isChrome) {
+      cy.recordHar();
+    }
+  });
 
-afterEach(() => {
-  const { state } = this.currentTest;
-  const isInteractive = Cypress.config('isInteractive');
-  const isChrome = Cypress.browser.name === 'chrome';
-  if (!isInteractive && isChrome && state !== 'passed') {
-    cy.saveHar();
-  }
+  afterEach(function () {
+    const { state } = this.currentTest;
+    const isInteractive = Cypress.config('isInteractive');
+    const isChrome = Cypress.browser.name === 'chrome';
+    if (!isInteractive && isChrome && state !== 'passed') {
+      cy.saveHar();
+    }
+  });
 });
 ```
 
