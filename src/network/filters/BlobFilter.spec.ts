@@ -42,24 +42,24 @@ describe('BlobFilter', () => {
   });
 
   describe('apply', () => {
-    it('should return true if the request is blob', () => {
+    it('should return false if the request is blob', () => {
       // arrange
       when(networkRequestMock.isBlob()).thenReturn(true);
       const options = { includeBlobs: false };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert
-      expect(result).toBe(true);
+      expect(result).toBe(false);
     });
 
-    it('should return false if the request is not blob', () => {
+    it('should return true if the request is not blob', () => {
       // arrange
       when(networkRequestMock.isBlob()).thenReturn(false);
       const options = { includeBlobs: false };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert
-      expect(result).toBe(false);
+      expect(result).toBe(true);
     });
   });
 });
