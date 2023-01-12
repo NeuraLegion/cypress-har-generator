@@ -70,6 +70,25 @@ describe('NetworkRequest', () => {
     });
   });
 
+  describe('isBlob', () => {
+    it('should return true if the schema starts from the blob', () => {
+      // arrange
+      const url = 'blob:http://localhost:8000/image.jpg';
+      sut.setUrl(url);
+      // act
+      const result = sut.isBlob();
+      // assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false if the schema is not the blob', () => {
+      // act
+      const result = sut.isBlob();
+      // assert
+      expect(result).toBe(false);
+    });
+  });
+
   describe('addExtraResponseInfo', () => {
     it('should set response headers', () => {
       // arrange

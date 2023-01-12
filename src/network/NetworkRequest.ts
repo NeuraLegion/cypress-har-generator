@@ -457,6 +457,10 @@ export class NetworkRequest {
     delete this._parsedQueryParameters;
   }
 
+  public isBlob(): boolean {
+    return this._url.startsWith('blob:');
+  }
+
   public setRemoteAddress(ip: string, port: number): void {
     this._remoteAddress = `${ip}:${port}`;
   }
