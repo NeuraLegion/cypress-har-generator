@@ -2,14 +2,14 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  globals: {
-    'ts-jest': {
-      tsconfig: '<rootDir>/tsconfig.json'
-    }
-  },
   transform: {
-    '^.+\\.[tj]sx?$': 'ts-jest'
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '^.+\\.[tj]sx?$': [
+      'ts-jest',
+      { tsconfig: './tsconfig.json', isolatedModules: true }
+    ]
   },
+  maxWorkers: '25%',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   collectCoverageFrom: [
