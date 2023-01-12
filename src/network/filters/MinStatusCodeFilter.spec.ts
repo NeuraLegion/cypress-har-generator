@@ -1,16 +1,16 @@
+import { MinStatusCodeFilter } from './MinStatusCodeFilter';
 import { RequestFilterOptions } from './RequestFilter';
 import { NetworkRequest } from '../NetworkRequest';
-import { StatusCodeFilter } from './StatusCodeFilter';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock, reset, when } from 'ts-mockito';
 
-describe('StatusCodeFilter', () => {
+describe('MinStatusCodeFilter', () => {
   const networkRequestMock = mock<NetworkRequest>();
 
-  let sut!: StatusCodeFilter;
+  let sut!: MinStatusCodeFilter;
 
   beforeEach(() => {
-    sut = new StatusCodeFilter();
+    sut = new MinStatusCodeFilter();
   });
 
   afterEach(() => reset(networkRequestMock));
@@ -18,9 +18,10 @@ describe('StatusCodeFilter', () => {
   describe('wouldApply', () => {
     it.each([
       {},
-      { excludeStatusCodes: undefined },
-      { excludeStatusCodes: null },
-      { excludeStatusCodes: [] }
+      { minStatusCodeToInclude: undefined },
+      { minStatusCodeToInclude: null },
+      { minStatusCodeToInclude: 'test' },
+      { minStatusCodeToInclude: NaN }
     ])(
       'should return false when the filter is not applicable (options: %j)',
       options => {
@@ -34,8 +35,10 @@ describe('StatusCodeFilter', () => {
     );
 
     it.each([
-      { excludeStatusCodes: [200] },
-      { excludeStatusCodes: [200, 201] }
+      { minStatusCodeToInclude: 1 },
+      { minStatusCodeToInclude: -1 },
+      { minStatusCodeToInclude: 1.1 },
+      { minStatusCodeToInclude: '1' }
     ])(
       'should return true when the filter is applicable (options: %j)',
       options => {
@@ -50,21 +53,22 @@ describe('StatusCodeFilter', () => {
   });
 
   describe('apply', () => {
-    it('should return true if the request status code is not in exclusions', () => {
+    it('should return true if the request status code equals or is greater than the threshold', () => {
       // arrange
-      when(networkRequestMock.statusCode).thenReturn(200);
-      const options = { excludeStatusCodes: [400] };
+      const statusCode = 200;
+      when(networkRequestMock.statusCode).thenReturn(statusCode);
+      const options = { minStatusCodeToInclude: statusCode };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert
       expect(result).toBe(true);
     });
 
-    it('should return false if the request status code is in exclusions', () => {
+    it('should return false if the request status code is less than the threshold', () => {
       // arrange
-      const statusCode = 200;
+      const statusCode = 101;
       when(networkRequestMock.statusCode).thenReturn(statusCode);
-      const options = { excludeStatusCodes: [statusCode] };
+      const options = { minStatusCodeToInclude: 200 };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert

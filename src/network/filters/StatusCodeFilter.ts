@@ -4,22 +4,12 @@ import { NetworkRequest } from '../NetworkRequest';
 export class StatusCodeFilter implements RequestFilter {
   public apply(
     request: NetworkRequest,
-    { minStatusCodeToInclude = 0 }: RequestFilterOptions
+    { excludeStatusCodes }: RequestFilterOptions
   ): boolean {
-    const threshold = this.normalizeThreshold(minStatusCodeToInclude);
-
-    return request.statusCode >= threshold;
+    return !excludeStatusCodes?.includes(request.statusCode);
   }
 
   public wouldApply(options: RequestFilterOptions): boolean {
-    const threshold = this.normalizeThreshold(options.minStatusCodeToInclude);
-
-    return typeof threshold === 'number';
-  }
-
-  private normalizeThreshold(value: unknown): number | undefined {
-    return !isNaN(+value) && value !== null
-      ? Math.round(Math.abs(+value))
-      : undefined;
+    return options.excludeStatusCodes?.length > 0;
   }
 }
