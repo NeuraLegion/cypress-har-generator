@@ -1,0 +1,25 @@
+body {
+  padding: 0 10px;
+}
+
+h3 {
+  color: red;
+}
+
+#form-wrapper {
+  padding: 10px 20px;
+  background-color: #eee;
+}
+
+#form-wrapper ul {
+  list-style-type: none;
+}
+
+#form-wrapper li {
+  margin: 10px 0;
+}
+
+.error {
+  color: red;
+  font-weight: bold;
+}
