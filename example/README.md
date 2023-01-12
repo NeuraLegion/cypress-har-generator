@@ -1,14 +1,25 @@
 # Example cypress-har-generator
 
-> Record HAR file while running tests
-
-You can find test files in [cypress/integration](cypress/integration) folder.
+This is a demo project for the [cypress-har-generator](https://github.com/NeuraLegion/cypress-har-generator), with some installation and usage examples.
 
 ## Install
 
-Run `npm ci` to install dependencies.
+To install the necessary dependencies, run the following command:
 
+```bash
+$ npm ci
+```
 
 ## How to run
 
-Run `npm test` to trigger tests and run recording.
+To run the tests and generate the HAR file, use the following command:
+
+```bash
+$ npm t
+```
+
+The generated file can be found in the following folder: `./cypress/hars`.
+
+## Additional information
+
+You can find the test files in the `./cypress/integration` folder. The generated HAR file will capture all the network requests made during the test run. This can be useful for debugging and performance analysis.

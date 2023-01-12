@@ -29,5 +29,5 @@
     "typeRoots": ["node_modules/@types", "typings"],
     "types": ["cypress", "node", "chrome-remote-interface"]
   },
-  "exclude": ["node_modules", "dist", "**/.*/"]
+  "exclude": ["node_modules", "dist", "example", "**/.*/"]
 }
