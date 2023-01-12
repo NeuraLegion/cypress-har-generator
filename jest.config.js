@@ -14,8 +14,9 @@ module.exports = {
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
   collectCoverageFrom: [
     '**/*.{ts,tsx}',
-    '!**/node_modules/**',
     '!**/index.ts',
-    '!**/register.ts'
+    '!node_modules/**',
+    '!typings/**',
+    '!example/**'
   ]
 };
