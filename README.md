@@ -182,7 +182,7 @@ For example, to only include requests that have a status code of 400 or greater,
 cy.recordHar({ minStatusCodeToInclude: 400 });
 ```
 
-By default, when you use cy.recordHar command, it will include the blob requests in the recorded HAR file. However, those requests only make sense when they are used on the same page they were created. To exclude the blob requests from the recorded HAR file, set the `includeBlobs` to false as follows:
+By default, when you use `recordHar` command, it will include the blob requests in the recorded HAR file. However, those requests only make sense when they are used on the same page they were created. To exclude the blob requests from the recorded HAR file, set the `includeBlobs` to false as follows:
 
 ```js
 cy.recordHar({ includeBlobs: false });
