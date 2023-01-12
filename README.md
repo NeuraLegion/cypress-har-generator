@@ -182,6 +182,16 @@ For example, to only include requests that have a status code of 400 or greater,
 cy.recordHar({ minStatusCodeToInclude: 400 });
 ```
 
+> As of version 6, this option will be removed. Use `excludeStatusCodes` instead.
+
+Alternatively, you can have more granular control over the requests to exclude by passing an array of status codes you want to exclude from the recorded HAR file.
+
+```js
+cy.recordHar({ excludeStatusCodes: [200, 201, 204] });
+```
+
+> Please note that both options `minStatusCodeToInclude` and `excludeStatusCodes` are mutually exclusive.
+
 By default, when you use `recordHar` command, it will include the blob requests in the recorded HAR file. However, those requests only make sense when they are used on the same page they were created. To exclude the blob requests from the recorded HAR file, set the `includeBlobs` to false as follows:
 
 ```js
