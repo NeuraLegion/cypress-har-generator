@@ -5,7 +5,7 @@ import { Connection } from '../cdp';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
 import { Observer } from './Observer';
 import { NetworkRequest } from './NetworkRequest';
-import { CompositeFilter } from './filters/CompositeFilter';
+import { CompositeFilter } from './filters';
 
 export class DefaultObserverFactory implements ObserverFactory {
   private readonly defaultRequestFilter = new CompositeFilter();

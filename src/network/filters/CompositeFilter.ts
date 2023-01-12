@@ -4,6 +4,7 @@ import { HostFilter } from './HostFilter';
 import { PathFilter } from './PathFilter';
 import { MimeFilter } from './MimeFilter';
 import { StatusCodeFilter } from './StatusCodeFilter';
+import { BlobFilter } from './BlobFilter';
 
 export class CompositeFilter implements RequestFilter {
   constructor(
@@ -11,7 +12,8 @@ export class CompositeFilter implements RequestFilter {
       new HostFilter(),
       new PathFilter(),
       new MimeFilter(),
-      new StatusCodeFilter()
+      new StatusCodeFilter(),
+      new BlobFilter()
     ]
   ) {}
 
