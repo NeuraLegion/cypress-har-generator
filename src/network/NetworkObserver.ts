@@ -19,6 +19,10 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private destination?: (chromeEntry: NetworkRequest) => void;
   private readonly security: Security;
 
+  get empty(): boolean {
+    return this._entries.size === 0;
+  }
+
   constructor(
     private readonly options: NetworkObserverOptions,
     private readonly connection: Connection,
@@ -429,8 +433,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
     this.loadContent(networkRequest);
 
-    this._entries.delete(networkRequest.requestId);
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
+    this._entries.delete(networkRequest.requestId);
 
     if (!this.excludeRequest(networkRequest)) {
       this.destination?.(networkRequest);
