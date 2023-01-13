@@ -4,14 +4,14 @@
     "rootDir": "src",
     "baseUrl": "src",
     "outDir": "dist",
+    "module": "esnext",
     "declaration": true
   },
-  "exclude": [
-    "node_modules",
-    "example",
-    "dist",
-    "**/.*/",
-    "**/*.spec.ts",
-    "tests/**"
-  ]
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
+  },
+  "include": ["src"],
+  "exclude": ["**/.*/", "**/*.spec.ts"]
 }

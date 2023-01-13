@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: ['lint', 'format', 'build', 'test']
+        target: ['lint', 'format', 'build', 'test', 'e2e']
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -38,4 +38,15 @@ jobs:
         uses: ./.github/workflows/composite/npm
 
       - name: Execute ${{ matrix.target }} npm script
+        if: ${{ matrix.target != 'e2e' }}
         run: npm run ${{ matrix.target }}
+
+      - name: Execute e2e npm script
+        if: ${{ matrix.target == 'e2e' }}
+        uses: cypress-io/github-action@v5
+        timeout-minutes: 10
+        with:
+          wait-on: 'http://localhost:8080/'
+          wait-on-timeout: 120
+          start: npm start
+          browser: chrome
