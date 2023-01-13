@@ -1,0 +1,19 @@
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <title>Frame</title>
+  </head>
+  <body>
+    <h1>Frame</h1>
+  </body>
+  <script>
+    const iframe = document.createElement('iframe');
+    iframe.src =
+      'https://www.openstreetmap.org/export/embed.html?bbox=-0.004017949104309083%2C51.47612752641776%2C0.00030577182769775396%2C51.478569861898606&layer=mapnik';
+    document.body.append(iframe);
+  </script>
+</html>

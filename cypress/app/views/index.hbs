@@ -1,8 +1,18 @@
 <html>
   <head>
+    <meta charset='utf-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
     <title>Testing application</title>
   </head>
   <body>
     <h1>Welcome to the cypress-har-generator</h1>
+    <ul>
+      {{#each pages}}
+        <li><a href='pages/{{this.id}}'>{{this.name}}</a></li>
+      {{/each}}
+    </ul>
   </body>
 </html>
