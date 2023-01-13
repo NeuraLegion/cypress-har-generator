@@ -220,6 +220,14 @@ You can customize a destination folder overriding any previous settings:
 cy.saveHar({ outDir: './hars' });
 ```
 
+You can also pass the `waitForIdle` option to wait for all pending requests to complete before saving the HAR file:
+
+```js
+cy.saveHar({ waitForIdle: true });
+```
+
+This option is false by default. When set to true, the plugin will monitor the count of pending requests and wait for it to reach zero before proceeding with saving the HAR file. This ensures that all responses have been received and the data in the file is complete and accurate.
+
 ### disposeOfHar
 
 Stops the ongoing recording of network requests and disposes of the recorded logs, which will be not saved to a HAR file.

@@ -6,15 +6,18 @@ import {
   NetworkRequest,
   Observer,
   NetworkObserverOptions,
-  ObserverFactory
+  ObserverFactory,
+  NetworkIdleMonitor
 } from './network';
 import { join } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';
+import { promisify } from 'util';
 
 export interface SaveOptions {
   fileName: string;
   outDir: string;
+  waitForIdle?: boolean;
 }
 
 export type RecordOptions = NetworkObserverOptions;
@@ -91,6 +94,11 @@ export class Plugin {
 
     try {
       await this.fileManager.createFolder(options.outDir);
+
+      if (options.waitForIdle) {
+        await this.waitForNetworkIdle();
+      }
+
       const har: string | undefined = await this.buildHar();
 
       if (har) {
@@ -137,6 +145,18 @@ export class Plugin {
         return JSON.stringify(har, null, 2);
       }
     }
+  }
+
+  private async waitForNetworkIdle(
+    options: { idleTime?: number; timeout?: number } = {}
+  ): Promise<void> {
+    const { idleTime = 100, timeout = 5000 } = options;
+    const cancellation = promisify(setTimeout)(timeout);
+
+    return Promise.race([
+      new NetworkIdleMonitor(this.networkObservable).waitForIdle(idleTime),
+      cancellation
+    ]);
   }
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {

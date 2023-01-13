@@ -176,6 +176,32 @@ describe('NetworkObserver', () => {
   });
 
   describe('subscribe', () => {
+    it('should return true when no pending requests', async () => {
+      // act
+      const result = sut.empty;
+      // assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when there is at least one pending request', async () => {
+      // arrange
+      when(
+        networkMock.getRequestPostData(deepEqual({ requestId: '1' }))
+      ).thenResolve({
+        postData: ''
+      });
+      when(connectionMock.subscribe(anyFunction())).thenCall(cb =>
+        cb(requestWillBeSentEvent)
+      );
+      await sut.subscribe(callback);
+      // act
+      const result = sut.empty;
+      // assert
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('subscribe', () => {
     it('should subscribe to CDP events', async () => {
       // act
       await sut.subscribe(callback);

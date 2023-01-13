@@ -14,7 +14,7 @@ import {
   verify,
   when
 } from 'ts-mockito';
-import { beforeEach, describe, expect, it } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Entry } from 'har-format';
 import { WriteStream } from 'fs';
 import { EOL, tmpdir } from 'os';
@@ -33,6 +33,32 @@ const resolvableInstance = <T extends object>(m: T): T =>
       return Reflect.get(target, prop, receiver);
     }
   });
+
+const findArg = <R>(
+  args: [unknown, unknown],
+  expected: 'function' | 'number'
+): R => (typeof args[0] === expected ? args[0] : args[1]) as R;
+
+const useFakeTimers = () => {
+  jest.useFakeTimers();
+
+  const mockedImplementation = jest
+    .spyOn(global, 'setTimeout')
+    .getMockImplementation();
+
+  jest
+    .spyOn(global, 'setTimeout')
+    .mockImplementation((...args: [unknown, unknown]) => {
+      // ADHOC: depending on implementation (promisify vs raw), the method signature will be different
+      const callback = findArg<(..._: unknown[]) => void>(args, 'function');
+      const ms = findArg<number>(args, 'number');
+      const timer = mockedImplementation?.(callback, ms);
+
+      jest.runAllTimers();
+
+      return timer;
+    });
+};
 
 const entry = {
   startedDateTime: '2022-04-18T09:09:35.585Z',
@@ -77,6 +103,7 @@ describe('Plugin', () => {
   let plugin!: Plugin;
 
   beforeEach(() => {
+    useFakeTimers();
     plugin = new Plugin(
       instance(loggerMock),
       instance(fileManagerMock),
@@ -85,7 +112,8 @@ describe('Plugin', () => {
     );
   });
 
-  afterEach(() =>
+  afterEach(() => {
+    jest.useRealTimers();
     reset<
       | Logger
       | FileManager
@@ -102,8 +130,8 @@ describe('Plugin', () => {
       observerFactoryMock,
       networkObserverMock,
       writableStreamMock
-    )
-  );
+    );
+  });
 
   describe('ensureBrowserFlags', () => {
     it('should add --remote-debugging-port and --remote-debugging-address flags if not present', () => {
@@ -212,6 +240,39 @@ describe('Plugin', () => {
       await plugin.saveHar(options);
       // assert
       verify(fileManagerMock.createFolder(outDir)).once();
+    });
+
+    it('should wait for completing all pending requests before saving a HAR', async () => {
+      // arrange
+      when(connectionFactoryMock.create(anything())).thenReturn(
+        instance(connectionMock)
+      );
+      when(
+        observerFactoryMock.createNetworkObserver(anything(), anything())
+      ).thenReturn(instance(networkObserverMock));
+      when(networkObserverMock.empty).thenReturn(false, false, true);
+      when(fileManagerMock.createTmpWriteStream()).thenResolve(
+        resolvableInstance(writableStreamMock)
+      );
+      // @ts-expect-error type mismatch
+      when(writableStreamMock.closed).thenReturn(true);
+      when(writableStreamMock.path).thenReturn('temp-file.txt');
+      await plugin.recordHar({});
+
+      const outDir = tmpdir();
+      const fileName = 'file.har';
+
+      when(fileManagerMock.readFile(anyString())).thenResolve(
+        JSON.stringify(entry)
+      );
+      // act
+      await plugin.saveHar({
+        outDir,
+        fileName,
+        waitForIdle: true
+      });
+      // assert
+      verify(networkObserverMock.empty).times(4);
     });
 
     it('should build and save a resulting HAR file', async () => {
