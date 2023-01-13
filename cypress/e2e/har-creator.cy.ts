@@ -6,7 +6,7 @@ describe('HAR creator', () => {
 
     cy.intercept('/').as('page').visit('/').wait('@page');
 
-    cy.saveHar();
+    cy.saveHar({ waitForIdle: true });
 
     cy.readFile(packageJsonPath).then(({ version, name }) =>
       cy.findHar().its('log.creator').should('contain', {
