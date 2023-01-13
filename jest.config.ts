@@ -1,5 +1,6 @@
-/** @type {import('@jest/types').Config.InitialOptions} */
-module.exports = {
+import type { Config } from 'jest';
+
+const config: Config = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   transform: {
@@ -12,11 +13,7 @@ module.exports = {
   maxWorkers: '25%',
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
-  collectCoverageFrom: [
-    '**/*.{ts,tsx}',
-    '!**/index.ts',
-    '!node_modules/**',
-    '!typings/**',
-    '!example/**'
-  ]
+  collectCoverageFrom: ['src/**/*.ts', '!**/index.ts']
 };
+
+export default config;

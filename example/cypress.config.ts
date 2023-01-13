@@ -1,7 +1,7 @@
 import { defineConfig } from 'cypress';
 import { install } from '../src';
 
-module.exports = defineConfig({
+export default defineConfig({
   video: false,
   fixturesFolder: false,
   screenshotOnRunFailure: false,

@@ -215,6 +215,15 @@ module.exports = {
   },
   overrides: [
     {
+      files: ['jest.config.ts', 'webpack.config.ts', 'cypress.config.ts', 'cypress/**/*.ts'],
+      rules: {
+        'import/no-extraneous-dependencies': [
+          'error',
+          { devDependencies: true }
+        ]
+      }
+    },
+    {
       env: {
         jest: true
       },

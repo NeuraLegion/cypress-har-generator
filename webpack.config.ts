@@ -1,10 +1,9 @@
-const externals = require('webpack-node-externals');
-const { resolve } = require('path');
-const FileManagerPlugin = require('filemanager-webpack-plugin');
-const configFile = resolve('./tsconfig.build.json');
+import externals from 'webpack-node-externals';
+import FileManagerPlugin from 'filemanager-webpack-plugin';
+import { Configuration } from 'webpack';
+import { resolve } from 'path';
 
-/** @type {import('webpack').Configuration} */
-module.exports = {
+const config: Configuration = {
   context: process.cwd(),
   entry: {
     commands: resolve('src/commands.ts'),
@@ -47,7 +46,7 @@ module.exports = {
           {
             loader: 'ts-loader',
             options: {
-              configFile
+              configFile: resolve('./tsconfig.build.json')
             }
           }
         ]
@@ -60,3 +59,5 @@ module.exports = {
     filename: '[name].js'
   }
 };
+
+export default config;
