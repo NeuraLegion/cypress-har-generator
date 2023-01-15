@@ -3,11 +3,11 @@ import { Connection, ConnectionFactory, RetryStrategy } from './cdp';
 import {
   EntryBuilder,
   HarBuilder,
+  NetworkIdleMonitor,
+  NetworkObserverOptions,
   NetworkRequest,
   Observer,
-  NetworkObserverOptions,
-  ObserverFactory,
-  NetworkIdleMonitor
+  ObserverFactory
 } from './network';
 import { join } from 'path';
 import { WriteStream } from 'fs';
@@ -61,11 +61,17 @@ export class Plugin {
       );
     }
 
-    const browserFlags: string[] = this.ensureRdpAddrArgs(
-      this.ensureTestingFlags(args)
-    );
+    const electronUsed = browser.name === 'electron';
 
-    return browserFlags.filter((x: string): boolean => !args.includes(x));
+    if (electronUsed) {
+      args = this.parseElectronSwitches(browser);
+    }
+
+    const browserFlags: string[] = this.ensureRdpAddrArgs(args);
+
+    return electronUsed
+      ? []
+      : browserFlags.filter((x: string): boolean => !args.includes(x));
   }
 
   public async recordHar(options: RecordOptions): Promise<void> {
@@ -130,6 +136,25 @@ export class Plugin {
     return null;
   }
 
+  private parseElectronSwitches(browser: Cypress.Browser): string[] {
+    if (
+      !process.env.ELECTRON_EXTRA_LAUNCH_ARGS?.includes(this.PORT_OPTION_NAME)
+    ) {
+      this.logger
+        .err(`The '${browser.name}' browser was detected, however, the required '${this.PORT_OPTION_NAME}' command line switch was not provided. 
+          This switch is necessary to enable remote debugging over HTTP on the specified port. 
+          
+          Please refer to the documentation:
+            - https://www.electronjs.org/docs/latest/api/command-line-switches#--remote-debugging-portport
+            - https://docs.cypress.io/api/plugins/browser-launch-api#Modify-Electron-app-switches`);
+      throw new Error(
+        `Missing '${this.PORT_OPTION_NAME}' command line switch for Electron browser`
+      );
+    }
+
+    return process.env.ELECTRON_EXTRA_LAUNCH_ARGS.split(' ');
+  }
+
   private async buildHar(): Promise<string | undefined> {
     if (this.tmpPath) {
       const content = await this.fileManager.readFile(this.tmpPath);
@@ -185,17 +210,6 @@ export class Plugin {
 
   private isSupportedBrowser(browser: Cypress.Browser): boolean {
     return ['chromium'].includes(browser?.family);
-  }
-
-  private ensureTestingFlags(args: string[]): string[] {
-    return [
-      ...args,
-      '--no-sandbox',
-      '--disable-background-networking',
-      '--reduce-security-for-testing',
-      '--allow-insecure-localhost',
-      '--ignore-certificate-errors'
-    ];
   }
 
   private ensureRdpAddrArgs(args: string[]): string[] {

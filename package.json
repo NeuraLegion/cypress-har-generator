@@ -28,6 +28,7 @@
   "keywords": [
     "cypress",
     "har",
+    "electron",
     "cypress-plugin",
     "chrome",
     "http-archive",

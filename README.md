@@ -123,16 +123,22 @@ You can also specify a different destination folder for the generated HAR file b
 Alternatively, you can pass the `hars_folders` variable in the CLI using the `--env` option:
 
 ```bash
-cypress run --browser chrome --env hars_folders=cypress/hars
+$ cypress run --browser chrome --env hars_folders=cypress/hars
 ```
 
 Finally, to start running your tests, use the following command:
 
 ```bash
-cypress run --browser chrome
+$ cypress run --browser chrome
 ```
 
-> ✴ Currently, only Chrome family browsers are supported.
+> 🚧 Currently, only Chrome family browsers are supported. But this plugin also works with Electron, you just need to set the remote-debugging-port option when you launch Cypress as follows:
+>
+> ```bash
+> $ ELECTRON_EXTRA_LAUNCH_ARGS=--remote-debugging-port=9222 cypress run --browser electron
+> ```
+>
+> Please refer to the [Electron documentation](https://www.electronjs.org/docs/latest/api/command-line-switches#--remote-debugging-portport) and the [Cypress documentation](https://docs.cypress.io/api/plugins/browser-launch-api#Modify-Electron-app-switches) for more information on how to properly configure this switch.
 
 ## Commands
 
@@ -182,7 +188,7 @@ For example, to only include requests that have a status code of 400 or greater,
 cy.recordHar({ minStatusCodeToInclude: 400 });
 ```
 
-> As of version 6, this option will be removed. Use `excludeStatusCodes` instead.
+> ✴ As of version 6, this option will be removed. Use `excludeStatusCodes` instead.
 
 Alternatively, you can have more granular control over the requests to exclude by passing an array of status codes you want to exclude from the recorded HAR file.
 
@@ -190,7 +196,7 @@ Alternatively, you can have more granular control over the requests to exclude b
 cy.recordHar({ excludeStatusCodes: [200, 201, 204] });
 ```
 
-> Please note that both options `minStatusCodeToInclude` and `excludeStatusCodes` are mutually exclusive.
+> ⚠ Please note that both options `minStatusCodeToInclude` and `excludeStatusCodes` are mutually exclusive.
 
 By default, when you use `recordHar` command, it will include the blob requests in the recorded HAR file. However, those requests only make sense when they are used on the same page they were created. To exclude the blob requests from the recorded HAR file, set the `includeBlobs` to false as follows:
 
@@ -309,7 +315,7 @@ module.exports = defineConfig({
 });
 ```
 
-> Please note, to utilize this experimental mechanism for setting up lifecycle, you must either disable the interactive mode or enable the "experimentalInteractiveRunEvents" feature. For more details, see the documentation: https://docs.cypress.io/guides/references/experiments#Configuration
+> ⚠ Please note, to utilize this experimental mechanism for setting up lifecycle, you must either disable the interactive mode or enable the "experimentalInteractiveRunEvents" feature. For more details, see the documentation: https://docs.cypress.io/guides/references/experiments#Configuration
 
 ## License
 

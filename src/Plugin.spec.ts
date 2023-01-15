@@ -11,6 +11,7 @@ import {
   match,
   mock,
   reset,
+  spy,
   verify,
   when
 } from 'ts-mockito';
@@ -99,11 +100,21 @@ describe('Plugin', () => {
   const connectionFactoryMock = mock<ConnectionFactory>();
   const connectionMock = mock<Connection>();
   const writableStreamMock = mock<WriteStream>();
+  const processEnv = process.env;
 
   let plugin!: Plugin;
+  let processSpy!: NodeJS.Process;
 
   beforeEach(() => {
+    processSpy = spy(process);
+
+    when(processSpy.env).thenReturn({
+      ...processEnv,
+      ELECTRON_EXTRA_LAUNCH_ARGS: ''
+    });
+
     useFakeTimers();
+
     plugin = new Plugin(
       instance(loggerMock),
       instance(fileManagerMock),
@@ -115,6 +126,7 @@ describe('Plugin', () => {
   afterEach(() => {
     jest.useRealTimers();
     reset<
+      | NodeJS.Process
       | Logger
       | FileManager
       | Connection
@@ -123,6 +135,7 @@ describe('Plugin', () => {
       | ObserverFactory
       | Observer<NetworkRequest>
     >(
+      processSpy,
       loggerMock,
       fileManagerMock,
       connectionMock,
@@ -172,6 +185,38 @@ describe('Plugin', () => {
       expect(act).toThrowError(
         `An unsupported browser family was used: ${browser.name}`
       );
+    });
+
+    it('should throw an error when Electron is used and switches are missed', () => {
+      // arrange
+      const browser = {
+        family: 'chromium',
+        name: 'electron'
+      } as Cypress.Browser;
+      const args: string[] = [];
+      // act
+      const act = () => plugin.ensureBrowserFlags(browser, args);
+      // assert
+      expect(act).toThrowError(
+        `Missing '--remote-debugging-port' command line switch for Electron browser`
+      );
+    });
+
+    it('should extract --remote-debugging-port from ELECTRON_EXTRA_LAUNCH_ARGS env variable', () => {
+      // arrange
+      const browser = {
+        family: 'chromium',
+        name: 'electron'
+      } as Cypress.Browser;
+      const args: string[] = [];
+      when(processSpy.env).thenReturn({
+        ...processEnv,
+        ELECTRON_EXTRA_LAUNCH_ARGS: '--remote-debugging-port=9090'
+      });
+      // act
+      const result = plugin.ensureBrowserFlags(browser, args);
+      // assert
+      expect(result).toEqual([]);
     });
   });
 
