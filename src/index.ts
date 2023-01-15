@@ -1,5 +1,5 @@
 import { Plugin, RecordOptions, SaveOptions } from './Plugin';
-import { FileManager, Logger } from './utils';
+import { FileManager, Logger, StringUtils } from './utils';
 import { DefaultConnectionFactory } from './cdp';
 import { DefaultObserverFactory } from './network';
 
@@ -40,6 +40,26 @@ export const install = (on: Cypress.PluginEvents): void => {
       return launchOptions;
     }
   );
+};
+
+export const enableExperimentalLifecycle = (
+  on: Cypress.PluginEvents,
+  config: Cypress.PluginConfigOptions
+) => {
+  // FIXME: `isInteractive` is always true. For details see https://github.com/cypress-io/cypress/issues/20789
+  if (!config.isTextTerminal && !config.experimentalInteractiveRunEvents) {
+    Logger.Instance.warn(
+      'To activate the experimental mechanism for setting up lifecycle, you must either disable the interactive mode or activate the "experimentalInteractiveRunEvents" feature. For further information, please refer to: https://docs.cypress.io/guides/references/experiments#Configuration'
+    );
+  } else {
+    on('before:spec', () => plugin.recordHar({}));
+    on('after:spec', (spec: Cypress.Spec) =>
+      plugin.saveHar({
+        fileName: StringUtils.normalizeName(spec.name, { ext: '.har' }),
+        outDir: config.env.hars_folders ?? '.'
+      })
+    );
+  }
 };
 
 /**
