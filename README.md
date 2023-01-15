@@ -290,6 +290,27 @@ describe('my tests', () => {
 });
 ```
 
+If you're using Cypress version 6.2.0 or higher, you can set up hooks in a single step, eliminating the need to define them in each spec file. To do this, you need to call `enableExperimentalLifecycle` in addition to `install` as shown below:
+
+```js
+const { defineConfig } = require('cypress');
+const {
+  install,
+  enableExperimentalLifecycle
+} = require('@neuralegion/cypress-har-generator');
+
+module.exports = defineConfig({
+  e2e: {
+    setupNodeEvents(on, config) {
+      install(on);
+      enableExperimentalLifecycle(on, config);
+    }
+  }
+});
+```
+
+> Please note, to utilize this experimental mechanism for setting up lifecycle, you must either disable the interactive mode or enable the "experimentalInteractiveRunEvents" feature. For more details, see the documentation: https://docs.cypress.io/guides/references/experiments#Configuration
+
 ## License
 
 Copyright © 2022 [Bright Security](https://brightsec.com/).
