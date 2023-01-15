@@ -4,7 +4,7 @@ describe('HAR creator', () => {
   it('generates a HAR with expected creator', () => {
     cy.recordHar();
 
-    cy.intercept('/').as('page').visit('/').wait('@page');
+    cy.visit('/');
 
     cy.saveHar({ waitForIdle: true });
 

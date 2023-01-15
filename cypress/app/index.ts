@@ -8,6 +8,7 @@ const app = express();
 const { port } = minimist(process.argv.slice(2));
 
 app.use('/assets', express.static(join(__dirname, 'assets')));
+app.use('/', express.static(join(__dirname, 'public')));
 
 app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'hbs');
@@ -16,7 +17,8 @@ app.get('/', (_: Request, res: Response) =>
   res.render('./index.hbs', {
     pages: [
       { id: 'fetch', name: 'Fetch' },
-      { id: 'frame', name: 'Frame' }
+      { id: 'frame', name: 'Frame' },
+      { id: 'service-worker', name: 'Service worker' }
     ]
   })
 );
