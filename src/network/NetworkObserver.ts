@@ -1,12 +1,11 @@
 import { Logger } from '../utils';
 import { NetworkRequest } from './NetworkRequest';
-import { ChromeRemoteInterfaceEvent, Connection } from '../cdp';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
 import { Observer } from './Observer';
 import { RequestFilter } from './filters';
+import { Network, NetworkEvent } from './Network';
 import type { Header } from 'har-format';
-import type { Network, Security } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
 export class NetworkObserver implements Observer<NetworkRequest> {
@@ -15,9 +14,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     Protocol.Network.RequestId,
     ExtraInfoBuilder
   >;
-  private readonly network: Network;
   private destination?: (chromeEntry: NetworkRequest) => void;
-  private readonly security: Security;
 
   get empty(): boolean {
     return this._entries.size === 0;
@@ -25,7 +22,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
   constructor(
     private readonly options: NetworkObserverOptions,
-    private readonly connection: Connection,
+    private readonly network: Network,
     private readonly logger: Logger,
     private readonly requestFilter?: RequestFilter
   ) {
@@ -34,9 +31,6 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       Protocol.Network.RequestId,
       ExtraInfoBuilder
     >();
-    const { network: network, security: security } = this.connection;
-    this.network = network;
-    this.security = security;
   }
 
   public async subscribe(
@@ -44,29 +38,13 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   ): Promise<void> {
     this.destination = (entry: NetworkRequest): void => callback(entry);
 
-    await this.connection.subscribe((event: ChromeRemoteInterfaceEvent): void =>
+    await this.network.attachToTargets((event: NetworkEvent): void =>
       this.handleEvent(event)
     );
-
-    await Promise.all([this.security?.enable(), this.network?.enable()]);
-
-    this.security.certificateError(
-      ({ eventId }): Promise<void> =>
-        this.security.handleCertificateError({
-          eventId,
-          action: 'continue'
-        })
-    );
-
-    await Promise.all([
-      this.security.setOverrideCertificateErrors({ override: true }),
-      this.network.setCacheDisabled({ cacheDisabled: true }),
-      this.network.setBypassServiceWorker({ bypass: true })
-    ]);
   }
 
   public async unsubscribe(): Promise<void> {
-    await Promise.all([this.security?.disable(), this.network?.disable()]);
+    await this.network.detachFromTargets();
     delete this.destination;
     this._entries.clear();
     this._extraInfoBuilders.clear();
@@ -88,18 +66,21 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.updateNetworkRequestWithResponse(entry, params.info.outerResponse);
   }
 
-  public requestWillBeSent({
-    type,
-    loaderId,
-    initiator,
-    redirectResponse,
-    documentURL,
-    frameId,
-    timestamp,
-    requestId,
-    request,
-    wallTime
-  }: Protocol.Network.RequestWillBeSentEvent): void {
+  public requestWillBeSent(
+    {
+      type,
+      loaderId,
+      initiator,
+      redirectResponse,
+      documentURL,
+      frameId,
+      timestamp,
+      requestId,
+      request,
+      wallTime
+    }: Protocol.Network.RequestWillBeSentEvent,
+    sessionId?: string
+  ): void {
     let entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (entry) {
@@ -117,7 +98,12 @@ export class NetworkObserver implements Observer<NetworkRequest> {
           response: redirectResponse
         });
       }
-      entry = this._appendRedirect(requestId, timestamp, request.url);
+      entry = this._appendRedirect(
+        requestId,
+        timestamp,
+        request.url,
+        sessionId
+      );
     } else {
       entry = this.createRequest(
         requestId,
@@ -125,7 +111,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
         loaderId,
         request.url,
         documentURL,
-        initiator
+        initiator,
+        sessionId
       );
     }
 
@@ -221,18 +208,18 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.logger.debug(`Failed request: ${requestId}. Reason: ${message}`);
   }
 
-  public webSocketCreated({
-    initiator,
-    requestId,
-    url
-  }: Protocol.Network.WebSocketCreatedEvent): void {
+  public webSocketCreated(
+    { initiator, requestId, url }: Protocol.Network.WebSocketCreatedEvent,
+    sessionId?: string
+  ): void {
     const entry: NetworkRequest = this.createRequest(
       requestId,
       '',
       '',
       url,
       '',
-      initiator
+      initiator,
+      sessionId
     );
     this.startRequest(entry);
   }
@@ -379,7 +366,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private _appendRedirect(
     requestId: Protocol.Network.RequestId,
     time: Protocol.Network.MonotonicTime,
-    redirectURL: string
+    redirectURL: string,
+    sessionId?: string
   ): NetworkRequest {
     const originalNetworkRequest: NetworkRequest = this._entries.get(
       requestId
@@ -404,7 +392,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       originalNetworkRequest.loaderId,
       redirectURL,
       originalNetworkRequest.documentURL,
-      originalNetworkRequest.initiator
+      originalNetworkRequest.initiator,
+      sessionId
     );
 
     newNetworkRequest.redirectSource = originalNetworkRequest;
@@ -444,9 +433,10 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private loadContent(networkRequest: NetworkRequest): void {
     if (networkRequest.mimeType && this.options.content) {
       networkRequest.setContentData(
-        this.network.getResponseBody({
-          requestId: networkRequest.requestId
-        })
+        this.network.getResponseBody(
+          networkRequest.requestId,
+          networkRequest.sessionId
+        )
       );
     }
   }
@@ -464,19 +454,19 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       request.headers
     );
     chromeRequest.setRequestFormData(
-      this.getRequestPostData(chromeRequest.requestId, request)
+      this.getRequestPostData(chromeRequest, request)
     );
     chromeRequest.initialPriority = request.initialPriority;
   }
 
   private getRequestPostData(
-    requestId: Protocol.Network.RequestId,
-    request: Protocol.Network.Request
+    request: NetworkRequest,
+    rawRequest: Protocol.Network.Request
   ): string | Promise<string | undefined> {
-    return request.hasPostData && !!request.postData
-      ? request.postData
+    return rawRequest.hasPostData && !!rawRequest.postData
+      ? rawRequest.postData
       : this.network
-          .getRequestPostData({ requestId })
+          .getRequestBody(request.requestId, request.sessionId)
           .then(
             ({
               postData
@@ -491,7 +481,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     loaderId: Protocol.Network.LoaderId,
     url: string,
     documentURL: string,
-    initiator?: Protocol.Network.Initiator
+    initiator?: Protocol.Network.Initiator,
+    sessionId?: string
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,
@@ -499,7 +490,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       documentURL,
       loaderId,
       initiator,
-      frameId
+      frameId,
+      sessionId
     );
   }
 
@@ -568,14 +560,11 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       : false;
   }
 
-  private handleEvent({ method, params }: ChromeRemoteInterfaceEvent): void {
-    const methodName: string = method.substring(method.indexOf('.') + 1);
+  private handleEvent({ method, params, sessionId }: NetworkEvent): void {
+    const methodName = method.substring(method.indexOf('.') + 1);
 
-    const handler: (...args: unknown[]) => unknown | undefined =
-      this[methodName];
-
-    if (handler) {
-      handler.call(this, params);
+    if (typeof this[methodName] === 'function') {
+      this[methodName](params, sessionId);
     }
   }
 }

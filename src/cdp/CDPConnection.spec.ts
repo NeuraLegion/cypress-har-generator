@@ -1,4 +1,4 @@
-import type { CRIConnection } from './CRIConnection';
+import type { CDPConnection } from './CDPConnection';
 import { Logger } from '../utils';
 import { RetryStrategy } from './RetryStrategy';
 import {
@@ -6,20 +6,10 @@ import {
   CONNECTION_IS_NOT_DEFINED,
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT
-} from './CRIOutputMessages';
-import type {
-  ChromeRemoteInterface,
-  ChromeRemoteInterfaceOptions
-} from 'chrome-remote-interface';
+} from './messages';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
-import {
-  anyFunction,
-  instance,
-  mock,
-  resetCalls,
-  verify,
-  when
-} from 'ts-mockito';
+import { anyFunction, instance, mock, reset, verify, when } from 'ts-mockito';
+import type { Client, Options } from 'chrome-remote-interface';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {
@@ -36,20 +26,18 @@ const resolvableInstance = <T extends object>(m: T): T =>
     }
   });
 
-describe('CRIConnection', () => {
-  let criConnection!: CRIConnection;
-  let options!: ChromeRemoteInterfaceOptions;
-
+describe('CDPConnection', () => {
   const loggerMock = mock<Logger>();
   const retryStrategyMock = mock<RetryStrategy>();
-  const chromeRemoteInterfaceMock = mock<ChromeRemoteInterface>();
-  const connect =
-    jest.fn<(...args: unknown[]) => Promise<ChromeRemoteInterface>>();
+  const clientMock = mock<Client>();
+  const connect = jest.fn<(...args: unknown[]) => Promise<Client>>();
+  const options: Options = { host: 'localhost', port: 9222 };
+
+  let sut!: CDPConnection;
 
   beforeEach(async () => {
     jest.mock('chrome-remote-interface', () => connect);
-    options = { host: 'localhost', port: 9222 };
-    criConnection = new (await import('./CRIConnection')).CRIConnection(
+    sut = new (await import('./CDPConnection')).CDPConnection(
       options,
       instance(loggerMock),
       instance(retryStrategyMock)
@@ -59,28 +47,28 @@ describe('CRIConnection', () => {
   afterEach(() => {
     jest.resetModules();
     jest.resetAllMocks();
-    resetCalls<Logger | RetryStrategy | ChromeRemoteInterface>(
+    reset<Logger | RetryStrategy | Client>(
       loggerMock,
       retryStrategyMock,
-      chromeRemoteInterfaceMock
+      clientMock
     );
   });
 
   describe('open', () => {
     it('should attempt to connect to Chrome', async () => {
       // arrange
-      connect.mockResolvedValue(resolvableInstance(chromeRemoteInterfaceMock));
+      connect.mockResolvedValue(resolvableInstance(clientMock));
       // act
-      await criConnection.open();
+      await sut.open();
       // assert
       expect(connect).toHaveBeenCalledWith(options);
     });
 
     it('should log a message if the connection is successful', async () => {
       // arrange
-      connect.mockResolvedValue(resolvableInstance(chromeRemoteInterfaceMock));
+      connect.mockResolvedValue(resolvableInstance(clientMock));
       // act
-      await criConnection.open();
+      await sut.open();
       // assert
       verify(loggerMock.debug(CONNECTED)).once();
     });
@@ -90,7 +78,7 @@ describe('CRIConnection', () => {
       const error = new Error('Connection failed');
       connect.mockRejectedValue(error);
       // act
-      const act = () => criConnection.open();
+      const act = () => sut.open();
       // assert
       await expect(act).rejects.toThrow();
       verify(
@@ -101,12 +89,21 @@ describe('CRIConnection', () => {
     it('should retry the connection if it fails', async () => {
       // arrange
       const error = new Error('Connection failed');
-      connect.mockRejectedValueOnce(error);
-      when(retryStrategyMock.execute(anyFunction())).thenResolve(1);
+      connect
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue(resolvableInstance(clientMock));
+      when(retryStrategyMock.execute(anyFunction())).thenCall(
+        async callback => {
+          await callback();
+
+          return 1;
+        }
+      );
       // act
-      await criConnection.open();
+      await sut.open();
       // assert
       verify(retryStrategyMock.execute(anyFunction())).once();
+      expect(connect).toHaveBeenCalledTimes(2);
     });
 
     it('should throw an error if the connection fails after the maximum number of retries', async () => {
@@ -115,7 +112,7 @@ describe('CRIConnection', () => {
       connect.mockRejectedValue(error);
       when(retryStrategyMock.execute(anyFunction())).thenResolve(0);
       // act
-      const act = () => criConnection.open();
+      const act = () => sut.open();
       // assert
       await expect(act).rejects.toThrow('Failed to connect');
     });
@@ -123,49 +120,66 @@ describe('CRIConnection', () => {
 
   describe('close', () => {
     beforeEach(async () => {
-      connect.mockResolvedValue(resolvableInstance(chromeRemoteInterfaceMock));
-      await criConnection.open();
+      connect.mockResolvedValue(resolvableInstance(clientMock));
+      await sut.open();
     });
 
     it('should close the connection', async () => {
       // act
-      await criConnection.close();
+      await sut.close();
       // assert
-      verify(chromeRemoteInterfaceMock.close()).once();
+      verify(clientMock.close()).once();
     });
 
     it('should log a message if the connection is closed', async () => {
       // act
-      await criConnection.close();
+      await sut.close();
       // assert
       verify(loggerMock.debug(DISCONNECTED)).once();
     });
 
     it('should remove all listeners', async () => {
       // act
-      await criConnection.close();
+      await sut.close();
       // assert
-      verify(chromeRemoteInterfaceMock.removeAllListeners()).once();
+      verify(clientMock.removeAllListeners()).once();
     });
   });
 
-  describe('subscribe', () => {
-    it('should register a listener for the "event" event', async () => {
-      // arrange
-      const callback = jest.fn();
-      connect.mockResolvedValue(resolvableInstance(chromeRemoteInterfaceMock));
-      await criConnection.open();
+  describe('discoverNetwork', () => {
+    it('should log an message when connection is not established yet', async () => {
       // act
-      await criConnection.subscribe(callback);
-      // assert
-      verify(chromeRemoteInterfaceMock.on('event', callback)).once();
-    });
-
-    it('should log a message if the connection is not defined', async () => {
-      // act
-      await criConnection.subscribe(jest.fn());
+      sut.discoverNetwork();
       // assert
       verify(loggerMock.debug(CONNECTION_IS_NOT_DEFINED)).once();
+    });
+
+    it('should return an undefined when connection is not established yet', async () => {
+      // act
+      const result = sut.discoverNetwork();
+      // assert
+      expect(result).toBeUndefined();
+    });
+
+    it('should create a new network monitor', async () => {
+      // arrange
+      connect.mockResolvedValue(resolvableInstance(clientMock));
+      await sut.open();
+      // act
+      const result = sut.discoverNetwork();
+      // assert
+      expect(result).not.toBeUndefined();
+    });
+
+    it('should return an existing network monitor', async () => {
+      // arrange
+      connect.mockResolvedValue(resolvableInstance(clientMock));
+      await sut.open();
+      const expected = sut.discoverNetwork();
+      // act
+      const result = sut.discoverNetwork();
+      // assert
+      expect(result).toBe(expected);
     });
   });
 });

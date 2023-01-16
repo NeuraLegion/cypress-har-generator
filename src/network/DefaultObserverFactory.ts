@@ -18,7 +18,7 @@ export class DefaultObserverFactory implements ObserverFactory {
   ): Observer<NetworkRequest> {
     return new NetworkObserver(
       options,
-      connection,
+      connection.discoverNetwork(),
       this.logger,
       this.defaultRequestFilter
     );
