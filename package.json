@@ -1,6 +1,6 @@
 {
   "name": "@neuralegion/cypress-har-generator",
-  "version": "5.11.0",
+  "version": "5.11.1",
   "private": false,
   "description": "Generate HTTP Archive (HAR) files while running your Cypress tests.",
   "repository": {
