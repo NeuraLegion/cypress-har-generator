@@ -188,8 +188,10 @@ export class Plugin {
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
     this.buffer = await this.fileManager.createTmpWriteStream();
+
+    const network = this.connection.discoverNetwork();
     this.networkObservable = this.observerFactory.createNetworkObserver(
-      this.connection,
+      network,
       options
     );
 
