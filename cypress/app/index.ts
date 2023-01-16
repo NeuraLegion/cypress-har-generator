@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import express, { Request, Response, json } from 'express';
 import minimist from 'minimist';
 import { join } from 'path';
 
@@ -18,15 +18,26 @@ app.get('/', (_: Request, res: Response) =>
     pages: [
       { id: 'fetch', name: 'Fetch' },
       { id: 'frame', name: 'Frame' },
-      { id: 'service-worker', name: 'Service worker' }
+      { id: 'service-worker', name: 'Service worker' },
+      { id: 'web-worker', name: 'Web worker' }
     ]
   })
 );
 app.get('/pages/:page', (req: Request, res: Response) =>
   res.render(`./${req.params.page}.hbs`)
 );
+app.post('/api/math', json(), (req: Request, res: Response) => {
+  const { args, op }: { args: number[]; op: string } = req.body;
+
+  switch (op) {
+    case 'sum':
+      return res.json(args.reduce((a: number, b: number) => a + b));
+    default:
+      return res.sendStatus(400);
+  }
+});
 app.get('/api/products', (_: Request, res: Response) =>
-  res.send({
+  res.json({
     products: [
       { Name: 'Cheese', Price: 2.5, Location: 'Refrigerated foods' },
       { Name: 'Crisps', Price: 3, Location: 'the Snack isle' },
