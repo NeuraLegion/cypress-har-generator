@@ -6,6 +6,7 @@ describe('Record HAR', () => {
     cy.get('a[href$=frame]').as('framePage');
     cy.get('a[href$=service-worker]').as('serviceWorkerPage');
     cy.get('a[href="pages/worker"]').as('workerPage');
+    cy.get('a[href$=server-sent-events]').as('serverSentEvents');
   });
 
   it('excludes a request by mime type', () => {
@@ -105,7 +106,7 @@ describe('Record HAR', () => {
       });
   });
 
-  it('records blobs loaded by the Service Worker', () => {
+  it('includes blobs loaded by the Service Worker', () => {
     cy.recordHar();
 
     cy.get('@serviceWorkerPage').click();
@@ -117,6 +118,27 @@ describe('Record HAR', () => {
       .should('contain.something.like', {
         request: {
           url: /^blob:/
+        }
+      });
+  });
+
+  it('records the Server-Sent Events', () => {
+    cy.recordHar();
+
+    cy.get('@serverSentEvents').click();
+    cy.get('button').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        response: {
+          _eventStream: [
+            {
+              data: /^This is a message at time/
+            }
+          ]
         }
       });
   });

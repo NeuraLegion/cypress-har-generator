@@ -3,6 +3,7 @@ import minimist from 'minimist';
 import { join } from 'path';
 
 const app = express();
+const clients: { id: number; res: Response }[] = [];
 
 // get port from passed in args from scripts/start.js
 const { port } = minimist(process.argv.slice(2));
@@ -20,13 +21,31 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'frame', name: 'Frame' },
       { id: 'service-worker', name: 'Service worker' },
       { id: 'worker', name: 'Workers (Shared and Web)' },
-      { id: 'multi-targets', name: 'Multi targets' }
+      { id: 'multi-targets', name: 'Multi targets' },
+      { id: 'server-sent-events', name: 'Server-sent events' }
     ]
   })
 );
 app.get('/pages/:page', (req: Request, res: Response) =>
   res.render(`./${req.params.page}.hbs`)
 );
+app.get('/api/events', (req: Request, res: Response) => {
+  const headers = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'Cache-Control': 'no-cache'
+  };
+  res.writeHead(200, headers);
+  const timer = setInterval(() => {
+    const data = `data: This is a message at time ${Date.now()}\n\n`;
+
+    res.write(data);
+  }, 100);
+
+  req.on('close', () => clearInterval(timer));
+});
 app.post('/api/math', json(), (req: Request, res: Response) => {
   const { args, op }: { args: number[]; op: string } = req.body;
 
