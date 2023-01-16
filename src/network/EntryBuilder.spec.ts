@@ -1,6 +1,6 @@
 import { EntryBuilder } from './EntryBuilder';
 import { NetworkRequest } from './NetworkRequest';
-import { describe, beforeEach, it, expect, jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 describe('EntryBuilder', () => {
   let request!: NetworkRequest;
@@ -342,8 +342,7 @@ describe('EntryBuilder', () => {
 
     it('should build an entry omitting connection ID if it equals 0', async () => {
       // arrange
-      const connection = '0';
-      request.connectionId = connection;
+      request.connectionId = '0';
       const entryBuilder = new EntryBuilder(request);
       // act
       const entry = await entryBuilder.build();
