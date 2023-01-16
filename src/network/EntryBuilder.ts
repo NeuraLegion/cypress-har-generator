@@ -27,7 +27,7 @@ export class EntryBuilder {
     const timings: Timings = this.buildTimings();
 
     const time: number = Object.values(timings).reduce(
-      (acc: number, t: number): number => (acc += Math.max(t, 0)),
+      (acc: number, t: number): number => acc + Math.max(t, 0),
       0
     );
 

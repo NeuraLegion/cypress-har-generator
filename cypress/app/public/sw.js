@@ -65,6 +65,7 @@ self.addEventListener('install', event => {
     addResourcesToCache([
       '/',
       '/service-worker.js',
+      '/service-worker.css',
       '/image-list.js',
       '/assets/bountyHunters.jpg',
       '/assets/myLittleVader.jpg',

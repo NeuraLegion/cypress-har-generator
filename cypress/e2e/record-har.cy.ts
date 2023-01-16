@@ -5,6 +5,7 @@ describe('Record HAR', () => {
     cy.get('a[href$=fetch]').as('fetchPage');
     cy.get('a[href$=frame]').as('framePage');
     cy.get('a[href$=service-worker]').as('serviceWorkerPage');
+    cy.get('a[href$=web-worker]').as('webWorkerPage');
   });
 
   it('excludes a request by mime type', () => {
@@ -116,6 +117,29 @@ describe('Record HAR', () => {
       .should('contain.something.like', {
         request: {
           url: /^blob:/
+        }
+      });
+  });
+
+  it('records requests from by the Web Worker', () => {
+    cy.recordHar();
+
+    cy.get('@webWorkerPage').click();
+
+    cy.get('#number1').type('2').blur();
+    cy.get('#number2').type('4').blur();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: /math$/,
+          postData: {
+            mimeType: 'application/json',
+            text: /"op":"sum"/
+          }
         }
       });
   });

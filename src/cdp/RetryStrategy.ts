@@ -7,9 +7,9 @@ export class RetryStrategy {
   private readonly maxRetries: number;
 
   constructor(
-    maxRetries: number,
-    initialBackoff: number,
-    maximumBackoff: number
+    maxRetries: number = 3,
+    initialBackoff: number = 5,
+    maximumBackoff: number = 25
   ) {
     this._times = 0;
     this.maxRetries = maxRetries;

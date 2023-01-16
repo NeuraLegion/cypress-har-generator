@@ -1,11 +1,11 @@
-import { Connection } from '../cdp';
-import { NetworkObserverOptions } from './NetworkObserverOptions';
-import { Observer } from './Observer';
+import type { NetworkObserverOptions } from './NetworkObserverOptions';
+import type { Observer } from './Observer';
 import { NetworkRequest } from './NetworkRequest';
+import type { Network } from './Network';
 
 export interface ObserverFactory {
   createNetworkObserver(
-    connection: Connection,
+    network: Network,
     options: NetworkObserverOptions
   ): Observer<NetworkRequest>;
 }

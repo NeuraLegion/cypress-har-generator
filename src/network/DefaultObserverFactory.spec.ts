@@ -1,13 +1,13 @@
-import { Connection } from '../cdp';
-import { NetworkObserverOptions } from './NetworkObserverOptions';
+import type { NetworkObserverOptions } from './NetworkObserverOptions';
 import { DefaultObserverFactory } from './DefaultObserverFactory';
 import { Logger } from '../utils';
 import { NetworkObserver } from './NetworkObserver';
+import type { Network } from './Network';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock } from 'ts-mockito';
 
 describe('DefaultObserverFactory', () => {
-  const connectionMock = mock<Connection>();
+  const networkMock = mock<Network>();
   const loggerMock = mock<Logger>();
   const options: NetworkObserverOptions = {};
 
@@ -21,7 +21,7 @@ describe('DefaultObserverFactory', () => {
     it('should create a NetworkObserver', () => {
       // act
       const observer = factory.createNetworkObserver(
-        instance(connectionMock),
+        instance(networkMock),
         options
       );
       // assert

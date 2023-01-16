@@ -22,7 +22,7 @@ describe('NetworkCookie', () => {
       // act
       cookie.size = size;
       // assert
-      expect(cookie.size).toBe(100);
+      expect(cookie.size).toBe(size);
     });
   });
 
