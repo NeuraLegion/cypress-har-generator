@@ -18,6 +18,8 @@ export class DefaultNetwork implements Network {
 
     await this.ignoreCertificateError();
     await this.trackSessions();
+    await this.discoverTargets();
+    await this.recursivelyAttachToTargets();
   }
 
   public async detachFromTargets(): Promise<void> {
@@ -65,13 +67,11 @@ export class DefaultNetwork implements Network {
   private async trackSessions(): Promise<void> {
     this.cdp.on('Network.requestWillBeSent', this.sessionListener);
     this.cdp.on('Network.webSocketCreated', this.sessionListener);
-    await this.discoverTargets();
-    await this.recursivelyAttachToTargets();
   }
 
   private async ignoreCertificateError(): Promise<void> {
-    await this.cdp.send('Security.enable');
     this.cdp.on('Security.certificateError', this.certificateErrorListener);
+    await this.cdp.send('Security.enable');
     await this.cdp.send('Security.setOverrideCertificateErrors', {
       override: true
     });
@@ -98,13 +98,16 @@ export class DefaultNetwork implements Network {
   }
 
   private async recursivelyAttachToTargets(sessionId?: string): Promise<void> {
+    this.cdp.on('Target.attachedToTarget', this.attachedToTargetListener);
     await this.enableAutoAttach(true, sessionId);
     await this.trackNetworkEvents();
-    this.cdp.on('Target.attachedToTarget', this.attachedToTargetListener);
   }
 
-  private enableAutoAttach(autoAttach: boolean, sessionId?: string) {
-    this.cdp.send(
+  private enableAutoAttach(
+    autoAttach: boolean,
+    sessionId?: string
+  ): Promise<void> {
+    return this.cdp.send(
       'Target.setAutoAttach',
       {
         autoAttach,
