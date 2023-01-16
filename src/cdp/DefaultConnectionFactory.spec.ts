@@ -1,7 +1,7 @@
 import { Logger } from '../utils';
 import { RetryStrategy } from './RetryStrategy';
 import { DefaultConnectionFactory } from './DefaultConnectionFactory';
-import { CRIConnection } from './CRIConnection';
+import { CDPConnection } from './CDPConnection';
 import { beforeEach, describe, expect, it } from '@jest/globals';
 import { instance, mock } from 'ts-mockito';
 
@@ -24,7 +24,7 @@ describe('DefaultConnectionFactory', () => {
       // act
       const connection = factory.create(options);
       // assert
-      expect(connection).toBeInstanceOf(CRIConnection);
+      expect(connection).toBeInstanceOf(CDPConnection);
     });
   });
 });

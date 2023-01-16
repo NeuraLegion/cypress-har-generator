@@ -1,5 +1,5 @@
 import { FileManager, Logger } from './utils';
-import { Connection, ConnectionFactory, RetryStrategy } from './cdp';
+import { Connection, ConnectionFactory } from './cdp';
 import {
   EntryBuilder,
   HarBuilder,
@@ -79,7 +79,9 @@ export class Plugin {
 
     this.connection = this.connectionFactory.create({
       ...this.addr,
-      retryStrategy: new RetryStrategy(20, 5, 100)
+      maxRetries: 20,
+      maximumBackoff: 100,
+      initialBackoff: 5
     });
 
     await this.connection.open();
