@@ -1,439 +1,409 @@
 declare module 'chrome-remote-interface' {
-  import Protocol from 'devtools-protocol';
-  import { EventEmitter } from 'events';
+  import type ProtocolProxyApi from 'devtools-protocol/types/protocol-proxy-api';
+  import type ProtocolMappingApi from 'devtools-protocol/types/protocol-mapping';
+  import EventEmitter from 'events';
 
-  declare namespace chromeRemoteInterfaceFactory {
-    export interface Network {
-      /**
-       * Tells whether clearing browser cache is supported.
-       */
-      canClearBrowserCache(): Promise<Protocol.Network.CanClearBrowserCacheResponse>;
-
-      /**
-       * Tells whether clearing browser cookies is supported.
-       */
-      canClearBrowserCookies(): Promise<Protocol.Network.CanClearBrowserCookiesResponse>;
-
-      /**
-       * Tells whether emulation of network conditions is supported.
-       */
-      canEmulateNetworkConditions(): Promise<Protocol.Network.CanEmulateNetworkConditionsResponse>;
-
-      /**
-       * Clears browser cache.
-       */
-      clearBrowserCache(): Promise<void>;
-
-      /**
-       * Clears browser cookies.
-       */
-      clearBrowserCookies(): Promise<void>;
-
-      /**
-       * Response to Network.requestIntercepted which either modifies the request to continue with any
-       * modifications, or blocks it, or completes it with the provided response bytes. If a network
-       * fetch occurs as a result which encounters a redirect an additional Network.requestIntercepted
-       * event will be sent with the same InterceptionId.
-       * Deprecated, use Fetch.continueRequest, Fetch.fulfillRequest and Fetch.failRequest instead.
-       */
-      continueInterceptedRequest(
-        params: Protocol.Network.ContinueInterceptedRequestRequest
-      ): Promise<void>;
-
-      /**
-       * Deletes browser cookies with matching name and url or domain/path pair.
-       */
-      deleteCookies(
-        params: Protocol.Network.DeleteCookiesRequest
-      ): Promise<void>;
-
-      /**
-       * Disables network tracking, prevents network events from being sent to the client.
-       */
-      disable(): Promise<void>;
-
-      /**
-       * Activates emulation of network conditions.
-       */
-      emulateNetworkConditions(
-        params: Protocol.Network.EmulateNetworkConditionsRequest
-      ): Promise<void>;
-
-      /**
-       * Enables network tracking, network events will now be delivered to the client.
-       */
-      enable(params?: Protocol.Network.EnableRequest): Promise<void>;
-
-      /**
-       * Returns all browser cookies. Depending on the backend support, will return detailed cookie
-       * information in the `cookies` field.
-       */
-      getAllCookies(): Promise<Protocol.Network.GetAllCookiesResponse>;
-
-      /**
-       * Returns the DER-encoded certificate.
-       */
-      getCertificate(
-        params: Protocol.Network.GetCertificateRequest
-      ): Promise<Protocol.Network.GetCertificateResponse>;
-
-      /**
-       * Returns all browser cookies for the current URL. Depending on the backend support, will return
-       * detailed cookie information in the `cookies` field.
-       */
-      getCookies(
-        params: Protocol.Network.GetCookiesRequest
-      ): Promise<Protocol.Network.GetCookiesResponse>;
-
-      /**
-       * Returns content served for the given request.
-       */
-      getResponseBody(
-        params: Protocol.Network.GetResponseBodyRequest
-      ): Promise<Protocol.Network.GetResponseBodyResponse>;
-
-      /**
-       * Returns post data sent with the request. Returns an error when no data was sent with the request.
-       */
-      getRequestPostData(
-        params: Protocol.Network.GetRequestPostDataRequest
-      ): Promise<Protocol.Network.GetRequestPostDataResponse>;
-
-      /**
-       * Returns content served for the given currently intercepted request.
-       */
-      getResponseBodyForInterception(
-        params: Protocol.Network.GetResponseBodyForInterceptionRequest
-      ): Promise<Protocol.Network.GetResponseBodyForInterceptionResponse>;
-
-      /**
-       * Returns a handle to the stream representing the response body. Note that after this command,
-       * the intercepted request can't be continued as is -- you either need to cancel it or to provide
-       * the response body. The stream only supports sequential read, IO.read will fail if the position
-       * is specified.
-       */
-      takeResponseBodyForInterceptionAsStream(
-        params: Protocol.Network.TakeResponseBodyForInterceptionAsStreamRequest
-      ): Promise<Protocol.Network.TakeResponseBodyForInterceptionAsStreamResponse>;
-
-      /**
-       * This method sends a new XMLHttpRequest which is identical to the original one. The following
-       * parameters should be identical: method, url, async, request body, extra headers, withCredentials
-       * attribute, user, password.
-       */
-      replayXHR(params: Protocol.Network.ReplayXHRRequest): Promise<void>;
-
-      /**
-       * Searches for given string in response content.
-       */
-      searchInResponseBody(
-        params: Protocol.Network.SearchInResponseBodyRequest
-      ): Promise<Protocol.Network.SearchInResponseBodyResponse>;
-
-      /**
-       * Blocks URLs from loading.
-       */
-      setBlockedURLs(
-        params: Protocol.Network.SetBlockedURLsRequest
-      ): Promise<void>;
-
-      /**
-       * Toggles ignoring of service worker for each request.
-       */
-      setBypassServiceWorker(
-        params: Protocol.Network.SetBypassServiceWorkerRequest
-      ): Promise<void>;
-
-      /**
-       * Toggles ignoring cache for each request. If `true`, cache will not be used.
-       */
-      setCacheDisabled(
-        params: Protocol.Network.SetCacheDisabledRequest
-      ): Promise<void>;
-
-      /**
-       * Sets a cookie with the given cookie data; may overwrite equivalent cookies if they exist.
-       */
-      setCookie(
-        params: Protocol.Network.SetCookieRequest
-      ): Promise<Protocol.Network.SetCookieResponse>;
-
-      /**
-       * Sets given cookies.
-       */
-      setCookies(params: Protocol.Network.SetCookiesRequest): Promise<void>;
-
-      /**
-       * For testing.
-       */
-      setDataSizeLimitsForTest(
-        params: Protocol.Network.SetDataSizeLimitsForTestRequest
-      ): Promise<void>;
-
-      /**
-       * Specifies whether to always send extra HTTP headers with the requests from this page.
-       */
-      setExtraHTTPHeaders(
-        params: Protocol.Network.SetExtraHTTPHeadersRequest
-      ): Promise<void>;
-
-      /**
-       * Sets the requests to intercept that match the provided patterns and optionally resource types.
-       * Deprecated, please use Fetch.enable instead.
-       */
-      setRequestInterception(
-        params: Protocol.Network.SetRequestInterceptionRequest
-      ): Promise<void>;
-
-      /**
-       * Allows overriding user agent with the given string.
-       */
-      setUserAgentOverride(
-        params: Protocol.Network.SetUserAgentOverrideRequest
-      ): Promise<void>;
-
-      /**
-       * Fired when data chunk was received over the network.
-       */
-      dataReceived(
-        listener: (params: Protocol.Network.DataReceivedEvent) => void
-      ): void;
-
-      /**
-       * Fired when EventSource message is received.
-       */
-      eventSourceMessageReceived(
-        listener: (
-          params: Protocol.Network.EventSourceMessageReceivedEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when HTTP request has failed to load.
-       */
-      loadingFailed(
-        listener: (params: Protocol.Network.LoadingFailedEvent) => void
-      ): void;
-
-      /**
-       * Fired when HTTP request has finished loading.
-       */
-      loadingFinished(
-        listener: (params: Protocol.Network.LoadingFinishedEvent) => void
-      ): void;
-
-      /**
-       * Details of an intercepted HTTP request, which must be either allowed, blocked, modified or
-       * mocked.
-       * Deprecated, use Fetch.requestPaused instead.
-       */
-      requestIntercepted(
-        listener: (params: Protocol.Network.RequestInterceptedEvent) => void
-      ): void;
-
-      /**
-       * Fired if request ended up loading from cache.
-       */
-      requestServedFromCache(
-        listener: (params: Protocol.Network.RequestServedFromCacheEvent) => void
-      ): void;
-
-      /**
-       * Fired when page is about to send HTTP request.
-       */
-      requestWillBeSent(
-        listener: (params: Protocol.Network.RequestWillBeSentEvent) => void
-      ): void;
-
-      /**
-       * Fired when resource loading priority is changed
-       */
-      resourceChangedPriority(
-        listener: (
-          params: Protocol.Network.ResourceChangedPriorityEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when a signed exchange was received over the network
-       */
-      signedExchangeReceived(
-        listener: (params: Protocol.Network.SignedExchangeReceivedEvent) => void
-      ): void;
-
-      /**
-       * Fired when HTTP response is available.
-       */
-      responseReceived(
-        listener: (params: Protocol.Network.ResponseReceivedEvent) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket is closed.
-       */
-      webSocketClosed(
-        listener: (params: Protocol.Network.WebSocketClosedEvent) => void
-      ): void;
-
-      /**
-       * Fired upon WebSocket creation.
-       */
-      webSocketCreated(
-        listener: (params: Protocol.Network.WebSocketCreatedEvent) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket message error occurs.
-       */
-      webSocketFrameError(
-        listener: (params: Protocol.Network.WebSocketFrameErrorEvent) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket message is received.
-       */
-      webSocketFrameReceived(
-        listener: (params: Protocol.Network.WebSocketFrameReceivedEvent) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket message is sent.
-       */
-      webSocketFrameSent(
-        listener: (params: Protocol.Network.WebSocketFrameSentEvent) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket handshake response becomes available.
-       */
-      webSocketHandshakeResponseReceived(
-        listener: (
-          params: Protocol.Network.WebSocketHandshakeResponseReceivedEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when WebSocket is about to initiate handshake.
-       */
-      webSocketWillSendHandshakeRequest(
-        listener: (
-          params: Protocol.Network.WebSocketWillSendHandshakeRequestEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when additional information about a requestWillBeSent event is available from the
-       * network stack. Not every requestWillBeSent event will have an additional
-       * requestWillBeSentExtraInfo fired for it, and there is no guarantee whether requestWillBeSent
-       * or requestWillBeSentExtraInfo will be fired first for the same request.
-       */
-      requestWillBeSentExtraInfo(
-        listener: (
-          params: Protocol.Network.RequestWillBeSentExtraInfoEvent
-        ) => void
-      ): void;
-
-      /**
-       * Fired when additional information about a responseReceived event is available from the network
-       * stack. Not every responseReceived event will have an additional responseReceivedExtraInfo for
-       * it, and responseReceivedExtraInfo may be fired before or after responseReceived.
-       */
-      responseReceivedExtraInfo(
-        listener: (
-          params: Protocol.Network.ResponseReceivedExtraInfoEvent
-        ) => void
-      ): void;
+  declare namespace CDP {
+    interface BaseOptions {
+      host?: string | undefined;
+      port?: number | undefined;
+      secure?: boolean | undefined;
+      useHostName?: boolean | undefined;
+      alterPath?: ((path: string) => string) | undefined;
     }
 
-    export interface Security {
-      /**
-       * Disables tracking security state changes.
-       */
-      disable(): Promise<void>;
-
-      /**
-       * Enables tracking security state changes.
-       */
-      enable(): Promise<void>;
-
-      /**
-       * Enable/disable whether all certificate errors should be ignored.
-       */
-      setIgnoreCertificateErrors(
-        params: Protocol.Security.SetIgnoreCertificateErrorsRequest
-      ): Promise<void>;
-
-      /**
-       * Handles a certificate error that fired a certificateError event.
-       */
-      handleCertificateError(
-        params: Protocol.Security.HandleCertificateErrorRequest
-      ): Promise<void>;
-
-      /**
-       * Enable/disable overriding certificate errors. If enabled, all certificate error events need to
-       * be handled by the DevTools client and should be answered with `handleCertificateError` commands.
-       */
-      setOverrideCertificateErrors(
-        params: Protocol.Security.SetOverrideCertificateErrorsRequest
-      ): Promise<void>;
-
-      /**
-       * There is a certificate error. If overriding certificate errors is enabled, then it should be
-       * handled with the `handleCertificateError` command. Note: this event does not fire if the
-       * certificate error has been allowed internally. Only one client per target should override
-       * certificate errors at the same time.
-       */
-      certificateError(
-        listener: (params: Protocol.Security.CertificateErrorEvent) => void
-      ): void;
-
-      /**
-       * The security state of the page changed.
-       */
-      visibleSecurityStateChanged(
-        listener: (
-          params: Protocol.Security.VisibleSecurityStateChangedEvent
-        ) => void
-      ): void;
-
-      /**
-       * The security state of the page changed.
-       */
-      securityStateChanged(
-        listener: (params: Protocol.Security.SecurityStateChangedEvent) => void
-      ): void;
+    interface Options extends BaseOptions {
+      target?:
+        | ((targets: Target[]) => Target | number)
+        | Target
+        | string
+        | undefined;
+      protocol?: Protocol | undefined;
+      local?: boolean | undefined;
     }
 
-    export interface ChromeRemoteInterface extends EventEmitter {
-      readonly Network: Network;
-      readonly Security: Security;
+    interface ActivateOptions extends BaseOptions {
+      id: string;
+    }
+
+    interface CloseOptions extends BaseOptions {
+      id: string;
+    }
+
+    interface NewOptions extends BaseOptions {
+      url?: string | undefined;
+    }
+
+    interface ProtocolOptions extends BaseOptions {
+      local?: boolean | undefined;
+    }
+
+    interface EventMessage {
+      method: string;
+      params: object;
+      sessionId?: string | undefined;
+    }
+
+    interface SendError {
+      code: number;
+      message: string;
+      data?: string | undefined;
+    }
+
+    interface SendCallback<T extends keyof ProtocolMappingApi.Commands> {
+      (error: true, response: SendError): void;
+      (
+        error: false,
+        response: ProtocolMappingApi.Commands[T]['returnType']
+      ): void;
+      (error: Error, response: undefined): void;
+    }
+
+    interface Target {
+      description: string;
+      devtoolsFrontendUrl: string;
+      id: string;
+      title: string;
+      type: string;
+      url: string;
+      webSocketDebuggerUrl: string;
+    }
+
+    interface VersionResult {
+      /* eslint-disable @typescript-eslint/naming-convention */
+      'Browser': string;
+      'Protocol-Version': string;
+      'User-Agent': string;
+      'V8-Version': string;
+      'Webkit-Version': string;
+      'webSocketDebuggerUrl': string;
+      /* eslint-enable @typescript-eslint/naming-convention */
+    }
+
+    /////////////////////////////////////////////////
+    // Generated with https://app.quicktype.io/, Name: Protocol, Language: TypeScript, Interfaces only.
+    // Manually done: TypeEnum simplified, add " | undefined" for optional properties.
+    // Source: https://github.com/ChromeDevTools/devtools-protocol/blob/master/json/ (merge JSON objects)
+    /////////////////////////////////////////////////
+    interface Protocol {
+      version: Version;
+      domains: Domain[];
+    }
+
+    interface Domain {
+      domain: string;
+      experimental?: boolean | undefined;
+      dependencies?: string[] | undefined;
+      types?: TypeElement[] | undefined;
+      commands: Command[];
+      events?: Event[] | undefined;
+      description?: string | undefined;
+      deprecated?: boolean | undefined;
+    }
+
+    interface Command {
+      name: string;
+      description?: string | undefined;
+      experimental?: boolean | undefined;
+      parameters?: Parameter[] | undefined;
+      returns?: Parameter[] | undefined;
+      redirect?: string | undefined;
+      deprecated?: boolean | undefined;
+    }
+
+    interface Parameter {
+      name: string;
+      description?: string | undefined;
+      optional?: boolean | undefined;
+      $ref?: string | undefined;
+      type?: TypeEnum | undefined;
+      items?: Items | undefined;
+      enum?: string[] | undefined;
+      experimental?: boolean | undefined;
+      deprecated?: boolean | undefined;
+    }
+
+    interface Items {
+      type?: TypeEnum | undefined;
+      $ref?: string | undefined;
+    }
+
+    type TypeEnum =
+      | 'any'
+      | 'array'
+      | 'boolean'
+      | 'integer'
+      | 'number'
+      | 'object'
+      | 'string';
+
+    interface Event {
+      name: string;
+      description?: string | undefined;
+      parameters?: Parameter[] | undefined;
+      experimental?: boolean | undefined;
+      deprecated?: boolean | undefined;
+    }
+
+    interface TypeElement {
+      id: string;
+      description?: string | undefined;
+      type: TypeEnum;
+      enum?: string[] | undefined;
+      properties?: Parameter[] | undefined;
+      experimental?: boolean | undefined;
+      items?: Items | undefined;
+      deprecated?: boolean | undefined;
+    }
+
+    interface Version {
+      major: string;
+      minor: string;
+    }
+    /////////////////////////////////////////////////
+    // Generated content end.
+    /////////////////////////////////////////////////
+
+    type GetEventFromString<
+      D extends string,
+      S extends string
+    > = S extends `${D}.${infer E}` ? E : never;
+    type GetEvent<D extends string> = GetEventFromString<
+      D,
+      keyof ProtocolMappingApi.Events
+    >;
+    type GetReturnType<
+      D extends string,
+      E extends string
+    > = `${D}.${E}` extends keyof ProtocolMappingApi.Events
+      ? ProtocolMappingApi.Events[`${D}.${E}`][0]
+      : never;
+    type DoEventPromises<D extends string> = {
+      [event in GetEvent<D>]: () => Promise< // tslint:disable-next-line: void-return
+        GetReturnType<D, event> extends undefined
+          ? void
+          : GetReturnType<D, event>
+      >;
+    };
+    type DoEventListeners<D extends string> = {
+      [event in GetEvent<D>]: (
+        listener: (params: GetReturnType<D, event>, sessionId?: string) => void
+      ) => () => Client;
+    };
+    type DoEventObj<D> = D extends string
+      ? DoEventPromises<D> & DoEventListeners<D>
+      : Record<keyof any, never>;
+
+    type IsNullableObj<T> = Record<keyof T, undefined> extends T ? true : false;
+    /**
+     * Checks whether the only parameter of `T[key]` is nullable i.e. all of
+     * its properties are optional, and makes it optional if so.
+     */
+    type OptIfParamNullable<T> = {
+      [key in keyof T]: T[key] extends (params: any) => any
+        ? IsNullableObj<Parameters<T[key]>[0]> extends true
+          ? (params?: Parameters<T[key]>[0]) => ReturnType<T[key]>
+          : T[key]
+        : T[key];
+    };
+
+    type ImproveAPI<T> = {
+      [key in keyof T]: DoEventObj<key> & OptIfParamNullable<T[key]>;
+    };
+    interface StableDomains {
+      Browser: ProtocolProxyApi.BrowserApi;
+      Debugger: ProtocolProxyApi.DebuggerApi;
+      DOM: ProtocolProxyApi.DOMApi;
+      DOMDebugger: ProtocolProxyApi.DOMDebuggerApi;
+      Emulation: ProtocolProxyApi.EmulationApi;
+      Input: ProtocolProxyApi.InputApi;
+      IO: ProtocolProxyApi.IOApi;
+      Log: ProtocolProxyApi.LogApi;
+      Network: ProtocolProxyApi.NetworkApi;
+      Page: ProtocolProxyApi.PageApi;
+      Performance: ProtocolProxyApi.PerformanceApi;
+      Profiler: ProtocolProxyApi.ProfilerApi;
+      Runtime: ProtocolProxyApi.RuntimeApi;
+      Security: ProtocolProxyApi.SecurityApi;
+      Target: ProtocolProxyApi.TargetApi;
+    }
+    interface DeprecatedDomains {
+      /** @deprecated This domain is deprecated - use Runtime or Log instead. */
+      Console: ProtocolProxyApi.ConsoleApi;
+      /** @deprecated This domain is deprecated. */
+      Schema: ProtocolProxyApi.SchemaApi;
+    }
+    interface ExperimentalDomains {
+      /** @deprecated this API is experimental. */
+      Accessibility: ProtocolProxyApi.AccessibilityApi;
+      /** @deprecated this API is experimental. */
+      Animation: ProtocolProxyApi.AnimationApi;
+      /** @deprecated this API is experimental. */
+      ApplicationCache: ProtocolProxyApi.ApplicationCacheApi;
+      /** @deprecated this API is experimental. */
+      Audits: ProtocolProxyApi.AuditsApi;
+      /** @deprecated this API is experimental. */
+      BackgroundService: ProtocolProxyApi.BackgroundServiceApi;
+      /** @deprecated this API is experimental. */
+      CacheStorage: ProtocolProxyApi.CacheStorageApi;
+      /** @deprecated this API is experimental. */
+      Cast: ProtocolProxyApi.CastApi;
+      /** @deprecated this API is experimental. */
+      CSS: ProtocolProxyApi.CSSApi;
+      /** @deprecated this API is experimental. */
+      Database: ProtocolProxyApi.DatabaseApi;
+      /** @deprecated this API is experimental. */
+      DeviceOrientation: ProtocolProxyApi.DeviceOrientationApi;
+      /** @deprecated this API is experimental. */
+      DOMSnapshot: ProtocolProxyApi.DOMSnapshotApi;
+      /** @deprecated this API is experimental. */
+      DOMStorage: ProtocolProxyApi.DOMStorageApi;
+      /** @deprecated this API is experimental. */
+      Fetch: ProtocolProxyApi.FetchApi;
+      /** @deprecated this API is experimental. */
+      HeadlessExperimental: ProtocolProxyApi.HeadlessExperimentalApi;
+      /** @deprecated this API is experimental. */
+      HeapProfiler: ProtocolProxyApi.HeapProfilerApi;
+      /** @deprecated this API is experimental. */
+      IndexedDB: ProtocolProxyApi.IndexedDBApi;
+      /** @deprecated this API is experimental. */
+      Inspector: ProtocolProxyApi.InspectorApi;
+      /** @deprecated this API is experimental. */
+      LayerTree: ProtocolProxyApi.LayerTreeApi;
+      /** @deprecated this API is experimental. */
+      Media: ProtocolProxyApi.MediaApi;
+      /** @deprecated this API is experimental. */
+      Memory: ProtocolProxyApi.MemoryApi;
+      /** @deprecated this API is experimental. */
+      Overlay: ProtocolProxyApi.OverlayApi;
+      /** @deprecated this API is experimental. */
+      ServiceWorker: ProtocolProxyApi.ServiceWorkerApi;
+      /** @deprecated this API is experimental. */
+      Storage: ProtocolProxyApi.StorageApi;
+      /** @deprecated this API is experimental. */
+      SystemInfo: ProtocolProxyApi.SystemInfoApi;
+      /** @deprecated this API is experimental. */
+      Tethering: ProtocolProxyApi.TetheringApi;
+      /** @deprecated this API is experimental. */
+      Tracing: ProtocolProxyApi.TracingApi;
+      /** @deprecated this API is experimental. */
+      WebAudio: ProtocolProxyApi.WebAudioApi;
+      /** @deprecated this API is experimental. */
+      WebAuthn: ProtocolProxyApi.WebAuthnApi;
+    }
+    type AllDomains = StableDomains & DeprecatedDomains & ExperimentalDomains;
+    interface Client
+      extends EventEmitter,
+        EventPromises<ProtocolMappingApi.Events>,
+        EventCallbacks<ProtocolMappingApi.Events>,
+        ImproveAPI<AllDomains> {
       close(): Promise<void>;
+      on(event: 'event', callback: (message: EventMessage) => void): void;
+      on(event: 'ready' | 'disconnect', callback: () => void): void;
+      // '<domain>.<method>' i.e. Network.requestWillBeSent
+      on<T extends keyof ProtocolMappingApi.Events>(
+        event: T,
+        callback: (
+          params: ProtocolMappingApi.Events[T][0],
+          sessionId?: string
+        ) => void
+      ): void;
+      // '<domain>.<method>.<sessionId>' i.e. Network.requestWillBeSent.abc123
+      on(
+        event: string,
+        callback: (params: unknown, sessionId?: string) => void
+      ): void;
+      // client.send(method, [params], [sessionId], [callback])
+      send<T extends keyof ProtocolMappingApi.Commands>(
+        event: T,
+        callback: SendCallback<T>
+      ): void;
+      send<T extends keyof ProtocolMappingApi.Commands>(
+        event: T,
+        params: ProtocolMappingApi.Commands[T]['paramsType'][0],
+        callback: SendCallback<T>
+      ): void;
+      send<T extends keyof ProtocolMappingApi.Commands>(
+        event: T,
+        params: ProtocolMappingApi.Commands[T]['paramsType'][0],
+        sessionId: string,
+        callback: SendCallback<T>
+      ): void;
+      send<T extends keyof ProtocolMappingApi.Commands>(
+        event: T,
+        params?: ProtocolMappingApi.Commands[T]['paramsType'][0],
+        sessionId?: string
+      ): Promise<ProtocolMappingApi.Commands[T]['returnType']>;
     }
 
-    export interface ChromeRemoteInterfaceOptions {
-      host?: string;
-      port?: number;
-      secure?: boolean;
-      useHostName?: boolean;
-      alterPath?: string;
-      protocol?: string;
-      local?: boolean;
-      target?: string;
-    }
+    // '<domain>.<event>' i.e. Page.loadEventFired
+    type EventPromises<T extends ProtocolMappingApi.Events> = {
+      [Property in keyof T]: () => T[Property] extends [any]
+        ? Promise<T[Property][0]>
+        : Promise<void>;
+    };
+
+    type EventCallbacks<T extends ProtocolMappingApi.Events> = {
+      [Property in keyof T]: (
+        callback: (
+          params: T[Property] extends [any] ? T[Property][0] : undefined,
+          sessionId?: string
+        ) => void
+      ) => () => Client;
+    };
   }
 
-  declare function chromeRemoteInterfaceFactory(
-    options: chromeRemoteInterfaceFactory.ChromeRemoteInterfaceOptions,
-    callback: (
-      err: Error | undefined,
-      chrome?: chromeRemoteInterfaceFactory.ChromeRemoteInterface
-    ) => void
-  ): void;
+  declare const CDP: {
+    (options: CDP.Options, callback: (client: CDP.Client) => void): void;
+    (callback: (client: CDP.Client) => void): void;
+    (options?: CDP.Options): Promise<CDP.Client>;
 
-  declare function chromeRemoteInterfaceFactory(
-    options: chromeRemoteInterfaceFactory.ChromeRemoteInterfaceOptions
-  ): Promise<chromeRemoteInterfaceFactory.ChromeRemoteInterface>;
+    /* eslint-disable @typescript-eslint/naming-convention */
+    Activate(
+      options: CDP.ActivateOptions,
+      callback: (err: Error | null) => void
+    ): void;
+    Activate(options: CDP.ActivateOptions): Promise<void>;
 
-  export = chromeRemoteInterfaceFactory;
+    Close(
+      options: CDP.CloseOptions,
+      callback: (err: Error | null) => void
+    ): void;
+    Close(options: CDP.CloseOptions): Promise<void>;
+
+    List(
+      options: CDP.BaseOptions,
+      callback: (err: Error | null, targets: CDP.Target[]) => void
+    ): void;
+    List(callback: (err: Error | null, targets: CDP.Target[]) => void): void;
+    List(options?: CDP.BaseOptions): Promise<CDP.Target[]>;
+
+    New(
+      options: CDP.NewOptions,
+      callback: (err: Error | null, target: CDP.Target) => void
+    ): void;
+    New(callback: (err: Error | null, target: CDP.Target) => void): void;
+    New(options?: CDP.NewOptions): Promise<CDP.Target>;
+
+    Protocol(
+      options: CDP.ProtocolOptions,
+      callback: (err: Error | null, protocol: CDP.Protocol) => void
+    ): void;
+    Protocol(
+      callback: (err: Error | null, protocol: CDP.Protocol) => void
+    ): void;
+    Protocol(options?: CDP.ProtocolOptions): Promise<CDP.Protocol>;
+
+    Version(
+      options: CDP.BaseOptions,
+      callback: (err: Error | null, info: CDP.VersionResult) => void
+    ): void;
+    Version(
+      callback: (err: Error | null, info: CDP.VersionResult) => void
+    ): void;
+    Version(options?: CDP.BaseOptions): Promise<CDP.VersionResult>;
+    /* eslint-enable @typescript-eslint/naming-convention */
+  };
+
+  export = CDP;
 }
