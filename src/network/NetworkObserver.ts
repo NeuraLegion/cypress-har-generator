@@ -66,21 +66,18 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.updateNetworkRequestWithResponse(entry, params.info.outerResponse);
   }
 
-  public requestWillBeSent(
-    {
-      type,
-      loaderId,
-      initiator,
-      redirectResponse,
-      documentURL,
-      frameId,
-      timestamp,
-      requestId,
-      request,
-      wallTime
-    }: Protocol.Network.RequestWillBeSentEvent,
-    sessionId?: string
-  ): void {
+  public requestWillBeSent({
+    type,
+    loaderId,
+    initiator,
+    redirectResponse,
+    documentURL,
+    frameId,
+    timestamp,
+    requestId,
+    request,
+    wallTime
+  }: Protocol.Network.RequestWillBeSentEvent): void {
     let entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (entry) {
@@ -98,12 +95,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
           response: redirectResponse
         });
       }
-      entry = this._appendRedirect(
-        requestId,
-        timestamp,
-        request.url,
-        sessionId
-      );
+      entry = this._appendRedirect(requestId, timestamp, request.url);
     } else {
       entry = this.createRequest(
         requestId,
@@ -111,8 +103,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
         loaderId,
         request.url,
         documentURL,
-        initiator,
-        sessionId
+        initiator
       );
     }
 
@@ -208,18 +199,18 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.logger.debug(`Failed request: ${requestId}. Reason: ${message}`);
   }
 
-  public webSocketCreated(
-    { initiator, requestId, url }: Protocol.Network.WebSocketCreatedEvent,
-    sessionId?: string
-  ): void {
+  public webSocketCreated({
+    initiator,
+    requestId,
+    url
+  }: Protocol.Network.WebSocketCreatedEvent): void {
     const entry: NetworkRequest = this.createRequest(
       requestId,
       '',
       '',
       url,
       '',
-      initiator,
-      sessionId
+      initiator
     );
     this.startRequest(entry);
   }
@@ -366,8 +357,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private _appendRedirect(
     requestId: Protocol.Network.RequestId,
     time: Protocol.Network.MonotonicTime,
-    redirectURL: string,
-    sessionId?: string
+    redirectURL: string
   ): NetworkRequest {
     const originalNetworkRequest: NetworkRequest = this._entries.get(
       requestId
@@ -392,8 +382,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       originalNetworkRequest.loaderId,
       redirectURL,
       originalNetworkRequest.documentURL,
-      originalNetworkRequest.initiator,
-      sessionId
+      originalNetworkRequest.initiator
     );
 
     newNetworkRequest.redirectSource = originalNetworkRequest;
@@ -433,10 +422,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private loadContent(networkRequest: NetworkRequest): void {
     if (networkRequest.mimeType && this.options.content) {
       networkRequest.setContentData(
-        this.network.getResponseBody(
-          networkRequest.requestId,
-          networkRequest.sessionId
-        )
+        this.network.getResponseBody(networkRequest.requestId)
       );
     }
   }
@@ -466,7 +452,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     return rawRequest.hasPostData && !!rawRequest.postData
       ? rawRequest.postData
       : this.network
-          .getRequestBody(request.requestId, request.sessionId)
+          .getRequestBody(request.requestId)
           .then(
             ({
               postData
@@ -481,8 +467,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     loaderId: Protocol.Network.LoaderId,
     url: string,
     documentURL: string,
-    initiator?: Protocol.Network.Initiator,
-    sessionId?: string
+    initiator?: Protocol.Network.Initiator
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,
@@ -490,8 +475,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       documentURL,
       loaderId,
       initiator,
-      frameId,
-      sessionId
+      frameId
     );
   }
 

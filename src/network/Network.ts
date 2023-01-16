@@ -15,16 +15,12 @@ export type NetworkEvent = {
 };
 
 export interface Network {
-  ignoreCertificateError(): Promise<void>;
-
   getResponseBody(
-    requestId: string,
-    sessionId?: string
+    requestId: string
   ): Promise<Protocol.Network.GetResponseBodyResponse>;
 
   getRequestBody(
-    requestId: string,
-    sessionId?: string
+    requestId: string
   ): Promise<Protocol.Network.GetRequestPostDataResponse>;
 
   attachToTargets(listener: (event: NetworkEvent) => unknown): Promise<void>;

@@ -441,8 +441,7 @@ export class NetworkRequest {
     public readonly documentURL: string,
     public readonly loaderId: Protocol.Network.LoaderId,
     public readonly initiator?: Protocol.Network.Initiator,
-    public readonly frameId: Protocol.Page.FrameId = '',
-    public readonly sessionId?: string
+    public readonly frameId: Protocol.Page.FrameId = ''
   ) {
     this.setUrl(url);
   }

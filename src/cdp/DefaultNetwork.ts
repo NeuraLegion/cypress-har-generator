@@ -5,6 +5,7 @@ import type Protocol from 'devtools-protocol';
 export class DefaultNetwork implements Network {
   private readonly domain = 'Network';
   private listener?: (event: NetworkEvent) => unknown;
+  private readonly sessions = new Map<string, string>();
 
   constructor(private readonly cdp: Client) {}
 
@@ -15,9 +16,8 @@ export class DefaultNetwork implements Network {
 
     this.cdp.on('event', this.networkEventListener);
 
-    await this.discoverTargets();
     await this.ignoreCertificateError();
-    await this.recursivelyAttachToTargets();
+    await this.trackSessions();
   }
 
   public async detachFromTargets(): Promise<void> {
@@ -25,41 +25,51 @@ export class DefaultNetwork implements Network {
       this.cdp.off('event', this.networkEventListener);
       this.cdp.off('Security.certificateError', this.certificateErrorListener);
       this.cdp.off('Target.attachedToTarget', this.attachedToTargetListener);
+      this.cdp.off('Network.requestWillBeSent', this.sessionListener);
+      this.cdp.off('Network.webSocketCreated', this.sessionListener);
+      delete this.listener;
     }
 
     await Promise.all([
       this.cdp.send('Security.disable'),
       this.enableAutoAttach(false)
     ]);
+
+    this.sessions.clear();
   }
 
   public getRequestBody(
-    requestId: string,
-    sessionId?: string
+    requestId: string
   ): Promise<Protocol.Network.GetRequestPostDataResponse> {
     return this.cdp.send(
       'Network.getRequestPostData',
       {
         requestId
       },
-      sessionId
+      this.sessions.get(requestId)
     );
   }
 
   public getResponseBody(
-    requestId: string,
-    sessionId?: string
+    requestId: string
   ): Promise<Protocol.Network.GetResponseBodyResponse> {
     return this.cdp.send(
       'Network.getResponseBody',
       {
         requestId
       },
-      sessionId
+      this.sessions.get(requestId)
     );
   }
 
-  public async ignoreCertificateError(): Promise<void> {
+  private async trackSessions(): Promise<void> {
+    this.cdp.on('Network.requestWillBeSent', this.sessionListener);
+    this.cdp.on('Network.webSocketCreated', this.sessionListener);
+    await this.discoverTargets();
+    await this.recursivelyAttachToTargets();
+  }
+
+  private async ignoreCertificateError(): Promise<void> {
     await this.cdp.send('Security.enable');
     this.cdp.on('Security.certificateError', this.certificateErrorListener);
     await this.cdp.send('Security.setOverrideCertificateErrors', {
@@ -104,6 +114,15 @@ export class DefaultNetwork implements Network {
       sessionId
     );
   }
+
+  private sessionListener = (
+    {
+      requestId
+    }:
+      | Protocol.Network.RequestWillBeSentEvent
+      | Protocol.Network.WebSocketCreatedEvent,
+    sessionId: string
+  ) => this.sessions.set(requestId, sessionId);
 
   private attachedToTargetListener = async ({
     sessionId

@@ -178,7 +178,7 @@ describe('NetworkObserver', () => {
 
     it('should return false when there is at least one pending request', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(cb =>
@@ -202,7 +202,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a simple sequence of browser events', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -222,7 +222,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a SXG', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -253,7 +253,7 @@ describe('NetworkObserver', () => {
 
     it('should update a request headers which has been transferred via SXG', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -290,7 +290,7 @@ describe('NetworkObserver', () => {
 
     it('should change a resource priority', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -317,7 +317,7 @@ describe('NetworkObserver', () => {
 
     it('should increase the resource size while receiving new data chunk', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -338,7 +338,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a loading failure', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -363,10 +363,10 @@ describe('NetworkObserver', () => {
     it('should load a response body when content is enabled', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
-      when(networkMock.getResponseBody('1', anything())).thenResolve({
+      when(networkMock.getResponseBody('1')).thenResolve({
         body: '<html></html>',
         base64Encoded: false
       });
@@ -378,17 +378,17 @@ describe('NetworkObserver', () => {
       // act
       await sut.subscribe(callback);
       // assert
-      verify(networkMock.getResponseBody('1', anything())).once();
+      verify(networkMock.getResponseBody('1')).once();
     });
 
     it('should load a response body when mime is in the list of allowed', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
       when(optionsSpy.includeMimes).thenReturn(['text/html']);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
-      when(networkMock.getResponseBody('1', anything())).thenResolve({
+      when(networkMock.getResponseBody('1')).thenResolve({
         body: '<html></html>',
         base64Encoded: false
       });
@@ -400,16 +400,16 @@ describe('NetworkObserver', () => {
       // act
       await sut.subscribe(callback);
       // assert
-      verify(networkMock.getResponseBody('1', anything())).once();
+      verify(networkMock.getResponseBody('1')).once();
     });
 
     it('should skip a response body when mime is not defined', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
-      when(networkMock.getResponseBody('1', anything())).thenReject(
+      when(networkMock.getResponseBody('1')).thenReject(
         new Error('No resource with given identifier found')
       );
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -419,16 +419,16 @@ describe('NetworkObserver', () => {
       // act
       await sut.subscribe(callback);
       // assert
-      verify(networkMock.getResponseBody('1', anything())).never();
+      verify(networkMock.getResponseBody('1')).never();
     });
 
     it('should skip a response body if content is disabled', async () => {
       // arrange
       when(optionsSpy.content).thenReturn(true);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
-      when(networkMock.getResponseBody('1', anything())).thenResolve({
+      when(networkMock.getResponseBody('1')).thenResolve({
         body: '<html></html>',
         base64Encoded: false
       });
@@ -440,12 +440,12 @@ describe('NetworkObserver', () => {
       // act
       await sut.subscribe(callback);
       // assert
-      verify(networkMock.getResponseBody('1', anything())).once();
+      verify(networkMock.getResponseBody('1')).once();
     });
 
     it('should handle an error while loading a request body', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenReject(
+      when(networkMock.getRequestBody('1')).thenReject(
         new Error('something went wrong')
       );
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -467,7 +467,7 @@ describe('NetworkObserver', () => {
       // arrange
       when(requestFilterMock.wouldApply(anything())).thenReturn(true);
       when(requestFilterMock.apply(anything(), anything())).thenReturn(false);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -484,7 +484,7 @@ describe('NetworkObserver', () => {
     it('should not filter a request out when the filter criteria are not applicable', async () => {
       // arrange
       when(requestFilterMock.wouldApply(anything())).thenReturn(false);
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -504,7 +504,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a request extra info coming before browser events', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -537,7 +537,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a response extra info coming before browser events', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -570,7 +570,7 @@ describe('NetworkObserver', () => {
 
     it('should handle a redirected response', async () => {
       // arrange
-      when(networkMock.getRequestBody('1', anything())).thenResolve({
+      when(networkMock.getRequestBody('1')).thenResolve({
         postData: ''
       });
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
