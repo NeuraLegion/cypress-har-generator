@@ -1,6 +1,6 @@
 import express, { Request, Response, json } from 'express';
 import minimist from 'minimist';
-import { Server } from 'ws';
+import WebSocket, { Server } from 'ws';
 import { join } from 'path';
 
 const app = express();
@@ -15,13 +15,14 @@ app.use('/', express.static(join(__dirname, 'public')));
 app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+const wsDispatcher = (socket: WebSocket) => {
+  const data = `This is a message at time ${Date.now()}`;
+
+  socket.send(data);
+};
 ws.on('connection', socket => {
-  const timer = setInterval(() => {
-    const data = `This is a message at time ${Date.now()}`;
-
-    socket.send(data);
-  }, 100);
-
+  const timer = setInterval(() => wsDispatcher(socket), 100);
+  wsDispatcher(socket);
   socket.once('close', () => clearInterval(timer));
 });
 
@@ -41,6 +42,11 @@ app.get('/', (_: Request, res: Response) =>
 app.get('/pages/:page', (req: Request, res: Response) =>
   res.render(`./${req.params.page}.hbs`)
 );
+const sseDispatcher = (res: Response) => {
+  const data = `data: This is a message at time ${Date.now()}\n\n`;
+
+  res.write(data);
+};
 app.get('/api/events', (req: Request, res: Response) => {
   const headers = {
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -50,12 +56,8 @@ app.get('/api/events', (req: Request, res: Response) => {
     'Cache-Control': 'no-cache'
   };
   res.writeHead(200, headers);
-  const timer = setInterval(() => {
-    const data = `data: This is a message at time ${Date.now()}\n\n`;
-
-    res.write(data);
-  }, 100);
-
+  const timer = setInterval(() => sseDispatcher(res), 100);
+  sseDispatcher(res);
   req.on('close', () => clearInterval(timer));
 });
 app.post('/api/math', json(), (req: Request, res: Response) => {
