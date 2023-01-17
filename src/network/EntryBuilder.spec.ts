@@ -313,6 +313,25 @@ describe('EntryBuilder', () => {
       });
     });
 
+    it.each([
+      { input: '[2001:db8::1]', expected: '2001:db8::1' },
+      { input: '2001:db8::1', expected: '2001:db8::1' },
+      { input: '1.1.1.1', expected: '1.1.1.1' }
+    ])(
+      'should build an entry parsing $input address',
+      async ({ input, expected }) => {
+        // arrange
+        request.setRemoteAddress(input, 8080);
+        const entryBuilder = new EntryBuilder(request);
+        // act
+        const entry = await entryBuilder.build();
+        // assert
+        expect(entry).toMatchObject({
+          serverIPAddress: expected
+        });
+      }
+    );
+
     it('should build an entry removing fragments from URL', async () => {
       // arrange
       request.setUrl('http://example.com/#id');
