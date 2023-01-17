@@ -1,9 +1,8 @@
-import type { ConnectionFactory } from './ConnectionFactory';
+import type { ConnectionFactory, ConnectionOptions } from './ConnectionFactory';
 import { RetryStrategy } from './RetryStrategy';
 import type { Connection } from './Connection';
 import { CDPConnection } from './CDPConnection';
 import { Logger } from '../utils';
-import { ConnectionOptions } from './ConnectionFactory';
 
 export class DefaultConnectionFactory implements ConnectionFactory {
   constructor(private readonly logger: Logger) {}
@@ -12,7 +11,7 @@ export class DefaultConnectionFactory implements ConnectionFactory {
     maxRetries,
     initialBackoff,
     maximumBackoff,
-    ...addr
+    ...options
   }: ConnectionOptions): Connection {
     const retryStrategy = new RetryStrategy(
       maxRetries,
@@ -20,6 +19,6 @@ export class DefaultConnectionFactory implements ConnectionFactory {
       maximumBackoff
     );
 
-    return new CDPConnection(addr, this.logger, retryStrategy);
+    return new CDPConnection(options, this.logger, retryStrategy);
   }
 }
