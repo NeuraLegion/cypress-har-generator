@@ -1,9 +1,10 @@
 import express, { Request, Response, json } from 'express';
 import minimist from 'minimist';
+import { Server } from 'ws';
 import { join } from 'path';
 
 const app = express();
-const clients: { id: number; res: Response }[] = [];
+const ws = new Server({ noServer: true, path: '/ws' });
 
 // get port from passed in args from scripts/start.js
 const { port } = minimist(process.argv.slice(2));
@@ -14,6 +15,16 @@ app.use('/', express.static(join(__dirname, 'public')));
 app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+ws.on('connection', socket => {
+  const timer = setInterval(() => {
+    const data = `This is a message at time ${Date.now()}`;
+
+    socket.send(data);
+  }, 100);
+
+  socket.once('close', () => clearInterval(timer));
+});
+
 app.get('/', (_: Request, res: Response) =>
   res.render('./index.hbs', {
     pages: [
@@ -22,7 +33,8 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'service-worker', name: 'Service worker' },
       { id: 'worker', name: 'Workers (Shared and Web)' },
       { id: 'multi-targets', name: 'Multi targets' },
-      { id: 'server-sent-events', name: 'Server-sent events' }
+      { id: 'server-sent-events', name: 'Server-sent events' },
+      { id: 'websocket', name: 'WebSocket' }
     ]
   })
 );
@@ -70,4 +82,9 @@ app.get('/api/products', (_: Request, res: Response) =>
     ]
   })
 );
-app.listen(port);
+const server = app.listen(port);
+server.on('upgrade', (request, socket, head) =>
+  ws.handleUpgrade(request, socket, head, client =>
+    ws.emit('connection', client, request)
+  )
+);

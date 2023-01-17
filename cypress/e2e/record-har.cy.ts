@@ -1,3 +1,5 @@
+import { Entry } from 'har-format';
+
 describe('Record HAR', () => {
   beforeEach(() => {
     cy.visit('/');
@@ -6,7 +8,8 @@ describe('Record HAR', () => {
     cy.get('a[href$=frame]').as('framePage');
     cy.get('a[href$=service-worker]').as('serviceWorkerPage');
     cy.get('a[href="pages/worker"]').as('workerPage');
-    cy.get('a[href$=server-sent-events]').as('serverSentEvents');
+    cy.get('a[href$=server-sent-events]').as('serverSentEventsPage');
+    cy.get('a[href$=websocket]').as('websocketPage');
   });
 
   it('excludes a request by mime type', () => {
@@ -126,6 +129,7 @@ describe('Record HAR', () => {
     cy.recordHar();
 
     cy.get('@serverSentEvents').click();
+    cy.wait(200);
     cy.get('button').click();
 
     cy.saveHar({ waitForIdle: true });
@@ -133,13 +137,46 @@ describe('Record HAR', () => {
     cy.findHar()
       .its('log.entries')
       .should('contain.something.like', {
+        _eventStream: [
+          {
+            data: /^This is a message at time/
+          }
+        ]
+      });
+  });
+
+  it('records the WeSocket frames', () => {
+    cy.recordHar();
+
+    cy.get('@websocketPage').click();
+    cy.wait(200);
+    cy.get('button').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: 'ws://localhost:8080/ws'
+        },
         response: {
-          _eventStream: [
-            {
-              data: /^This is a message at time/
-            }
-          ]
+          status: 101
         }
+      })
+      .and((data: Entry[]) => {
+        const expected = data.find(
+          ({ _webSocketMessages }: Entry) =>
+            (_webSocketMessages as unknown[]).length > 0
+        );
+        expect(expected?._webSocketMessages).to.contain.something.like({
+          type: 'response',
+          data: /^This is a message at time/
+        });
+        expect(expected?._webSocketMessages).to.contain.something.like({
+          type: 'request',
+          data: 'Hello Server!'
+        });
       });
   });
 
