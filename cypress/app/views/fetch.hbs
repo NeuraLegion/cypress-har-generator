@@ -20,8 +20,7 @@
     })
       .then((response) => response.blob())
       .then((myBlob) => myImage.src = URL.createObjectURL(myBlob));
-  </script>
-  <script>
+
     const myList = document.querySelector("ul");
 
     fetch("/api/products")

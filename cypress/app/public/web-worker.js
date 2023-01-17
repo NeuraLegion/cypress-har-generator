@@ -1,25 +1,20 @@
-const first = document.querySelector('#number1');
-const second = document.querySelector('#number2');
+onmessage = async e => {
+  console.log('Worker: Message received from main script');
 
-const result = document.querySelector('.result');
+  const res = await fetch('/api/math', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify(e.data)
+  });
 
-if (window.Worker) {
-  const myWorker = new Worker('/worker.js');
+  const result = await res.text();
 
-  first.onchange = () => {
-    myWorker.postMessage([+first.value, +second.value]);
-    console.log('Message posted to worker');
-  };
-
-  second.onchange = () => {
-    myWorker.postMessage([+first.value, +second.value]);
-    console.log('Message posted to worker');
-  };
-
-  myWorker.onmessage = e => {
-    result.textContent = e.data;
-    console.log('Message received from worker');
-  };
-} else {
-  console.log("Your browser doesn't support web workers.");
-}
+  if (isNaN(+result)) {
+    postMessage('Please write two numbers');
+  } else {
+    console.log('Worker: Posting message back to main script');
+    postMessage(+result);
+  }
+};

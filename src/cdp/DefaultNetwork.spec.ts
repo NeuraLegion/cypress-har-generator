@@ -98,18 +98,6 @@ describe('DefaultNetwork', () => {
       verify(clientMock.on('Network.webSocketCreated', anyFunction())).once();
     });
 
-    it('should discover new targets', async () => {
-      // act
-      await sut.attachToTargets(listener);
-      // assert
-      verify(
-        clientMock.send(
-          'Target.setDiscoverTargets',
-          deepEqual({ discover: true })
-        )
-      ).once();
-    });
-
     it('should attach to the root target', async () => {
       // act
       await sut.attachToTargets(listener);
@@ -127,27 +115,85 @@ describe('DefaultNetwork', () => {
       ).once();
       verify(
         clientMock.send('Network.enable', deepEqual({}), undefined)
-      ).once();
+      ).never();
       verify(
         clientMock.send(
           'Network.setCacheDisabled',
           deepEqual({ cacheDisabled: true }),
           undefined
         )
-      ).once();
+      ).never();
       verify(clientMock.on('Target.attachedToTarget', anyFunction())).once();
     });
+
+    it('should not listen to network events when attaching to the root target', async () => {
+      // act
+      await sut.attachToTargets(listener);
+      // assert
+      verify(
+        clientMock.send('Network.enable', deepEqual({}), undefined)
+      ).never();
+      verify(
+        clientMock.send(
+          'Network.setCacheDisabled',
+          deepEqual({ cacheDisabled: true }),
+          undefined
+        )
+      ).never();
+    });
+
+    it.each([{ input: 'tab' }, { input: 'browser' }, { input: 'other' }])(
+      'should not listen to network events when attaching to the $input target',
+      async ({ input }) => {
+        // arrange
+        const sessionId = '1';
+        const targetInfo: Protocol.Target.TargetInfo = {
+          targetId: '1',
+          type: input,
+          url: '',
+          title: '',
+          attached: true,
+          canAccessOpener: false
+        };
+        let act: (...args: unknown[]) => Promise<void>;
+        when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
+          (_, callback) => (act = callback)
+        );
+        await sut.attachToTargets(listener);
+        // act
+        await act({ sessionId, targetInfo, waitingForDebugger: false });
+        // assert
+        verify(
+          clientMock.send('Network.enable', deepEqual({}), undefined)
+        ).never();
+        verify(
+          clientMock.send(
+            'Network.setCacheDisabled',
+            deepEqual({ cacheDisabled: true }),
+            undefined
+          )
+        ).never();
+      }
+    );
 
     it('should recursively attach to new targets', async () => {
       // arrange
       const sessionId = '1';
+      const targetInfo: Protocol.Target.TargetInfo = {
+        targetId: '1',
+        type: 'page',
+        url: '',
+        title: '',
+        attached: true,
+        canAccessOpener: false
+      };
       let act: (...args: unknown[]) => Promise<void>;
       when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
         (_, callback) => (act = callback)
       );
       await sut.attachToTargets(listener);
       // act
-      await act({ sessionId });
+      await act({ sessionId, targetInfo, waitingForDebugger: false });
       // assert
       verify(
         clientMock.send(
@@ -160,20 +206,72 @@ describe('DefaultNetwork', () => {
           sessionId
         )
       ).once();
-      verify(
-        clientMock.send('Network.enable', deepEqual({}), sessionId)
-      ).once();
-      verify(
-        clientMock.send(
-          'Network.setCacheDisabled',
-          deepEqual({ cacheDisabled: true }),
-          sessionId
-        )
-      ).once();
+      verify(clientMock.on('Target.attachedToTarget', anyFunction())).once();
+    });
+
+    it.each([
+      { input: 'service_worker' },
+      { input: 'page' },
+      { input: 'worker' },
+      { input: 'background_page' },
+      { input: 'webview' },
+      { input: 'shared_worker' }
+    ])(
+      'should listen to network events when attaching to the $input target',
+      async ({ input }) => {
+        // arrange
+        const sessionId = '1';
+        const targetInfo: Protocol.Target.TargetInfo = {
+          targetId: '1',
+          type: input,
+          url: '',
+          title: '',
+          attached: true,
+          canAccessOpener: false
+        };
+        let act: (...args: unknown[]) => Promise<void>;
+        when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
+          (_, callback) => (act = callback)
+        );
+        await sut.attachToTargets(listener);
+        // act
+        await act({ sessionId, targetInfo, waitingForDebugger: false });
+        // assert
+        verify(
+          clientMock.send('Network.enable', deepEqual({}), sessionId)
+        ).once();
+        verify(
+          clientMock.send(
+            'Network.setCacheDisabled',
+            deepEqual({ cacheDisabled: true }),
+            sessionId
+          )
+        ).once();
+      }
+    );
+
+    it('should run if waiting for debugger', async () => {
+      // arrange
+      const sessionId = '1';
+      const targetInfo: Protocol.Target.TargetInfo = {
+        targetId: '1',
+        type: 'page',
+        url: '',
+        title: '',
+        attached: true,
+        canAccessOpener: false
+      };
+      let act: (...args: unknown[]) => Promise<void>;
+      when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
+        (_, callback) => (act = callback)
+      );
+      await sut.attachToTargets(listener);
+      // act
+      await act({ sessionId, targetInfo, waitingForDebugger: true });
+      // assert
       verify(
         clientMock.send('Runtime.runIfWaitingForDebugger', undefined, sessionId)
       ).once();
-      verify(clientMock.on('Target.attachedToTarget', anyFunction())).twice();
     });
 
     it('should ignore certificate errors', async () => {

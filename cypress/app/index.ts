@@ -19,7 +19,8 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'fetch', name: 'Fetch' },
       { id: 'frame', name: 'Frame' },
       { id: 'service-worker', name: 'Service worker' },
-      { id: 'web-worker', name: 'Web worker' }
+      { id: 'worker', name: 'Workers (Shared and Web)' },
+      { id: 'multi-targets', name: 'Multi targets' }
     ]
   })
 );
@@ -32,6 +33,8 @@ app.post('/api/math', json(), (req: Request, res: Response) => {
   switch (op) {
     case 'sum':
       return res.json(args.reduce((a: number, b: number) => a + b));
+    case 'divide':
+      return res.json(args.reduce((a: number, b: number) => Math.round(a / b)));
     default:
       return res.sendStatus(400);
   }

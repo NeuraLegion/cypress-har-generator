@@ -1,0 +1,31 @@
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel='icon' href='data:;base64,iVBORw0KGgo=' />
+
+    <title>Multi targets</title>
+  </head>
+  <body>
+    <h1>Multi targets</h1>
+    <a id='new-window-noopener' href='/pages/popup' target='_blank' rel=noopener>Open
+      new window (noopener)</a>
+    <a id='new-window' href='/pages/popup' target='_blank'>Open
+      new window</a>
+    <a id='popup-window' href='/pages/popup'>Open popup window</a>
+    <a id='worker' href='/pages/popup'>Run nested workers</a>
+    <p class='result'>Result: 0</p>
+  </body>
+  <script>
+    const popupWindowLink = document.querySelector('#popup-window');
+    popupWindowLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      const newWindow = window.open('/pages/popup', undefined, 'popup,height=200,width=150');
+      if (window.focus) {
+        newWindow.focus();
+      }
+      return false;
+    });
+  </script>
+</html>
