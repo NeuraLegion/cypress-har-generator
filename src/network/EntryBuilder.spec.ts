@@ -327,6 +327,20 @@ describe('EntryBuilder', () => {
       });
     });
 
+    it('should remove fragments from URL preserving a query params', async () => {
+      // arrange
+      request.setUrl('http://example.com/data.csv?label:new#row=5-7');
+      const entryBuilder = new EntryBuilder(request);
+      // act
+      const entry = await entryBuilder.build();
+      // assert
+      expect(entry).toMatchObject({
+        request: {
+          url: 'http://example.com/data.csv?label:new'
+        }
+      });
+    });
+
     it('should build an entry setting connection ID', async () => {
       // arrange
       const connection = '1';

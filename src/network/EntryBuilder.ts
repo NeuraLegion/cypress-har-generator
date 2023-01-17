@@ -250,7 +250,6 @@ export class EntryBuilder {
   }
 
   private buildRequestURL(url: string): string {
-    // TODO: prevent removing query string
     return url.split('#', 2)[0];
   }
 
