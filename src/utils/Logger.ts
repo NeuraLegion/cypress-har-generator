@@ -18,7 +18,7 @@ export class Logger {
     this.log(chalk.blue(`🛈 ${msg}`));
   }
 
-  public err(msg: string): void {
+  public err(msg: string | Error | unknown): void {
     this.log(chalk.red(`🍑 ${msg}`));
   }
 

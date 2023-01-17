@@ -6,10 +6,12 @@ export class MimeFilter implements RequestFilter {
     request: NetworkRequest,
     { includeMimes }: RequestFilterOptions
   ): boolean {
-    return request.mimeType && includeMimes.includes(request.mimeType);
+    return !!(request.mimeType && includeMimes?.includes(request.mimeType));
   }
 
   public wouldApply(options: RequestFilterOptions): boolean {
-    return options.includeMimes?.length > 0;
+    return (
+      Array.isArray(options.includeMimes) && options.includeMimes.length > 0
+    );
   }
 }

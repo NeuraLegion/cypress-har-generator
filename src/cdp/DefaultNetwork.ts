@@ -14,7 +14,7 @@ export class DefaultNetwork implements Network {
   ]);
 
   private listener?: (event: NetworkEvent) => unknown;
-  private readonly sessions = new Map<string, string>();
+  private readonly sessions = new Map<string, string | undefined>();
 
   constructor(private readonly cdp: Client) {}
 
@@ -87,7 +87,10 @@ export class DefaultNetwork implements Network {
   }
 
   private networkEventListener = async (eventMessage: EventMessage) => {
-    if (this.matchNetworkEvents(eventMessage)) {
+    if (
+      this.matchNetworkEvents(eventMessage) &&
+      typeof this.listener === 'function'
+    ) {
       this.listener(eventMessage);
     }
   };
@@ -137,7 +140,7 @@ export class DefaultNetwork implements Network {
     }:
       | Protocol.Network.RequestWillBeSentEvent
       | Protocol.Network.WebSocketCreatedEvent,
-    sessionId: string
+    sessionId?: string
   ) => this.sessions.set(requestId, sessionId);
 
   private attachedToTargetListener = async ({

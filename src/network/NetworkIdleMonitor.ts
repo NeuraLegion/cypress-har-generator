@@ -3,11 +3,11 @@ import { NetworkRequest } from './NetworkRequest';
 import { promisify } from 'util';
 
 export class NetworkIdleMonitor {
-  private startIdleTime: number;
+  private startIdleTime?: number;
 
   constructor(private readonly networkObservable: Observer<NetworkRequest>) {}
 
-  public async waitForIdle(idleTime: number) {
+  public async waitForIdle(idleTime: number): Promise<void> {
     for (;;) {
       this.startIdleTime = this.networkObservable.empty
         ? this.startIdleTimer()
@@ -30,6 +30,8 @@ export class NetworkIdleMonitor {
   }
 
   private shouldResolve(idleTime: number): boolean {
-    return this.startIdleTime && Date.now() - this.startIdleTime >= idleTime;
+    return !!(
+      this.startIdleTime && Date.now() - this.startIdleTime >= idleTime
+    );
   }
 }

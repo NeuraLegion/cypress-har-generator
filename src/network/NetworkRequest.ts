@@ -46,11 +46,15 @@ export class NetworkRequest {
     Promise.resolve(undefined);
   private _formParametersPromise?: Promise<Param[]>;
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
   private _signedExchangeInfo?: Protocol.Network.SignedExchangeInfo;
 
-  set signedExchangeInfo(info: Protocol.Network.SignedExchangeInfo) {
+  // TODO: use to finalize a response in the `requestWillBeSent` event handler or
+  //  update `transferSize` for the chain of redirects
+  get signedExchangeInfo() {
+    return this._signedExchangeInfo;
+  }
+
+  set signedExchangeInfo(info) {
     this._signedExchangeInfo = info;
   }
 
@@ -74,9 +78,9 @@ export class NetworkRequest {
     this._hasExtraRequestInfo = value;
   }
 
-  private _connectionId?: string = '0';
+  private _connectionId: string = '0';
 
-  get connectionId(): string | undefined {
+  get connectionId() {
     return this._connectionId;
   }
 
@@ -124,16 +128,27 @@ export class NetworkRequest {
     this._statusText = value ?? '';
   }
 
-  private _parsedURL?: URL;
+  private _parsedURL!: URL;
 
-  get parsedURL(): URL {
+  get parsedURL() {
     return this._parsedURL;
   }
 
-  private _url?: string;
+  private _url!: string;
 
-  get url(): string | undefined {
+  get url(): string {
     return this._url;
+  }
+
+  set url(value: string) {
+    if (this._url === value) {
+      return;
+    }
+
+    this._url = value;
+    this._parsedURL = new URL(value);
+    delete this._queryString;
+    delete this._parsedQueryParameters;
   }
 
   private _remoteAddress: string = '';
@@ -203,11 +218,11 @@ export class NetworkRequest {
 
   private _timing?: Protocol.Network.ResourceTiming;
 
-  get timing(): Protocol.Network.ResourceTiming | undefined {
+  get timing() {
     return this._timing;
   }
 
-  set timing(timingInfo: Protocol.Network.ResourceTiming) {
+  set timing(timingInfo) {
     if (!timingInfo) {
       return;
     }
@@ -233,11 +248,11 @@ export class NetworkRequest {
 
   private _mimeType?: string;
 
-  get mimeType(): string | undefined {
+  get mimeType() {
     return this._mimeType;
   }
 
-  set mimeType(value: string) {
+  set mimeType(value) {
     this._mimeType = value;
   }
 
@@ -253,11 +268,11 @@ export class NetworkRequest {
 
   private _redirectSource?: NetworkRequest;
 
-  get redirectSource(): NetworkRequest | undefined {
+  get redirectSource() {
     return this._redirectSource;
   }
 
-  set redirectSource(originatingRequest: NetworkRequest) {
+  set redirectSource(originatingRequest) {
     this._redirectSource = originatingRequest;
   }
 
@@ -278,7 +293,9 @@ export class NetworkRequest {
   get requestCookies(): NetworkCookie[] | undefined {
     if (!this._requestCookies) {
       const cookie = this.requestHeaderValue('Cookie');
-      this._requestCookies = new CookieParser().parseCookie(cookie);
+      this._requestCookies = cookie
+        ? new CookieParser().parseCookie(cookie)
+        : undefined;
     }
 
     return this._requestCookies;
@@ -288,7 +305,9 @@ export class NetworkRequest {
     const contentLength: string | undefined =
       this.requestHeaderValue('Content-Length');
 
-    return isNaN(+contentLength) ? 0 : parseInt(contentLength, 10);
+    return contentLength == null || isNaN(+contentLength)
+      ? 0
+      : parseInt(contentLength, 10);
   }
 
   private _requestHeadersText: string = '';
@@ -338,7 +357,9 @@ export class NetworkRequest {
   get responseCookies(): NetworkCookie[] | undefined {
     if (!this._responseCookies) {
       const cookie = this.responseHeaderValue('Set-Cookie');
-      this._responseCookies = new CookieParser().parseSetCookie(cookie);
+      this._responseCookies = cookie
+        ? new CookieParser().parseSetCookie(cookie)
+        : undefined;
     }
 
     return this._responseCookies;
@@ -346,17 +367,17 @@ export class NetworkRequest {
 
   private _queryString?: string;
 
-  get queryString(): string {
-    if (this._queryString !== undefined) {
+  get queryString() {
+    if (this._queryString || !this.url) {
       return this._queryString;
     }
 
-    let queryString: string = null;
-    const questionMarkPosition: number = this.url.indexOf('?');
+    let queryString: string | undefined;
+    const questionMarkPosition = this.url.indexOf('?');
 
     if (questionMarkPosition !== -1) {
       queryString = this.url.substring(questionMarkPosition + 1);
-      const hashSignPosition: number = queryString.indexOf('#');
+      const hashSignPosition = queryString.indexOf('#');
 
       if (hashSignPosition !== -1) {
         queryString = queryString.substring(0, hashSignPosition);
@@ -370,11 +391,11 @@ export class NetworkRequest {
 
   private _initialPriority?: Protocol.Network.ResourcePriority;
 
-  get initialPriority(): Protocol.Network.ResourcePriority | undefined {
+  get initialPriority() {
     return this._initialPriority;
   }
 
-  set initialPriority(priority: Protocol.Network.ResourcePriority) {
+  set initialPriority(priority) {
     this._initialPriority = priority;
   }
 
@@ -426,11 +447,9 @@ export class NetworkRequest {
       return this._parsedQueryParameters;
     }
 
-    if (!this.queryString) {
-      return null;
+    if (this.queryString) {
+      this._parsedQueryParameters = this.parseParameters(this.queryString);
     }
-
-    this._parsedQueryParameters = this.parseParameters(this.queryString);
 
     return this._parsedQueryParameters;
   }
@@ -440,10 +459,10 @@ export class NetworkRequest {
   }
 
   get priority(): Protocol.Network.ResourcePriority | undefined {
-    return this._currentPriority ?? this._initialPriority ?? undefined;
+    return this._currentPriority ?? this.initialPriority ?? undefined;
   }
 
-  set priority(priority: Protocol.Network.ResourcePriority) {
+  set priority(priority) {
     this._currentPriority = priority;
   }
 
@@ -456,18 +475,7 @@ export class NetworkRequest {
     public readonly initiator?: Protocol.Network.Initiator,
     public readonly frameId: Protocol.Page.FrameId = ''
   ) {
-    this.setUrl(url);
-  }
-
-  public setUrl(value: string): void {
-    if (this._url === value) {
-      return;
-    }
-
-    this._url = value;
-    this._parsedURL = new URL(value);
-    delete this._queryString;
-    delete this._parsedQueryParameters;
+    this.url = url;
   }
 
   public isBlob(): boolean {
@@ -498,7 +506,7 @@ export class NetworkRequest {
   public setRequestFormData(data: string | Promise<string | undefined>): void {
     this._requestFormData =
       typeof data === 'string' ? Promise.resolve(data) : data;
-    this._formParametersPromise = null;
+    this._formParametersPromise = undefined;
   }
 
   public getWallTime(monotonicTime: Protocol.Network.MonotonicTime): number {
@@ -644,10 +652,11 @@ export class NetworkRequest {
 
   public responseHeaderValue(headerName: string): string | undefined {
     if (!this._responseHeaderValues.has(headerName)) {
-      this._responseHeaderValues.set(
-        headerName,
-        this.computeHeaderValue(this.responseHeaders, headerName)
+      const headerValue = this.computeHeaderValue(
+        this.responseHeaders,
+        headerName
       );
+      headerValue && this._responseHeaderValues.set(headerName, headerValue);
     }
 
     return this._responseHeaderValues.get(headerName);
@@ -659,31 +668,28 @@ export class NetworkRequest {
         /^application\/x-www-form-urlencoded\s*(;.*)?$/i
       )
     ) {
-      const formUrlencoded: string = await this.requestFormData();
+      const formUrlencoded = await this.requestFormData();
 
       if (!formUrlencoded) {
-        return;
+        return [];
       }
 
       return this.parseParameters(formUrlencoded);
     }
 
-    const multipartDetails: RegExpMatchArray = this.requestContentType?.match(
+    const multipartDetails = this.requestContentType?.match(
       /^multipart\/form-data\s*;\s*boundary\s*=\s*(\S+)\s*$/
     );
 
     if (!multipartDetails) {
-      return;
+      return [];
     }
 
-    const boundary: string = multipartDetails[1];
-    if (!boundary) {
-      return;
-    }
+    const boundary = multipartDetails[1];
+    const formData = await this.requestFormData();
 
-    const formData: string = await this.requestFormData();
-    if (!formData) {
-      return;
+    if (!boundary || !formData) {
+      return [];
     }
 
     return this.parseMultipartFormDataParameters(formData, boundary);
@@ -713,9 +719,8 @@ export class NetworkRequest {
     );
 
     return fields.reduce((result: Param[], field: string): Param[] => {
-      // eslint-disable-next-line @typescript-eslint/typedef
-      const [match, name, fileName, contentType, value] =
-        field.match(keyValuePattern) || [];
+      const [match, name, fileName, contentType, value]: RegExpMatchArray =
+        field.match(keyValuePattern) ?? [];
 
       if (!match) {
         return result;
@@ -733,10 +738,11 @@ export class NetworkRequest {
 
   private requestHeaderValue(headerName: string): string | undefined {
     if (!this._requestHeaderValues.has(headerName)) {
-      this._requestHeaderValues.set(
-        headerName,
-        this.computeHeaderValue(this.requestHeaders, headerName)
+      const headerValue = this.computeHeaderValue(
+        this.requestHeaders,
+        headerName
       );
+      headerValue && this._requestHeaderValues.set(headerName, headerValue);
     }
 
     return this._requestHeaderValues.get(headerName);
@@ -777,7 +783,7 @@ export class NetworkRequest {
       .map(({ value }: Header): string => value);
 
     if (!values.length) {
-      return;
+      return undefined;
     }
 
     // Set-Cookie values should be separated by '\n', not comma, otherwise cookies could not be parsed.

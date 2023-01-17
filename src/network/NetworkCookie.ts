@@ -15,10 +15,7 @@ export enum CookieAttribute {
 export class NetworkCookie {
   private readonly _name: string;
   private readonly _value: string;
-  private _attributes: Map<CookieAttribute, string> = new Map<
-    CookieAttribute,
-    string
-  >();
+  private _attributes = new Map<CookieAttribute, string | undefined>();
 
   private _size: number = 0;
 
@@ -99,7 +96,7 @@ export class NetworkCookie {
       return new Date(this.expires);
     }
 
-    return;
+    return undefined;
   }
 
   public addAttribute(key: string, value?: string): void {

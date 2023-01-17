@@ -195,7 +195,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
     this.finishRequest(entry, timestamp, -1);
 
-    const message: string = errorText || (canceled && 'Canceled');
+    const message = errorText || (canceled && 'Canceled');
     this.logger.debug(`Failed request: ${requestId}. Reason: ${message}`);
   }
 
@@ -364,7 +364,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       );
     }
 
-    return this._extraInfoBuilders.get(requestId);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return this._extraInfoBuilders.get(requestId)!;
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -463,7 +464,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     request: NetworkRequest,
     rawRequest: Protocol.Network.Request
   ): string | Promise<string | undefined> {
-    return rawRequest.hasPostData && !!rawRequest.postData
+    return rawRequest.hasPostData && rawRequest.postData
       ? rawRequest.postData
       : this.network
           .getRequestBody(request.requestId)
@@ -472,7 +473,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
               postData
             }: Protocol.Network.GetRequestPostDataResponse): string => postData
           )
-          .catch((): string => undefined);
+          .catch(() => undefined);
   }
 
   private createRequest(
@@ -499,7 +500,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     response: Protocol.Network.Response
   ): void {
     if (response.url && networkRequest.url !== response.url) {
-      networkRequest.setUrl(response.url);
+      networkRequest.url = response.url;
     }
     networkRequest.mimeType = response.mimeType;
     networkRequest.statusCode = response.status;
@@ -532,7 +533,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       );
     }
 
-    networkRequest.timing = response.timing;
+    if (response.timing) {
+      networkRequest.timing = response.timing;
+    }
 
     networkRequest.protocol = response.protocol ?? '';
   }

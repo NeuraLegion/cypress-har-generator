@@ -32,6 +32,8 @@ export class FileManager {
       return await promisify(readFile)(path, { encoding: 'utf-8' });
     } catch (e) {
       Logger.Instance.err(e);
+
+      return undefined;
     }
   }
 
@@ -71,7 +73,7 @@ export class FileManager {
       await promisify(access)(path, constants.F_OK);
 
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }

@@ -176,18 +176,11 @@ describe('CDPConnection', () => {
       } as VersionResult);
     });
 
-    it('should log an message when connection is not established yet', async () => {
+    it('should throw an error when connection is not established yet', async () => {
       // act
-      sut.discoverNetwork();
+      const act = () => sut.discoverNetwork();
       // assert
-      verify(loggerMock.debug(CONNECTION_IS_NOT_DEFINED)).once();
-    });
-
-    it('should return an undefined when connection is not established yet', async () => {
-      // act
-      const result = sut.discoverNetwork();
-      // assert
-      expect(result).toBeUndefined();
+      expect(act).toThrow(CONNECTION_IS_NOT_DEFINED);
     });
 
     it('should create a new network monitor', async () => {

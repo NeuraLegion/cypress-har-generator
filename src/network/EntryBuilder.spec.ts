@@ -334,7 +334,7 @@ describe('EntryBuilder', () => {
 
     it('should build an entry removing fragments from URL', async () => {
       // arrange
-      request.setUrl('http://example.com/#id');
+      request.url = 'http://example.com/#id';
       const entryBuilder = new EntryBuilder(request);
       // act
       const entry = await entryBuilder.build();
@@ -348,7 +348,7 @@ describe('EntryBuilder', () => {
 
     it('should remove fragments from URL preserving a query params', async () => {
       // arrange
-      request.setUrl('http://example.com/data.csv?label:new#row=5-7');
+      request.url = 'http://example.com/data.csv?label:new#row=5-7';
       const entryBuilder = new EntryBuilder(request);
       // act
       const entry = await entryBuilder.build();
@@ -417,7 +417,7 @@ describe('EntryBuilder', () => {
       const opcode = 1;
       const mask = false;
       request.statusCode = 101;
-      request.setUrl('ws://example.com');
+      request.url = 'ws://example.com';
       request.addProtocolFrame(
         { mask, opcode, payloadData: data },
         time,

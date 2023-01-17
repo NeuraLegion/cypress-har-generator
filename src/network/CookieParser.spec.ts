@@ -24,15 +24,6 @@ describe('CookieParser', () => {
       ]);
     });
 
-    it('should return undefined if input is not a string', () => {
-      // arrange
-      const cookieHeader: string | undefined = undefined;
-      // act
-      const result = parser.parseCookie(cookieHeader);
-      // assert
-      expect(result).toBeUndefined();
-    });
-
     it('should return an array of cookies from a cookie header string', () => {
       // arrange
       const cookieHeader = 'key1=value1; key2=value2';
@@ -79,15 +70,6 @@ describe('CookieParser', () => {
         { name: 'c', value: 'd', size: 10 },
         { name: '', value: 'f', size: 1 }
       ]);
-    });
-
-    it('should return undefined if input is not a string', () => {
-      // arrange
-      const setCookieHeader: string | undefined = undefined;
-      // act
-      const result = parser.parseSetCookie(setCookieHeader);
-      // assert
-      expect(result).toBeUndefined();
     });
 
     it('should return an array of cookies from a set-cookie header string', () => {

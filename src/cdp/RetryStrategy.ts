@@ -17,7 +17,6 @@ export class RetryStrategy {
     this.maximumBackoff = maximumBackoff;
   }
 
-  // eslint-disable-next-line space-before-function-paren
   public async execute<T extends (...args: any[]) => unknown>(
     task: T
   ): Promise<number> {
@@ -42,6 +41,8 @@ export class RetryStrategy {
     if (this._times < this.maxRetries) {
       return this.increaseBackoffTime();
     }
+
+    return undefined;
   }
 
   private increaseBackoffTime(): number {

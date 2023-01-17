@@ -13,6 +13,7 @@ import { join } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';
 import { promisify } from 'util';
+import { isNativeError } from 'util/types';
 
 export interface SaveOptions {
   fileName: string;
@@ -36,11 +37,13 @@ export class Plugin {
 
       return Buffer.isBuffer(path) ? path.toString('utf-8') : path;
     }
+
+    return undefined;
   }
 
   private networkObservable?: Observer<NetworkRequest>;
   private addr?: Addr;
-  private connection?: Connection;
+  private _connection?: Connection;
   private readonly PORT_OPTION_NAME = '--remote-debugging-port';
   private readonly ADDRESS_OPTION_NAME = '--remote-debugging-address';
 
@@ -77,27 +80,31 @@ export class Plugin {
   public async recordHar(options: RecordOptions): Promise<void> {
     await this.closeConnection();
 
-    this.connection = this.connectionFactory.create({
+    if (!this.addr) {
+      throw new Error(
+        `Please call the 'ensureBrowserFlags' before attempting to start the recording.`
+      );
+    }
+
+    this._connection = this.connectionFactory.create({
       ...this.addr,
       maxRetries: 20,
       maximumBackoff: 100,
       initialBackoff: 5
     });
 
-    await this.connection.open();
+    await this._connection.open();
 
     await this.listenNetworkEvents(options);
-
-    return null;
   }
 
   public async saveHar(options: SaveOptions): Promise<void> {
     const filePath = join(options.outDir, options.fileName);
 
-    if (!this.connection) {
+    if (!this._connection) {
       this.logger.err(`Failed to save HAR. First you should start recording.`);
 
-      return null;
+      return;
     }
 
     try {
@@ -113,12 +120,13 @@ export class Plugin {
         await this.fileManager.writeFile(filePath, har);
       }
     } catch (e) {
-      this.logger.err(`Failed to save HAR: ${e.message}`);
+      const message = isNativeError(e) ? e.message : e;
+      this.logger.err(
+        `An error occurred while attempting to save the HAR file. Error details: ${message}`
+      );
     } finally {
       await this.disposeOfHar();
     }
-
-    return null;
   }
 
   public async disposeOfHar(): Promise<void> {
@@ -134,8 +142,6 @@ export class Plugin {
     }
 
     delete this.buffer;
-
-    return null;
   }
 
   private parseElectronSwitches(browser: Cypress.Browser): string[] {
@@ -144,11 +150,11 @@ export class Plugin {
     ) {
       this.logger
         .err(`The '${browser.name}' browser was detected, however, the required '${this.PORT_OPTION_NAME}' command line switch was not provided. 
-          This switch is necessary to enable remote debugging over HTTP on the specified port. 
-          
-          Please refer to the documentation:
-            - https://www.electronjs.org/docs/latest/api/command-line-switches#--remote-debugging-portport
-            - https://docs.cypress.io/api/plugins/browser-launch-api#Modify-Electron-app-switches`);
+This switch is necessary to enable remote debugging over HTTP on the specified port. 
+
+Please refer to the documentation:
+  - https://www.electronjs.org/docs/latest/api/command-line-switches#--remote-debugging-portport
+  - https://docs.cypress.io/api/plugins/browser-launch-api#Modify-Electron-app-switches`);
       throw new Error(
         `Missing '${this.PORT_OPTION_NAME}' command line switch for Electron browser`
       );
@@ -172,6 +178,8 @@ export class Plugin {
         return JSON.stringify(har, null, 2);
       }
     }
+
+    return undefined;
   }
 
   private async waitForNetworkIdle(
@@ -181,7 +189,8 @@ export class Plugin {
     const cancellation = promisify(setTimeout)(timeout);
 
     return Promise.race([
-      new NetworkIdleMonitor(this.networkObservable).waitForIdle(idleTime),
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      new NetworkIdleMonitor(this.networkObservable!).waitForIdle(idleTime),
       cancellation
     ]);
   }
@@ -189,9 +198,10 @@ export class Plugin {
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
     this.buffer = await this.fileManager.createTmpWriteStream();
 
-    const network = this.connection.discoverNetwork();
+    const network = this._connection?.discoverNetwork();
     this.networkObservable = this.observerFactory.createNetworkObserver(
-      network,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      network!,
       options
     );
 
@@ -206,9 +216,9 @@ export class Plugin {
   }
 
   private async closeConnection(): Promise<void> {
-    if (this.connection) {
-      await this.connection.close();
-      delete this.connection;
+    if (this._connection) {
+      await this._connection.close();
+      delete this._connection;
     }
   }
 
@@ -232,7 +242,7 @@ export class Plugin {
   }
 
   private extractAddrFromArgs(args: string[]): Partial<Addr> {
-    const port: number | undefined = +this.findAndParseIfPossible(
+    const port: string | undefined = this.findAndParseIfPossible(
       args,
       this.PORT_OPTION_NAME
     );
@@ -243,8 +253,8 @@ export class Plugin {
 
     let addr: { port?: number; host?: string } = {};
 
-    if (!isNaN(port) && isFinite(port)) {
-      addr = { port };
+    if (port && !isNaN(+port)) {
+      addr = { port: +port };
     }
 
     if (host) {

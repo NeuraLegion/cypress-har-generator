@@ -14,6 +14,8 @@ export class PathFilter implements RequestFilter {
   }
 
   public wouldApply(options: RequestFilterOptions): boolean {
-    return options.excludePaths?.length > 0;
+    return (
+      Array.isArray(options.excludePaths) && options.excludePaths.length > 0
+    );
   }
 }

@@ -57,7 +57,8 @@ const useFakeTimers = () => {
 
       jest.runAllTimers();
 
-      return timer;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return timer!;
     });
 };
 
@@ -91,6 +92,14 @@ const entry = {
   cache: {},
   timings: { send: 0, receive: 0, wait: 0 }
 } as Entry;
+
+const electron = {
+  family: 'chromium',
+  name: 'electron'
+} as Cypress.Browser;
+
+const chrome = { family: 'chromium', name: 'chrome' } as Cypress.Browser;
+const firefox = { family: 'webkit', name: 'firefox' } as Cypress.Browser;
 
 describe('Plugin', () => {
   const loggerMock = mock<Logger>();
@@ -149,53 +158,46 @@ describe('Plugin', () => {
   describe('ensureBrowserFlags', () => {
     it('should add --remote-debugging-port and --remote-debugging-address flags if not present', () => {
       // arrange
-      const browser = { family: 'chromium' } as Cypress.Browser;
       const args = ['--flag1', '--flag2'];
       const expectedArgs = [
         '--remote-debugging-address=localhost',
         expect.stringMatching(/^--remote-debugging-port/)
       ];
       // act
-      const result = plugin.ensureBrowserFlags(browser, args);
+      const result = plugin.ensureBrowserFlags(chrome, args);
       // assert
       expect(result).toEqual(expect.arrayContaining(expectedArgs));
     });
 
     it('should not add --remote-debugging-port and --remote-debugging-address flags if present', () => {
       // arrange
-      const browser = { family: 'chromium' } as Cypress.Browser;
       const expectedArgs = [
         '--remote-debugging-port=9090',
         '--remote-debugging-address=localhost'
       ];
       const args = ['--flag1', '--flag2', ...expectedArgs];
       // act
-      const result = plugin.ensureBrowserFlags(browser, args);
+      const result = plugin.ensureBrowserFlags(chrome, args);
       // assert
       expect(result).not.toContain(expectedArgs);
     });
 
     it('should throw an error if an unsupported browser family is used', () => {
       // arrange
-      const browser = { family: 'firefox' } as Cypress.Browser;
       const args = ['--flag1', '--flag2'];
       // act
-      const act = () => plugin.ensureBrowserFlags(browser, args);
+      const act = () => plugin.ensureBrowserFlags(firefox, args);
       // assert
       expect(act).toThrowError(
-        `An unsupported browser family was used: ${browser.name}`
+        `An unsupported browser family was used: ${firefox.name}`
       );
     });
 
     it('should throw an error when Electron is used and switches are missed', () => {
       // arrange
-      const browser = {
-        family: 'chromium',
-        name: 'electron'
-      } as Cypress.Browser;
       const args: string[] = [];
       // act
-      const act = () => plugin.ensureBrowserFlags(browser, args);
+      const act = () => plugin.ensureBrowserFlags(electron, args);
       // assert
       expect(act).toThrowError(
         `Missing '--remote-debugging-port' command line switch for Electron browser`
@@ -204,24 +206,20 @@ describe('Plugin', () => {
 
     it('should extract --remote-debugging-port from ELECTRON_EXTRA_LAUNCH_ARGS env variable', () => {
       // arrange
-      const browser = {
-        family: 'chromium',
-        name: 'electron'
-      } as Cypress.Browser;
       const args: string[] = [];
       when(processSpy.env).thenReturn({
         ...processEnv,
         ELECTRON_EXTRA_LAUNCH_ARGS: '--remote-debugging-port=9090'
       });
       // act
-      const result = plugin.ensureBrowserFlags(browser, args);
+      const result = plugin.ensureBrowserFlags(electron, args);
       // assert
       expect(result).toEqual([]);
     });
   });
 
   describe('saveHar', () => {
-    it(`should return null to satisfy Cypress's contract when connection is not established yet`, async () => {
+    it(`should return undefined to satisfy Cypress's contract when connection is not established yet`, async () => {
       // arrange
       const options = {
         fileName: 'file.har',
@@ -230,26 +228,7 @@ describe('Plugin', () => {
       // act
       const result = await plugin.saveHar(options);
       // assert
-      expect(result).toBe(null);
-    });
-
-    it(`should return null to satisfy Cypress's contract by default`, async () => {
-      // arrange
-      when(connectionFactoryMock.create(anything())).thenReturn(
-        instance(connectionMock)
-      );
-      when(
-        observerFactoryMock.createNetworkObserver(anything(), anything())
-      ).thenReturn(instance(networkObserverMock));
-      await plugin.recordHar({});
-      const options = {
-        fileName: 'file.har',
-        outDir: tmpdir()
-      } as SaveOptions;
-      // act
-      const result = await plugin.saveHar(options);
-      // assert
-      expect(result).toBe(null);
+      expect(result).toBeUndefined();
     });
 
     it('should log an error message when the connection is corrupted', async () => {
@@ -274,6 +253,7 @@ describe('Plugin', () => {
       when(
         observerFactoryMock.createNetworkObserver(anything(), anything())
       ).thenReturn(instance(networkObserverMock));
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -302,6 +282,7 @@ describe('Plugin', () => {
       // @ts-expect-error type mismatch
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -334,6 +315,7 @@ describe('Plugin', () => {
       // @ts-expect-error type mismatch
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -367,6 +349,7 @@ describe('Plugin', () => {
       // @ts-expect-error type mismatch
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -381,7 +364,11 @@ describe('Plugin', () => {
         fileName
       });
       // assert
-      verify(loggerMock.err(match(/^Failed to save HAR/))).once();
+      verify(
+        loggerMock.err(
+          match(/^An error occurred while attempting to save the HAR file/)
+        )
+      ).once();
     });
 
     it('should unsubscribe from the network events', async () => {
@@ -392,6 +379,7 @@ describe('Plugin', () => {
       when(
         observerFactoryMock.createNetworkObserver(anything(), anything())
       ).thenReturn(instance(networkObserverMock));
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -421,6 +409,7 @@ describe('Plugin', () => {
       // @ts-expect-error type mismatch
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn(tempFilePath);
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
 
       const outDir = tmpdir();
@@ -450,19 +439,6 @@ describe('Plugin', () => {
       ).thenReturn(instance(networkObserverMock));
     });
 
-    it(`should return null to satisfy Cypress's contract`, async () => {
-      // arrange
-      const options = {
-        content: true,
-        excludePaths: [],
-        includeHosts: []
-      } as RecordOptions;
-      // act
-      const result = await plugin.recordHar(options);
-      // assert
-      expect(result).toBe(null);
-    });
-
     it('should open connection and listen to network events', async () => {
       // arrange
       const options = {
@@ -470,6 +446,7 @@ describe('Plugin', () => {
         excludePaths: [],
         includeHosts: []
       } as RecordOptions;
+      plugin.ensureBrowserFlags(chrome, []);
       // act
       await plugin.recordHar(options);
       // assert
@@ -490,6 +467,7 @@ describe('Plugin', () => {
         excludePaths: [],
         includeHosts: []
       } as RecordOptions;
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar(options);
       // act
       await plugin.recordHar(options);
@@ -516,6 +494,7 @@ describe('Plugin', () => {
           )
         )
       );
+      plugin.ensureBrowserFlags(chrome, []);
       // act
       await plugin.recordHar(options);
       // assert
@@ -540,6 +519,7 @@ describe('Plugin', () => {
           )
         )
       );
+      plugin.ensureBrowserFlags(chrome, []);
       // act
       await plugin.recordHar(options);
       // assert
@@ -563,15 +543,9 @@ describe('Plugin', () => {
       when(writableStreamMock.path).thenReturn('temp-file.txt');
     });
 
-    it(`should return null to satisfy Cypress's contract`, async () => {
-      // act
-      const result = await plugin.disposeOfHar();
-      // assert
-      expect(result).toBe(null);
-    });
-
     it('should dispose of a stream', async () => {
       // arrange
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
       // act
       await plugin.disposeOfHar();
@@ -581,6 +555,7 @@ describe('Plugin', () => {
 
     it('should unsubscribe from the network events', async () => {
       // arrange
+      plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar({});
       // act
       await plugin.disposeOfHar();

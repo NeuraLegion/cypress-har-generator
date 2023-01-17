@@ -159,7 +159,7 @@ describe('NetworkCookie', () => {
       // act
       const result = cookie.expiresDate(input);
       // assert
-      expect(result.toJSON()).toBe(expected.toJSON());
+      expect(result?.toJSON()).toBe(expected.toJSON());
     });
 
     it('should return correct date when expires is present', () => {
@@ -169,7 +169,7 @@ describe('NetworkCookie', () => {
       // act
       const result = cookie.expiresDate(input);
       // assert
-      expect(result.toJSON()).toBe(input.toJSON());
+      expect(result?.toJSON()).toBe(input.toJSON());
     });
 
     it('should return undefined when expires and maxAge are omitted', () => {

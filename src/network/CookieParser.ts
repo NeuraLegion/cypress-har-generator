@@ -14,10 +14,7 @@ export class CookieParser {
   private _cookies?: NetworkCookie[];
 
   public parseCookie(cookieHeader: string): NetworkCookie[] | undefined {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (!this._initialize(cookieHeader!)) {
-      return;
-    }
+    this._initialize(cookieHeader);
 
     for (let kv = this._extractKeyValue(); kv; kv = this._extractKeyValue()) {
       if (kv.key.charAt(0) === '$' && this._lastCookie) {
@@ -38,9 +35,7 @@ export class CookieParser {
   }
 
   public parseSetCookie(setCookieHeader: string): NetworkCookie[] | undefined {
-    if (!this._initialize(setCookieHeader)) {
-      return;
-    }
+    this._initialize(setCookieHeader);
 
     for (let kv = this._extractKeyValue(); kv; kv = this._extractKeyValue()) {
       if (this._lastCookie) {
@@ -58,17 +53,12 @@ export class CookieParser {
   }
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
-  private _initialize(headerValue: string): boolean {
+  private _initialize(headerValue: string): void {
     this._input = headerValue;
-    if (typeof headerValue !== 'string') {
-      return false;
-    }
     this._cookies = [];
     this._lastCookie = undefined;
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    this._originalInputLength = this._input!.length;
-
-    return true;
+    this._originalInputLength = this._input.length;
   }
 
   private flushCookie(): void {
@@ -87,7 +77,7 @@ export class CookieParser {
   // eslint-disable-next-line @typescript-eslint/naming-convention
   private _extractKeyValue(): KeyValue | undefined {
     if (!this._input?.length) {
-      return;
+      return undefined;
     }
 
     // Note: RFCs offer an option for quoted values that may contain commas and semicolons.
@@ -100,7 +90,7 @@ export class CookieParser {
     );
 
     if (!keyValueMatch) {
-      return;
+      return undefined;
     }
 
     const result: KeyValue = {

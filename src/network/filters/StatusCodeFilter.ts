@@ -10,6 +10,9 @@ export class StatusCodeFilter implements RequestFilter {
   }
 
   public wouldApply(options: RequestFilterOptions): boolean {
-    return options.excludeStatusCodes?.length > 0;
+    return (
+      Array.isArray(options.excludeStatusCodes) &&
+      options.excludeStatusCodes.length > 0
+    );
   }
 }
