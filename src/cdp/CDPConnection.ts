@@ -11,7 +11,7 @@ import {
 import type { Connection } from './Connection';
 import type { Network } from '../network';
 import { DefaultNetwork } from './DefaultNetwork';
-import CDP, { Client, Options } from 'chrome-remote-interface';
+import CDP, { Version, Client, Options } from 'chrome-remote-interface';
 
 export class CDPConnection implements Connection {
   private _network?: Network;
@@ -78,7 +78,7 @@ export class CDPConnection implements Connection {
 
   private async populateBrowserTarget(): Promise<string> {
     const { port, host } = this.options;
-    const { webSocketDebuggerUrl } = await CDP.Version({
+    const { webSocketDebuggerUrl } = await Version({
       host,
       port
     });

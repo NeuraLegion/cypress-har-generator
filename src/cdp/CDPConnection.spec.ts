@@ -9,7 +9,7 @@ import {
 } from './messages';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { anyFunction, instance, mock, reset, verify, when } from 'ts-mockito';
-import type { Client, Options } from 'chrome-remote-interface';
+import type { Client, Options, VersionResult } from 'chrome-remote-interface';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {
@@ -26,17 +26,30 @@ const resolvableInstance = <T extends object>(m: T): T =>
     }
   });
 
+type CDP = {
+  (options?: Options): Promise<Client>;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  Version(options?: Options): Promise<VersionResult>;
+};
+
 describe('CDPConnection', () => {
   const loggerMock = mock<Logger>();
   const retryStrategyMock = mock<RetryStrategy>();
   const clientMock = mock<Client>();
-  const connect = jest.fn<(...args: unknown[]) => Promise<Client>>();
+  const version = jest.fn<(options?: Options) => Promise<VersionResult>>();
+  const connect = jest.fn<CDP>();
+  const webSocketDebuggerUrl = 'ws://localhost:9222/devtools/browser/1';
   const options: Options = { host: 'localhost', port: 9222 };
 
   let sut!: CDPConnection;
 
   beforeEach(async () => {
-    jest.mock('chrome-remote-interface', () => connect);
+    jest.mock('chrome-remote-interface', () => ({
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      __esModule: true,
+      default: connect,
+      Version: version
+    }));
     sut = new (await import('./CDPConnection')).CDPConnection(
       options,
       instance(loggerMock),
@@ -55,13 +68,19 @@ describe('CDPConnection', () => {
   });
 
   describe('open', () => {
+    beforeEach(() => {
+      version.mockResolvedValue({
+        webSocketDebuggerUrl
+      } as VersionResult);
+    });
+
     it('should attempt to connect to Chrome', async () => {
       // arrange
       connect.mockResolvedValue(resolvableInstance(clientMock));
       // act
       await sut.open();
       // assert
-      expect(connect).toHaveBeenCalledWith(options);
+      expect(connect).toHaveBeenCalledWith({ target: webSocketDebuggerUrl });
     });
 
     it('should log a message if the connection is successful', async () => {
@@ -121,6 +140,9 @@ describe('CDPConnection', () => {
   describe('close', () => {
     beforeEach(async () => {
       connect.mockResolvedValue(resolvableInstance(clientMock));
+      version.mockResolvedValue({
+        webSocketDebuggerUrl
+      } as VersionResult);
       await sut.open();
     });
 
@@ -147,6 +169,13 @@ describe('CDPConnection', () => {
   });
 
   describe('discoverNetwork', () => {
+    beforeEach(async () => {
+      connect.mockResolvedValue(resolvableInstance(clientMock));
+      version.mockResolvedValue({
+        webSocketDebuggerUrl
+      } as VersionResult);
+    });
+
     it('should log an message when connection is not established yet', async () => {
       // act
       sut.discoverNetwork();
@@ -163,7 +192,6 @@ describe('CDPConnection', () => {
 
     it('should create a new network monitor', async () => {
       // arrange
-      connect.mockResolvedValue(resolvableInstance(clientMock));
       await sut.open();
       // act
       const result = sut.discoverNetwork();
@@ -173,7 +201,6 @@ describe('CDPConnection', () => {
 
     it('should return an existing network monitor', async () => {
       // arrange
-      connect.mockResolvedValue(resolvableInstance(clientMock));
       await sut.open();
       const expected = sut.discoverNetwork();
       // act
