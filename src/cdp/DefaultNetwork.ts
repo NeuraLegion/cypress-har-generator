@@ -3,7 +3,16 @@ import type { Client, EventMessage } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
 export class DefaultNetwork implements Network {
-  private readonly domain = 'Network';
+  private readonly DOMAIN = 'Network';
+  private readonly ALLOWED_TARGETS = new Set([
+    'service_worker',
+    'page',
+    'worker',
+    'background_page',
+    'webview',
+    'shared_worker'
+  ]);
+
   private listener?: (event: NetworkEvent) => unknown;
   private readonly sessions = new Map<string, string>();
 
@@ -19,10 +28,7 @@ export class DefaultNetwork implements Network {
 
     await this.ignoreCertificateError();
     await this.trackSessions();
-    // TODO: we are not interested in targetCreated/targetInfoChanged/targetDestroyed events.
-    //  This method can be removed
-    await this.discoverTargets();
-    await this.recursivelyAttachToTargets();
+    await this.recursivelyAttachToTargets({ type: 'browser' });
   }
 
   public async detachFromTargets(): Promise<void> {
@@ -97,12 +103,17 @@ export class DefaultNetwork implements Network {
   private matchNetworkEvents(message: EventMessage): message is NetworkEvent {
     const [domain]: string[] = message.method.split('.');
 
-    return domain === this.domain;
+    return domain === this.DOMAIN;
   }
 
-  private async recursivelyAttachToTargets(sessionId?: string): Promise<void> {
-    await this.enableAutoAttach(true, sessionId);
-    await this.trackNetworkEvents(sessionId);
+  private async recursivelyAttachToTargets(options: {
+    sessionId?: string;
+    type: string;
+  }): Promise<void> {
+    await this.enableAutoAttach(true, options.sessionId);
+    if (this.ALLOWED_TARGETS.has(options.type)) {
+      await this.trackNetworkEvents(options.sessionId);
+    }
   }
 
   private enableAutoAttach(
@@ -130,14 +141,19 @@ export class DefaultNetwork implements Network {
   ) => this.sessions.set(requestId, sessionId);
 
   private attachedToTargetListener = async ({
-    sessionId
+    sessionId,
+    targetInfo,
+    waitingForDebugger
   }: Protocol.Target.AttachedToTargetEvent): Promise<void> => {
-    await this.recursivelyAttachToTargets(sessionId);
-    await this.cdp.send(
-      'Runtime.runIfWaitingForDebugger',
-      undefined,
-      sessionId
-    );
+    await this.recursivelyAttachToTargets({ sessionId, type: targetInfo.type });
+
+    if (waitingForDebugger) {
+      await this.cdp.send(
+        'Runtime.runIfWaitingForDebugger',
+        undefined,
+        sessionId
+      );
+    }
   };
 
   private async trackNetworkEvents(sessionId?: string): Promise<void> {
@@ -151,11 +167,5 @@ export class DefaultNetwork implements Network {
         sessionId
       )
     ]);
-  }
-
-  private discoverTargets(): Promise<void> {
-    return this.cdp.send('Target.setDiscoverTargets', {
-      discover: true
-    });
   }
 }
