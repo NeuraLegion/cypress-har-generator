@@ -15,9 +15,12 @@ export class DefaultNetwork implements Network {
     this.listener = listener;
 
     this.cdp.on('event', this.networkEventListener);
+    this.cdp.on('Target.attachedToTarget', this.attachedToTargetListener);
 
     await this.ignoreCertificateError();
     await this.trackSessions();
+    // TODO: we are not interested in targetCreated/targetInfoChanged/targetDestroyed events.
+    //  This method can be removed
     await this.discoverTargets();
     await this.recursivelyAttachToTargets();
   }
@@ -77,7 +80,7 @@ export class DefaultNetwork implements Network {
     });
   }
 
-  private networkEventListener = (eventMessage: EventMessage) => {
+  private networkEventListener = async (eventMessage: EventMessage) => {
     if (this.matchNetworkEvents(eventMessage)) {
       this.listener(eventMessage);
     }
@@ -98,9 +101,8 @@ export class DefaultNetwork implements Network {
   }
 
   private async recursivelyAttachToTargets(sessionId?: string): Promise<void> {
-    this.cdp.on('Target.attachedToTarget', this.attachedToTargetListener);
     await this.enableAutoAttach(true, sessionId);
-    await this.trackNetworkEvents();
+    await this.trackNetworkEvents(sessionId);
   }
 
   private enableAutoAttach(
@@ -130,7 +132,6 @@ export class DefaultNetwork implements Network {
   private attachedToTargetListener = async ({
     sessionId
   }: Protocol.Target.AttachedToTargetEvent): Promise<void> => {
-    await this.trackNetworkEvents(sessionId);
     await this.recursivelyAttachToTargets(sessionId);
     await this.cdp.send(
       'Runtime.runIfWaitingForDebugger',

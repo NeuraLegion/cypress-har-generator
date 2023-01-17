@@ -173,7 +173,7 @@ describe('DefaultNetwork', () => {
       verify(
         clientMock.send('Runtime.runIfWaitingForDebugger', undefined, sessionId)
       ).once();
-      verify(clientMock.on('Target.attachedToTarget', anyFunction())).twice();
+      verify(clientMock.on('Target.attachedToTarget', anyFunction())).once();
     });
 
     it('should ignore certificate errors', async () => {
