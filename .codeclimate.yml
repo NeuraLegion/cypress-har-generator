@@ -37,6 +37,7 @@ exclude_patterns:
   - '/tests'
   - '/example'
   - '/typings'
+  - '/cypress'
   - '**/*.spec.ts'
   - '*.js'
   - '*.d.ts'
