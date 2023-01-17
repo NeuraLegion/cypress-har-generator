@@ -40,10 +40,8 @@ export class EntryBuilder {
       request: await this.buildRequest(),
       response: await this.buildResponse(),
       cache: {},
-      // TODO: does not work as expected.
-      //  We should remove square brackets for IPv6 address
-      //  (https://tools.ietf.org/html/rfc2373#section-2.2).
-      serverIPAddress: serverIPAddress.replace(/\[]/g, ''),
+      // ADHOC: We should remove square brackets for IPv6 address (https://tools.ietf.org/html/rfc2373#section-2.2).
+      serverIPAddress: serverIPAddress.replace(/[[\]]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,
       _webSocketMessages: this.request.frames ?? [],
