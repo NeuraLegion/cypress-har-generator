@@ -155,7 +155,7 @@ describe('DefaultNetwork', () => {
           attached: true,
           canAccessOpener: false
         };
-        let act: (...args: unknown[]) => Promise<void>;
+        let act!: (...args: unknown[]) => Promise<void>;
         when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
           (_, callback) => (act = callback)
         );
@@ -187,13 +187,13 @@ describe('DefaultNetwork', () => {
         attached: true,
         canAccessOpener: false
       };
-      let act: (...args: unknown[]) => Promise<void>;
+      let act: ((...args: unknown[]) => Promise<void>) | undefined;
       when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
         (_, callback) => (act = callback)
       );
       await sut.attachToTargets(listener);
       // act
-      await act({ sessionId, targetInfo, waitingForDebugger: false });
+      await act?.({ sessionId, targetInfo, waitingForDebugger: false });
       // assert
       verify(
         clientMock.send(
@@ -229,13 +229,13 @@ describe('DefaultNetwork', () => {
           attached: true,
           canAccessOpener: false
         };
-        let act: (...args: unknown[]) => Promise<void>;
+        let act: ((...args: unknown[]) => Promise<void>) | undefined;
         when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
           (_, callback) => (act = callback)
         );
         await sut.attachToTargets(listener);
         // act
-        await act({ sessionId, targetInfo, waitingForDebugger: false });
+        await act?.({ sessionId, targetInfo, waitingForDebugger: false });
         // assert
         verify(
           clientMock.send('Network.enable', deepEqual({}), sessionId)
@@ -261,13 +261,13 @@ describe('DefaultNetwork', () => {
         attached: true,
         canAccessOpener: false
       };
-      let act: (...args: unknown[]) => Promise<void>;
+      let act: ((...args: unknown[]) => Promise<void>) | undefined;
       when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
         (_, callback) => (act = callback)
       );
       await sut.attachToTargets(listener);
       // act
-      await act({ sessionId, targetInfo, waitingForDebugger: true });
+      await act?.({ sessionId, targetInfo, waitingForDebugger: true });
       // assert
       verify(
         clientMock.send('Runtime.runIfWaitingForDebugger', undefined, sessionId)

@@ -12,6 +12,7 @@ import type { Connection } from './Connection';
 import type { Network } from '../network';
 import { DefaultNetwork } from './DefaultNetwork';
 import CDP, { Version, Client, Options } from 'chrome-remote-interface';
+import { isNativeError } from 'util/types';
 
 export class CDPConnection implements Connection {
   private _network?: Network;
@@ -43,7 +44,8 @@ export class CDPConnection implements Connection {
 
       this._cdp = cdp;
     } catch (e) {
-      this.logger.debug(`${FAILED_ATTEMPT_TO_CONNECT}: ${e.message}`);
+      const message = isNativeError(e) ? e.message : e;
+      this.logger.debug(`${FAILED_ATTEMPT_TO_CONNECT}: ${message}`);
 
       if (
         !(await this.retryStrategy.execute((): Promise<void> => this.open()))
@@ -64,9 +66,7 @@ export class CDPConnection implements Connection {
 
   public discoverNetwork(): Network {
     if (!this.cdp) {
-      this.logger.debug(CONNECTION_IS_NOT_DEFINED);
-
-      return;
+      throw new Error(CONNECTION_IS_NOT_DEFINED);
     }
 
     if (!this._network) {

@@ -4,9 +4,9 @@ import { NetworkRequest } from '../NetworkRequest';
 export class MinStatusCodeFilter implements RequestFilter {
   public apply(
     request: NetworkRequest,
-    { minStatusCodeToInclude = 0 }: RequestFilterOptions
+    { minStatusCodeToInclude }: RequestFilterOptions
   ): boolean {
-    const threshold = this.normalizeThreshold(minStatusCodeToInclude);
+    const threshold = this.normalizeThreshold(minStatusCodeToInclude) ?? 0;
 
     return request.statusCode >= threshold;
   }
@@ -17,8 +17,10 @@ export class MinStatusCodeFilter implements RequestFilter {
     return typeof threshold === 'number';
   }
 
-  private normalizeThreshold(value: unknown): number | undefined {
-    return !isNaN(+value) && value !== null
+  private normalizeThreshold(
+    value: number | string | undefined
+  ): number | undefined {
+    return value != null && !isNaN(+value)
       ? Math.round(Math.abs(+value))
       : undefined;
   }

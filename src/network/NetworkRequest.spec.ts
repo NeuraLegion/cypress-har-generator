@@ -97,8 +97,7 @@ describe('NetworkRequest', () => {
   describe('isBlob', () => {
     it('should return true if the schema starts from the blob', () => {
       // arrange
-      const url = 'blob:http://localhost:8000/image.jpg';
-      sut.setUrl(url);
+      sut.url = 'blob:http://localhost:8000/image.jpg';
       // act
       const result = sut.isBlob();
       // assert
@@ -280,7 +279,7 @@ bar\r
       // act
       const result = await sut.formParameters();
       // assert
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
     });
 
     it('should return undefined when boundary is missed', async () => {
@@ -300,7 +299,7 @@ bar\r
       sut.setRequestFormData(requestFormData);
       // assert
       const result = await sut.formParameters();
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
     });
 
     it('should return undefined when form-data is missed', async () => {
@@ -314,7 +313,7 @@ bar\r
       // act
       const result = await sut.formParameters();
       // assert
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
     });
 
     it('should return undefined when form urlencoded data is missed', async () => {
@@ -328,7 +327,7 @@ bar\r
       // act
       const result = await sut.formParameters();
       // assert
-      expect(result).toBeUndefined();
+      expect(result).toEqual([]);
     });
   });
 
@@ -658,12 +657,12 @@ content of txt...\r
     });
   });
 
-  describe('setUrl', () => {
+  describe('url', () => {
     it('should set the URL', () => {
       // arrange
       const url = 'https://new-example.com';
       // act
-      sut.setUrl(url);
+      sut.url = url;
       // assert
       expect(sut).toMatchObject({
         url
@@ -674,11 +673,11 @@ content of txt...\r
       // arrange
       const url = 'https://new-example.com';
       // act
-      sut.setUrl(url);
+      sut.url = url;
       // assert
       expect(sut).toMatchObject({
         queryString: expect.not.stringContaining('foo'),
-        queryParameters: null
+        queryParameters: undefined
       });
     });
 
@@ -686,7 +685,7 @@ content of txt...\r
       // arrange
       const url = 'https://new-example.com#id?foo=bar';
       // act
-      sut.setUrl(url);
+      sut.url = url;
       // assert
       expect(sut).toMatchObject({
         queryString: 'foo=bar'
@@ -697,7 +696,7 @@ content of txt...\r
       // arrange
       const url = 'https://new-example.com?bar=baz';
       // act
-      sut.setUrl(url);
+      sut.url = url;
       // assert
       expect(sut).toMatchObject({
         queryString: 'bar=baz',
@@ -709,7 +708,7 @@ content of txt...\r
       // arrange
       const url = 'https://new-example.com?bar';
       // act
-      sut.setUrl(url);
+      sut.url = url;
       // assert
       expect(sut).toMatchObject({
         queryString: 'bar',

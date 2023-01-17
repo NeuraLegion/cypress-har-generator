@@ -42,6 +42,8 @@ export class RetryStrategy {
     if (this._times < this.maxRetries) {
       return this.increaseBackoffTime();
     }
+
+    return undefined;
   }
 
   private increaseBackoffTime(): number {

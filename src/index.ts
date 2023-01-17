@@ -6,7 +6,7 @@ import { DefaultObserverFactory } from './network';
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
-    interface Chainable<Subject = any> {
+    interface Chainable<Subject> {
       saveHar(options?: Partial<SaveOptions>): Chainable<Subject>;
       recordHar(options?: RecordOptions): Chainable<Subject>;
       disposeOfHar(): Chainable<Subject>;
@@ -22,11 +22,24 @@ const plugin = new Plugin(
 );
 
 export const install = (on: Cypress.PluginEvents): void => {
+  // ADHOC: Cypress expect the return value to be null to signal that the given event has been handled properly.
+  // https://docs.cypress.io/api/commands/task#Usage
   on('task', {
-    saveHar: (options: SaveOptions): Promise<void> => plugin.saveHar(options),
-    recordHar: (options: RecordOptions): Promise<void> =>
-      plugin.recordHar(options),
-    disposeOfHar: (): Promise<void> => plugin.disposeOfHar()
+    saveHar: async (options: SaveOptions): Promise<null> => {
+      await plugin.saveHar(options);
+
+      return null;
+    },
+    recordHar: async (options: RecordOptions): Promise<null> => {
+      await plugin.recordHar(options);
+
+      return null;
+    },
+    disposeOfHar: async (): Promise<null> => {
+      await plugin.disposeOfHar();
+
+      return null;
+    }
   });
 
   on(
@@ -52,8 +65,8 @@ export const enableExperimentalLifecycle = (
       'To activate the experimental mechanism for setting up lifecycle, you must either disable the interactive mode or activate the "experimentalInteractiveRunEvents" feature. For further information, please refer to: https://docs.cypress.io/guides/references/experiments#Configuration'
     );
   } else {
-    on('before:spec', () => plugin.recordHar({}));
-    on('after:spec', (spec: Cypress.Spec) =>
+    on('before:spec', (_: Cypress.Spec) => plugin.recordHar({}));
+    on('after:spec', (spec: Cypress.Spec, _: CypressCommandLine.RunResult) =>
       plugin.saveHar({
         fileName: StringUtils.normalizeName(spec.name, { ext: '.har' }),
         outDir: config.env.hars_folders ?? '.'

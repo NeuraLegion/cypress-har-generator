@@ -8,12 +8,14 @@ export class HostFilter implements RequestFilter {
   ): boolean {
     const { host } = request.parsedURL;
 
-    return includeHosts?.some((pattern: string): boolean =>
+    return !!includeHosts?.some((pattern: string): boolean =>
       new RegExp(pattern).test(host)
     );
   }
 
   public wouldApply(options: RequestFilterOptions): boolean {
-    return options.includeHosts?.length > 0;
+    return (
+      Array.isArray(options.includeHosts) && options.includeHosts.length > 0
+    );
   }
 }

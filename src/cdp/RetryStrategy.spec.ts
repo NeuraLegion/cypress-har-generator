@@ -23,7 +23,8 @@ const useFakeTimers = () => {
 
       jest.runAllTimers();
 
-      return timer;
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return timer!;
     });
 };
 

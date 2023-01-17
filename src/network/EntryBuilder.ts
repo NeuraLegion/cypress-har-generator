@@ -10,7 +10,6 @@ import type {
   Response,
   Timings
 } from 'har-format';
-import type Protocol from 'devtools-protocol';
 
 export class EntryBuilder {
   constructor(private readonly request: NetworkRequest) {}
@@ -69,10 +68,10 @@ export class EntryBuilder {
 
   private getResponseCompression(): number | undefined {
     if (this.request.statusCode === 304 || this.request.statusCode === 206) {
-      return;
+      return undefined;
     }
     if (!this.request.responseHeadersText) {
-      return;
+      return undefined;
     }
 
     return this.request.resourceSize - this.getResponseBodySize();
@@ -133,7 +132,7 @@ export class EntryBuilder {
 
   // eslint-disable-next-line complexity
   private buildTimings(): Timings {
-    const timing: Protocol.Network.ResourceTiming = this.request.timing;
+    const timing = this.request.timing;
     const issueTime: number = this.request.issueTime;
     const startTime: number = this.request.startTime;
 
@@ -230,7 +229,7 @@ export class EntryBuilder {
     const postData: string | undefined = await this.request.requestFormData();
 
     if (!postData) {
-      return;
+      return undefined;
     }
 
     const res: Partial<PostData> = {
