@@ -215,6 +215,20 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.startRequest(entry);
   }
 
+  public eventSourceMessageReceived({
+    requestId,
+    timestamp,
+    eventName,
+    eventId,
+    data
+  }: Protocol.Network.EventSourceMessageReceivedEvent): void {
+    const entry: NetworkRequest | undefined = this._entries.get(requestId);
+    if (!entry) {
+      return;
+    }
+    entry.addEventSourceMessage(timestamp, eventName, eventId, data);
+  }
+
   public webSocketWillSendHandshakeRequest({
     request,
     requestId,

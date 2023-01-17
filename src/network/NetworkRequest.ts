@@ -25,6 +25,13 @@ export interface WebSocket {
   mask: boolean;
 }
 
+export interface EventSourceMessage {
+  time: number;
+  eventName: string;
+  eventId: string;
+  data: string;
+}
+
 export class NetworkRequest {
   private _contentData?: Promise<ContentData>;
   private _wallIssueTime: Protocol.Network.TimeSinceEpoch = -1;
@@ -371,6 +378,12 @@ export class NetworkRequest {
     this._initialPriority = priority;
   }
 
+  private _eventSourceMessages: EventSourceMessage[] = [];
+
+  get eventSourceMessages(): EventSourceMessage[] {
+    return this._eventSourceMessages;
+  }
+
   private _frames: WebSocket[] = [];
 
   get frames(): WebSocket[] {
@@ -579,6 +592,16 @@ export class NetworkRequest {
       opcode: response.opcode,
       mask: response.mask
     });
+  }
+
+  public addEventSourceMessage(
+    time: number,
+    eventName: string,
+    eventId: string,
+    data: string
+  ) {
+    const message = { time, eventName, eventId, data };
+    this._eventSourceMessages.push(message);
   }
 
   public markAsRedirect(redirectCount: number): void {
