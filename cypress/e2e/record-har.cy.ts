@@ -1,17 +1,14 @@
+import { Entry } from 'har-format';
+
 describe('Record HAR', () => {
   beforeEach(() => {
     cy.visit('/');
-
-    cy.get('a[href$=fetch]').as('fetchPage');
-    cy.get('a[href$=frame]').as('framePage');
-    cy.get('a[href$=service-worker]').as('serviceWorkerPage');
-    cy.get('a[href="pages/worker"]').as('workerPage');
   });
 
   it('excludes a request by mime type', () => {
     cy.recordHar({ includeMimes: ['application/json'] });
 
-    cy.get('@fetchPage').click();
+    cy.get('a[href$=fetch]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -28,7 +25,7 @@ describe('Record HAR', () => {
     const regexp = /^\/api\/products$/;
     cy.recordHar({ excludePaths: [regexp.source] });
 
-    cy.get('@fetchPage').click();
+    cy.get('a[href$=fetch]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -60,7 +57,7 @@ describe('Record HAR', () => {
   it('includes only a request when it host matches', () => {
     cy.recordHar({ includeHosts: ['www.openstreetmap.org'] });
 
-    cy.get('@framePage').click();
+    cy.get('a[href$=frame]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -92,7 +89,7 @@ describe('Record HAR', () => {
   it('records a response body', () => {
     cy.recordHar();
 
-    cy.get('@fetchPage').click();
+    cy.get('a[href$=fetch]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -105,10 +102,10 @@ describe('Record HAR', () => {
       });
   });
 
-  it('records blobs loaded by the Service Worker', () => {
+  it('includes blobs loaded by the Service Worker', () => {
     cy.recordHar();
 
-    cy.get('@serviceWorkerPage').click();
+    cy.get('a[href$=service-worker]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -121,10 +118,78 @@ describe('Record HAR', () => {
       });
   });
 
+  it('records the Server-Sent Events', () => {
+    cy.recordHar();
+
+    cy.get('a[href$=server-sent-events]').click();
+    cy.get('ul > li', { timeout: 300 }).should('have.length.gte', 2);
+    cy.get('button').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        _resourceType: 'EventSource',
+        response: {
+          content: {
+            mimeType: 'text/event-stream'
+          }
+        }
+      })
+      .and((data: Entry[]) => {
+        const expected = data.find(
+          ({ _eventSourceMessages }: Entry) =>
+            (_eventSourceMessages as unknown[]).length > 0
+        );
+        const eventSourceMessages = expected?._eventSourceMessages;
+        expect(eventSourceMessages).to.contain.something.like({
+          eventName: 'message',
+          data: /^This is a message at time/
+        });
+      });
+  });
+
+  it('records the WebSocket frames', () => {
+    cy.recordHar();
+
+    cy.get('a[href$=websocket]').click();
+    cy.get('ul > li', { timeout: 300 }).should('have.length.gte', 2);
+    cy.get('button').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: 'ws://localhost:8080/ws'
+        },
+        response: {
+          status: 101
+        }
+      })
+      .and((data: Entry[]) => {
+        const expected = data.find(
+          ({ _webSocketMessages }: Entry) =>
+            (_webSocketMessages as unknown[]).length > 0
+        );
+        const webSocketMessages = expected?._webSocketMessages;
+        expect(webSocketMessages).to.contain.something.like({
+          type: 'response',
+          data: /^This is a message at time/
+        });
+        expect(webSocketMessages).to.contain.something.like({
+          type: 'request',
+          data: 'Hello Server!'
+        });
+      });
+  });
+
   it('records requests from the Shared Worker', () => {
     cy.recordHar();
 
-    cy.get('@workerPage').click();
+    cy.get('a[href="pages/worker"]').click();
 
     cy.get('#number1').type('2');
     cy.get('#number2').type('4');
@@ -148,7 +213,7 @@ describe('Record HAR', () => {
   it('records requests from the Web Worker', () => {
     cy.recordHar();
 
-    cy.get('@workerPage').click();
+    cy.get('a[href="pages/worker"]').click();
 
     cy.get('#number1').type('2');
     cy.get('#number2').type('4');
@@ -172,7 +237,7 @@ describe('Record HAR', () => {
   it('excludes blobs loaded by the Service Worker', () => {
     cy.recordHar({ includeBlobs: false });
 
-    cy.get('@serviceWorkerPage').click();
+    cy.get('a[href$=service-worker]').click();
 
     cy.saveHar({ waitForIdle: true });
 
@@ -188,7 +253,7 @@ describe('Record HAR', () => {
   it('skips loading a response body', () => {
     cy.recordHar({ content: false });
 
-    cy.get('@fetchPage').click();
+    cy.get('a[href$=fetch]').click();
 
     cy.saveHar({ waitForIdle: true });
 

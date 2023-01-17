@@ -35,6 +35,30 @@ describe('NetworkRequest', () => {
     );
   });
 
+  describe('addEventSourceMessage', () => {
+    it('should add an event source message', () => {
+      // arrange
+      const time = 208215.857187;
+      const data = 'test';
+      const eventName = 'data';
+      const eventId = '1';
+      sut.mimeType = 'text/event-stream';
+      // act
+      sut.addEventSourceMessage(time, eventName, eventId, data);
+      // assert
+      expect(sut).toMatchObject({
+        eventSourceMessages: [
+          {
+            time,
+            eventName,
+            eventId,
+            data
+          }
+        ]
+      });
+    });
+  });
+
   describe('addExtraRequestInfo', () => {
     it('should set request headers', () => {
       // arrange

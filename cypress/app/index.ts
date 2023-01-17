@@ -1,8 +1,10 @@
 import express, { Request, Response, json } from 'express';
 import minimist from 'minimist';
+import WebSocket, { Server } from 'ws';
 import { join } from 'path';
 
 const app = express();
+const ws = new Server({ noServer: true, path: '/ws' });
 
 // get port from passed in args from scripts/start.js
 const { port } = minimist(process.argv.slice(2));
@@ -13,6 +15,17 @@ app.use('/', express.static(join(__dirname, 'public')));
 app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
+const wsDispatcher = (socket: WebSocket) => {
+  const data = `This is a message at time ${Date.now()}`;
+
+  socket.send(data);
+};
+ws.on('connection', socket => {
+  const timer = setInterval(() => wsDispatcher(socket), 100);
+  wsDispatcher(socket);
+  socket.once('close', () => clearInterval(timer));
+});
+
 app.get('/', (_: Request, res: Response) =>
   res.render('./index.hbs', {
     pages: [
@@ -20,13 +33,33 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'frame', name: 'Frame' },
       { id: 'service-worker', name: 'Service worker' },
       { id: 'worker', name: 'Workers (Shared and Web)' },
-      { id: 'multi-targets', name: 'Multi targets' }
+      { id: 'multi-targets', name: 'Multi targets' },
+      { id: 'server-sent-events', name: 'Server-sent events' },
+      { id: 'websocket', name: 'WebSocket' }
     ]
   })
 );
 app.get('/pages/:page', (req: Request, res: Response) =>
   res.render(`./${req.params.page}.hbs`)
 );
+const sseDispatcher = (res: Response) => {
+  const data = `data: This is a message at time ${Date.now()}\n\n`;
+
+  res.write(data);
+};
+app.get('/api/events', (req: Request, res: Response) => {
+  const headers = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'Content-Type': 'text/event-stream',
+    'Connection': 'keep-alive',
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'Cache-Control': 'no-cache'
+  };
+  res.writeHead(200, headers);
+  const timer = setInterval(() => sseDispatcher(res), 100);
+  sseDispatcher(res);
+  req.on('close', () => clearInterval(timer));
+});
 app.post('/api/math', json(), (req: Request, res: Response) => {
   const { args, op }: { args: number[]; op: string } = req.body;
 
@@ -51,4 +84,9 @@ app.get('/api/products', (_: Request, res: Response) =>
     ]
   })
 );
-app.listen(port);
+const server = app.listen(port);
+server.on('upgrade', (request, socket, head) =>
+  ws.handleUpgrade(request, socket, head, client =>
+    ws.emit('connection', client, request)
+  )
+);

@@ -142,6 +142,16 @@ describe('NetworkObserver', () => {
       encodedDataLength: 0
     }
   };
+  const eventSourceMessageReceivedEvent = {
+    method: 'Network.eventSourceMessageReceived',
+    params: {
+      requestId: '1',
+      timestamp: 1,
+      eventName: 'data',
+      eventId: '1',
+      data: 'test'
+    }
+  };
 
   let sut!: NetworkObserver;
   let options!: NetworkObserverOptions;
@@ -216,6 +226,45 @@ describe('NetworkObserver', () => {
       expect(callback).toHaveBeenCalledWith(
         expect.objectContaining({
           requestId: '1'
+        })
+      );
+    });
+
+    it('should add an event source message to the request', async () => {
+      // arrange
+      when(networkMock.getRequestBody('1')).thenResolve({
+        postData: ''
+      });
+      when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
+        await cb(requestWillBeSentEvent);
+        await cb({
+          ...responseReceivedEvent,
+          params: {
+            ...responseReceivedEvent.params,
+            type: 'EventSource',
+            response: {
+              ...responseReceivedEvent.params.response,
+              mimeType: 'text/event-stream'
+            }
+          }
+        });
+        await cb(eventSourceMessageReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      expect(callback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          requestId: '1',
+          eventSourceMessages: [
+            {
+              time: 1,
+              eventName: 'data',
+              eventId: '1',
+              data: 'test'
+            }
+          ]
         })
       );
     });

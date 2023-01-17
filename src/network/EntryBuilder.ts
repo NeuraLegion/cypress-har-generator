@@ -46,7 +46,8 @@ export class EntryBuilder {
       serverIPAddress: serverIPAddress.replace(/\[]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,
-      _webSocketMessages: this.request.frames ?? []
+      _webSocketMessages: this.request.frames ?? [],
+      _eventSourceMessages: this.request.eventSourceMessages ?? []
     };
 
     if (this.request.connectionId !== '0') {

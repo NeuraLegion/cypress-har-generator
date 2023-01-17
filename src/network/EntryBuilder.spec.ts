@@ -377,6 +377,60 @@ describe('EntryBuilder', () => {
       });
     });
 
+    it('should build an entry with the websocket frames', async () => {
+      // arrange
+      const time = 208215.857187;
+      const data = 'test';
+      const opcode = 1;
+      const mask = false;
+      request.statusCode = 101;
+      request.setUrl('ws://example.com');
+      request.addProtocolFrame(
+        { mask, opcode, payloadData: data },
+        time,
+        false
+      );
+      const entryBuilder = new EntryBuilder(request);
+      // act
+      const entry = await entryBuilder.build();
+      // assert
+      expect(entry).toMatchObject({
+        _webSocketMessages: [
+          {
+            data,
+            opcode,
+            time,
+            mask,
+            type: 'response'
+          }
+        ]
+      });
+    });
+
+    it('should build an entry with the event source messages', async () => {
+      // arrange
+      const time = 208215.857187;
+      const data = 'test';
+      const eventName = 'data';
+      const eventId = '1';
+      request.mimeType = 'text/event-stream';
+      request.addEventSourceMessage(time, eventName, eventId, data);
+      const entryBuilder = new EntryBuilder(request);
+      // act
+      const entry = await entryBuilder.build();
+      // assert
+      expect(entry).toMatchObject({
+        _eventSourceMessages: [
+          {
+            time,
+            eventName,
+            eventId,
+            data
+          }
+        ]
+      });
+    });
+
     it('should build an entry where the request body is multipart/form-data', async () => {
       // arrange
       const mimeType = 'multipart/form-data; boundary=12345';
