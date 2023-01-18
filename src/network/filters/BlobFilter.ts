@@ -1,5 +1,5 @@
-import { RequestFilter, RequestFilterOptions } from './RequestFilter';
 import { NetworkRequest } from '../NetworkRequest';
+import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
 
 export class BlobFilter implements RequestFilter {
   public apply(request: NetworkRequest, _: RequestFilterOptions): boolean {

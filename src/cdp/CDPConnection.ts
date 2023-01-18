@@ -12,7 +12,8 @@ import type { Connection } from './Connection';
 import type { Network } from '../network';
 import { DefaultNetwork } from './DefaultNetwork';
 import { ErrorUtils } from '../utils/ErrorUtils';
-import CDP, { Version, Client, Options } from 'chrome-remote-interface';
+import CDP, { Version } from 'chrome-remote-interface';
+import type { Client, Options } from 'chrome-remote-interface';
 
 export class CDPConnection implements Connection {
   private _network?: Network;

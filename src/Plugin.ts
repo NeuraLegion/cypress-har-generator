@@ -1,16 +1,18 @@
 import { Logger } from './utils/Logger';
 import { FileManager } from './utils/FileManager';
-import { Connection, ConnectionFactory } from './cdp';
 import {
   EntryBuilder,
   HarBuilder,
   NetworkIdleMonitor,
+  NetworkRequest
+} from './network';
+import { ErrorUtils } from './utils/ErrorUtils';
+import type { Connection, ConnectionFactory } from './cdp';
+import type {
   NetworkObserverOptions,
-  NetworkRequest,
   Observer,
   ObserverFactory
 } from './network';
-import { ErrorUtils } from './utils/ErrorUtils';
 import { join } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';

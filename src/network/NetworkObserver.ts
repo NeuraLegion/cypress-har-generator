@@ -1,12 +1,12 @@
 import { Logger } from '../utils/Logger';
 import { NetworkRequest } from './NetworkRequest';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
-import { NetworkObserverOptions } from './NetworkObserverOptions';
-import { Observer } from './Observer';
-import { RequestFilter } from './filters';
-import { Network, NetworkEvent } from './Network';
-import type { Header } from 'har-format';
+import type { NetworkObserverOptions } from './NetworkObserverOptions';
+import type { Observer } from './Observer';
+import type { RequestFilter } from './filters';
+import type { Network, NetworkEvent } from './Network';
 import type Protocol from 'devtools-protocol';
+import type { Header } from 'har-format';
 
 export class NetworkObserver implements Observer<NetworkRequest> {
   private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;

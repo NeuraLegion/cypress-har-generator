@@ -1,5 +1,5 @@
-import { NetworkObserverOptions } from '../NetworkObserverOptions';
 import { NetworkRequest } from '../NetworkRequest';
+import type { NetworkObserverOptions } from '../NetworkObserverOptions';
 
 export type RequestFilterOptions = Omit<NetworkObserverOptions, 'content'>;
 

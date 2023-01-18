@@ -1,6 +1,6 @@
-import { RequestFilterOptions } from './RequestFilter';
 import { NetworkRequest } from '../NetworkRequest';
 import { HostFilter } from './HostFilter';
+import type { RequestFilterOptions } from './RequestFilter';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock, reset, when } from 'ts-mockito';
 

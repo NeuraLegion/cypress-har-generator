@@ -1,4 +1,4 @@
-import { Network } from '../network';
+import type { Network } from '../network';
 
 export interface Connection {
   open(): Promise<void>;

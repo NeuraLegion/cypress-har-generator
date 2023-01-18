@@ -1,8 +1,10 @@
-import { Plugin, RecordOptions, SaveOptions } from './Plugin';
+import { Plugin } from './Plugin';
 import { Logger } from './utils/Logger';
 import { FileManager } from './utils/FileManager';
-import { Connection, ConnectionFactory } from './cdp';
-import { NetworkRequest, Observer, ObserverFactory } from './network';
+import { NetworkRequest } from './network';
+import type { RecordOptions, SaveOptions } from './Plugin';
+import type { Connection, ConnectionFactory } from './cdp';
+import type { Observer, ObserverFactory } from './network';
 import {
   anyFunction,
   anyString,
