@@ -1,7 +1,7 @@
 import { CookieParser } from './CookieParser';
 import { NetworkCookie } from './NetworkCookie';
 import { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
-import { StringUtils } from '../utils';
+import { StringUtils } from '../utils/StringUtils';
 import type { Header, Param, QueryString } from 'har-format';
 import type Protocol from 'devtools-protocol';
 

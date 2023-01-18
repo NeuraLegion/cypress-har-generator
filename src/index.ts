@@ -1,7 +1,9 @@
 import { Plugin, RecordOptions, SaveOptions } from './Plugin';
-import { FileManager, Logger, StringUtils } from './utils';
+import { Logger } from './utils/Logger';
+import { FileManager } from './utils/FileManager';
 import { DefaultConnectionFactory } from './cdp';
 import { DefaultObserverFactory } from './network';
+import { StringUtils } from './utils/StringUtils';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

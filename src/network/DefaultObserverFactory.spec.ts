@@ -1,6 +1,6 @@
 import type { NetworkObserverOptions } from './NetworkObserverOptions';
 import { DefaultObserverFactory } from './DefaultObserverFactory';
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { NetworkObserver } from './NetworkObserver';
 import type { Network } from './Network';
 import { describe, beforeEach, it, expect } from '@jest/globals';

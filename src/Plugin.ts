@@ -1,4 +1,5 @@
-import { FileManager, Logger } from './utils';
+import { Logger } from './utils/Logger';
+import { FileManager } from './utils/FileManager';
 import { Connection, ConnectionFactory } from './cdp';
 import {
   EntryBuilder,
@@ -9,11 +10,11 @@ import {
   Observer,
   ObserverFactory
 } from './network';
+import { ErrorUtils } from './utils/ErrorUtils';
 import { join } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';
 import { promisify } from 'util';
-import { isNativeError } from 'util/types';
 
 export interface SaveOptions {
   fileName: string;
@@ -120,7 +121,7 @@ export class Plugin {
         await this.fileManager.writeFile(filePath, har);
       }
     } catch (e) {
-      const message = isNativeError(e) ? e.message : e;
+      const message = ErrorUtils.isError(e) ? e.message : e;
       this.logger.err(
         `An error occurred while attempting to save the HAR file. Error details: ${message}`
       );

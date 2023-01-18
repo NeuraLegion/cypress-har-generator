@@ -1,5 +1,5 @@
 import type { CDPConnection } from './CDPConnection';
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { RetryStrategy } from './RetryStrategy';
 import {
   CONNECTED,

@@ -1,4 +1,4 @@
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { NetworkRequest } from './NetworkRequest';
 import { ExtraInfoBuilder } from './ExtraInfoBuilder';
 import { NetworkObserverOptions } from './NetworkObserverOptions';

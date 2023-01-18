@@ -1,6 +1,6 @@
 import { ObserverFactory } from './ObserverFactory';
 import { NetworkObserver } from './NetworkObserver';
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { NetworkObserverOptions } from './NetworkObserverOptions';
 import { Observer } from './Observer';
 import { NetworkRequest } from './NetworkRequest';

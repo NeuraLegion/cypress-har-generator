@@ -1,5 +1,6 @@
 import { Plugin, RecordOptions, SaveOptions } from './Plugin';
-import { FileManager, Logger } from './utils';
+import { Logger } from './utils/Logger';
+import { FileManager } from './utils/FileManager';
 import { Connection, ConnectionFactory } from './cdp';
 import { NetworkRequest, Observer, ObserverFactory } from './network';
 import {

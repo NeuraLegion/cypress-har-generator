@@ -1,5 +1,5 @@
 import { RetryStrategy } from './RetryStrategy';
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import {
   ATTEMPT_TO_CONNECT,
   CONNECTED,
@@ -11,8 +11,8 @@ import {
 import type { Connection } from './Connection';
 import type { Network } from '../network';
 import { DefaultNetwork } from './DefaultNetwork';
+import { ErrorUtils } from '../utils/ErrorUtils';
 import CDP, { Version, Client, Options } from 'chrome-remote-interface';
-import { isNativeError } from 'util/types';
 
 export class CDPConnection implements Connection {
   private _network?: Network;
@@ -44,7 +44,7 @@ export class CDPConnection implements Connection {
 
       this._cdp = cdp;
     } catch (e) {
-      const message = isNativeError(e) ? e.message : e;
+      const message = ErrorUtils.isError(e) ? e.message : e;
       this.logger.debug(`${FAILED_ATTEMPT_TO_CONNECT}: ${message}`);
 
       if (
