@@ -1,4 +1,4 @@
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { NetworkObserver } from './NetworkObserver';
 import type { NetworkObserverOptions } from './NetworkObserverOptions';
 import type { RequestFilter } from './filters';

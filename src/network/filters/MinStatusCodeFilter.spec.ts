@@ -1,6 +1,6 @@
 import { MinStatusCodeFilter } from './MinStatusCodeFilter';
-import { RequestFilterOptions } from './RequestFilter';
 import { NetworkRequest } from '../NetworkRequest';
+import type { RequestFilterOptions } from './RequestFilter';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock, reset, when } from 'ts-mockito';
 

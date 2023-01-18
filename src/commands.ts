@@ -1,5 +1,5 @@
-import { RecordOptions, SaveOptions } from './Plugin';
-import { StringUtils } from './utils';
+import { StringUtils } from './utils/StringUtils';
+import type { RecordOptions, SaveOptions } from './Plugin';
 
 Cypress.Commands.add(
   'recordHar',

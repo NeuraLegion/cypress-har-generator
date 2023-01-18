@@ -1,11 +1,11 @@
-import { ObserverFactory } from './ObserverFactory';
 import { NetworkObserver } from './NetworkObserver';
-import { Logger } from '../utils';
-import { NetworkObserverOptions } from './NetworkObserverOptions';
-import { Observer } from './Observer';
+import { Logger } from '../utils/Logger';
 import { NetworkRequest } from './NetworkRequest';
 import { CompositeFilter } from './filters';
-import { Network } from './Network';
+import type { ObserverFactory } from './ObserverFactory';
+import type { NetworkObserverOptions } from './NetworkObserverOptions';
+import type { Observer } from './Observer';
+import type { Network } from './Network';
 
 export class DefaultObserverFactory implements ObserverFactory {
   private readonly defaultRequestFilter = new CompositeFilter();

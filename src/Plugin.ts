@@ -1,11 +1,15 @@
-import { FileManager, Logger } from './utils';
-import { Connection, ConnectionFactory } from './cdp';
+import { Logger } from './utils/Logger';
+import { FileManager } from './utils/FileManager';
 import {
   EntryBuilder,
   HarBuilder,
   NetworkIdleMonitor,
+  NetworkRequest
+} from './network';
+import { ErrorUtils } from './utils/ErrorUtils';
+import type { Connection, ConnectionFactory } from './cdp';
+import type {
   NetworkObserverOptions,
-  NetworkRequest,
   Observer,
   ObserverFactory
 } from './network';
@@ -13,7 +17,6 @@ import { join } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';
 import { promisify } from 'util';
-import { isNativeError } from 'util/types';
 
 export interface SaveOptions {
   fileName: string;
@@ -120,7 +123,7 @@ export class Plugin {
         await this.fileManager.writeFile(filePath, har);
       }
     } catch (e) {
-      const message = isNativeError(e) ? e.message : e;
+      const message = ErrorUtils.isError(e) ? e.message : e;
       this.logger.err(
         `An error occurred while attempting to save the HAR file. Error details: ${message}`
       );

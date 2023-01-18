@@ -1,4 +1,4 @@
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 import { RetryStrategy } from './RetryStrategy';
 import { DefaultConnectionFactory } from './DefaultConnectionFactory';
 import { CDPConnection } from './CDPConnection';

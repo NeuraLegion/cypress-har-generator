@@ -1,7 +1,10 @@
-import { Plugin, RecordOptions, SaveOptions } from './Plugin';
-import { FileManager, Logger, StringUtils } from './utils';
+import { Plugin } from './Plugin';
+import { Logger } from './utils/Logger';
+import { FileManager } from './utils/FileManager';
 import { DefaultConnectionFactory } from './cdp';
 import { DefaultObserverFactory } from './network';
+import { StringUtils } from './utils/StringUtils';
+import type { RecordOptions, SaveOptions } from './Plugin';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -98,4 +101,4 @@ export const ensureBrowserFlags = (
   );
 };
 
-export { SaveOptions, RecordOptions } from './Plugin';
+export type { SaveOptions, RecordOptions } from './Plugin';

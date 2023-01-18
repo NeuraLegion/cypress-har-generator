@@ -1,6 +1,6 @@
-import { Observer } from './Observer';
 import { NetworkRequest } from './NetworkRequest';
 import { NetworkIdleMonitor } from './NetworkIdleMonitor';
+import type { Observer } from './Observer';
 import {
   jest,
   describe,

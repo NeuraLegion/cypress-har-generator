@@ -2,7 +2,7 @@ import type { ConnectionFactory, ConnectionOptions } from './ConnectionFactory';
 import { RetryStrategy } from './RetryStrategy';
 import type { Connection } from './Connection';
 import { CDPConnection } from './CDPConnection';
-import { Logger } from '../utils';
+import { Logger } from '../utils/Logger';
 
 export class DefaultConnectionFactory implements ConnectionFactory {
   constructor(private readonly logger: Logger) {}
