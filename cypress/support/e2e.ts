@@ -21,3 +21,10 @@ Cypress.Commands.add('findHar', (fileName?: string) =>
     .readFile(fileName ?? Cypress.spec.name.replace('.ts', '.har'))
     .then(data => cy.wrap<Har>(JSON.parse(data)))
 );
+
+// check a file/folder existence
+Cypress.Commands.add('exists', (path: string) => cy.task('fs:exists', path));
+// remove a file/folder
+Cypress.Commands.add('remove', (path: string) => cy.task('fs:remove', path));
+// return tmpdir
+Cypress.Commands.add('tmpdir', () => cy.task('fs:tmpdir'));

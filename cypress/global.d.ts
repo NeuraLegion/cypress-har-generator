@@ -5,5 +5,8 @@ namespace Cypress {
 
   interface Chainable<Subject> {
     findHar(fileName?: string): Chainable<Har>;
+    exists(path: string): Chainable<boolean>;
+    tmpdir(): Chainable<string>;
+    remove(path: string): Chainable<void>;
   }
 }
