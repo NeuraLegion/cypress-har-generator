@@ -2,7 +2,7 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es2016",
-    "lib": ["es2020"],
+    "lib": ["es2020", "dom"],
     "newLine": "LF",
     "module": "commonjs",
     "moduleResolution": "node",
