@@ -51,7 +51,7 @@ describe('PathFilter', () => {
   });
 
   describe('apply', () => {
-    it('should return true if the pathname is allowed', () => {
+    it('should return true when the pathname does not match pattern', () => {
       // arrange
       const url = new URL('https://example.com');
       when(networkRequestMock.parsedURL).thenReturn(url);
@@ -62,7 +62,7 @@ describe('PathFilter', () => {
       expect(result).toBe(true);
     });
 
-    it('should return true if the pathname is allowed by regexp', () => {
+    it('should return true when the pathname does not match regexp', () => {
       // arrange
       const url = new URL('https://example.com');
       when(networkRequestMock.parsedURL).thenReturn(url);
@@ -73,7 +73,29 @@ describe('PathFilter', () => {
       expect(result).toBe(true);
     });
 
-    it('should return false if the pathname is not allowed', () => {
+    it('should return true when the pathname does not match any patterns', () => {
+      // arrange
+      const url = new URL('https://example.com/path');
+      when(networkRequestMock.parsedURL).thenReturn(url);
+      const options = { excludePaths: ['/admin', '/login'] };
+      // act
+      const result = sut.apply(instance(networkRequestMock), options);
+      // assert
+      expect(result).toBe(true);
+    });
+
+    it('should return false when the pathname matches at least one pattern', () => {
+      // arrange
+      const url = new URL('https://example.com/admin');
+      when(networkRequestMock.parsedURL).thenReturn(url);
+      const options = { excludePaths: ['/admin', '/login'] };
+      // act
+      const result = sut.apply(instance(networkRequestMock), options);
+      // assert
+      expect(result).toBe(false);
+    });
+
+    it('should return false when the pathname matches pattern', () => {
       // arrange
       const url = new URL('https://example.com/login');
       when(networkRequestMock.parsedURL).thenReturn(url);
