@@ -5,7 +5,21 @@
 [![Build Status](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml/badge.svg?branch=master&event=push)](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml?query=branch%3Amaster+event%3Apush)
 [![NPM Downloads](https://img.shields.io/npm/dw/@neuralegion/cypress-har-generator?label=NPM%20Downloads)](https://www.npmjs.com/package/@neuralegion/cypress-har-generator)
 
-Generate [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) files while running your Cypress tests.
+The Cypress plugin for generating [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) files is a tool that allows developers and QA engineers to capture detailed information about network requests made during the execution of Cypress tests.
+
+**Advantages**:
+
+- Detailed visibility into network requests including **WebSocket** frames, **Server-Sent Events (SSE)**, and more.
+- Ability to replay network requests in a web development tool.
+- Easy integration with [**Cypress**](https://www.cypress.io/)
+
+**Why it is important**
+
+- Improves the performance and stability of your application
+- Quickly troubleshoot issues with network requests
+- Saves a significant amount of time and effort in debugging and troubleshooting network issues.
+
+The plugin allows you to record network requests from multiple targets such as pages, workers, and pop-ups, which allows you to get a more comprehensive view of your application's network activity. This is especially useful for debugging and troubleshooting issues that may be related to multiple sources.
 
 ## Table of contents
 
