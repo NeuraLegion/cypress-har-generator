@@ -21,6 +21,22 @@ describe('Record HAR', () => {
       });
   });
 
+  it('excludes a request using the custom filer', () => {
+    cy.recordHar({ filter: 'cypress/support/filter.ts' });
+
+    cy.get('a[href$=fetch]').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('not.contain.something.like', {
+        response: {
+          content: { text: /\{"products":\[/ }
+        }
+      });
+  });
+
   it('excludes a request by its path', () => {
     cy.recordHar({ excludePaths: ['^\\/api\\/products$', '^\\/api\\/users$'] });
 

@@ -13,7 +13,8 @@ import type {
   Observer,
   ObserverFactory
 } from './network';
-import { join } from 'path';
+import type { Entry } from 'har-format';
+import { join, resolve } from 'path';
 import { WriteStream } from 'fs';
 import { EOL } from 'os';
 import { promisify } from 'util';
@@ -24,7 +25,12 @@ export interface SaveOptions {
   waitForIdle?: boolean;
 }
 
-export type RecordOptions = NetworkObserverOptions;
+export type RecordOptions = NetworkObserverOptions & {
+  /**
+   * @deprecated this option is experimental.
+   */
+  filter?: string;
+};
 
 interface Addr {
   port: number;
@@ -202,20 +208,48 @@ Please refer to the documentation:
     this.buffer = await this.fileManager.createTmpWriteStream();
 
     const network = this._connection?.discoverNetwork();
+
     this.networkObservable = this.observerFactory.createNetworkObserver(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       network!,
       options
     );
 
+    let filter: ((request: Entry) => unknown) | undefined;
+
+    if (options.filter) {
+      // TODO: should we resolve the path relative to the spec path or the root?
+      const modulePath = resolve(options.filter);
+      // FIXME: allow loading and transpile .ts files as well?
+      filter = (await import(/* webpackIgnore: true */ modulePath))?.default;
+    }
+
     return this.networkObservable.subscribe(async (request: NetworkRequest) => {
+      // TODO: extract this logic to a separate class
       const entry = await new EntryBuilder(request).build();
+
+      if (await this.applyPredicate(filter, entry)) {
+        return;
+      }
+
       const entryStr = JSON.stringify(entry);
+
       // @ts-expect-error type mismatch
       if (this.buffer && !this.buffer.closed) {
         this.buffer.write(`${entryStr}${EOL}`);
       }
     });
+  }
+
+  private async applyPredicate(
+    predicate: ((request: Entry) => unknown) | undefined,
+    entry: Entry
+  ) {
+    try {
+      return typeof predicate === 'function' && (await predicate?.(entry));
+    } catch {
+      return false;
+    }
   }
 
   private async closeConnection(): Promise<void> {
