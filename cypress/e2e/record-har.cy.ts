@@ -22,8 +22,7 @@ describe('Record HAR', () => {
   });
 
   it('excludes a request by its path', () => {
-    const regexp = /^\/api\/products$/;
-    cy.recordHar({ excludePaths: [regexp.source] });
+    cy.recordHar({ excludePaths: ['^\\/api\\/products$', '^\\/api\\/users$'] });
 
     cy.get('a[href$=fetch]').click();
 
@@ -33,7 +32,7 @@ describe('Record HAR', () => {
       .its('log.entries')
       .should('not.contain.something.like', {
         request: {
-          url: regexp
+          url: /^\/api\/products$/
         }
       });
   });
