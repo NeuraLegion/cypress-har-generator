@@ -2,7 +2,7 @@ import { Plugin } from './Plugin';
 import { Logger } from './utils/Logger';
 import { FileManager } from './utils/FileManager';
 import { DefaultConnectionFactory } from './cdp';
-import { DefaultObserverFactory } from './network';
+import { DefaultHarExporterFactory, DefaultObserverFactory } from './network';
 import { StringUtils } from './utils/StringUtils';
 import type { RecordOptions, SaveOptions } from './Plugin';
 
@@ -21,7 +21,8 @@ const plugin = new Plugin(
   Logger.Instance,
   FileManager.Instance,
   new DefaultConnectionFactory(Logger.Instance),
-  new DefaultObserverFactory(Logger.Instance)
+  new DefaultObserverFactory(Logger.Instance),
+  new DefaultHarExporterFactory(FileManager.Instance)
 );
 
 export const install = (on: Cypress.PluginEvents): void => {

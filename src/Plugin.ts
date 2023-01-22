@@ -1,21 +1,16 @@
 import { Logger } from './utils/Logger';
 import { FileManager } from './utils/FileManager';
-import {
-  EntryBuilder,
-  HarBuilder,
-  NetworkIdleMonitor,
-  NetworkRequest
-} from './network';
-import { ErrorUtils } from './utils/ErrorUtils';
-import type { Connection, ConnectionFactory } from './cdp';
 import type {
+  HarExporter,
+  HarExporterFactory,
   NetworkObserverOptions,
   Observer,
   ObserverFactory
 } from './network';
-import type { Entry } from 'har-format';
-import { join, resolve } from 'path';
-import { WriteStream } from 'fs';
+import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
+import { ErrorUtils } from './utils/ErrorUtils';
+import type { Connection, ConnectionFactory } from './cdp';
+import { join } from 'path';
 import { EOL } from 'os';
 import { promisify } from 'util';
 
@@ -36,18 +31,7 @@ interface Addr {
 }
 
 export class Plugin {
-  private buffer?: WriteStream;
-
-  private get tmpPath() {
-    if (this.buffer) {
-      const { path } = this.buffer;
-
-      return Buffer.isBuffer(path) ? path.toString('utf-8') : path;
-    }
-
-    return undefined;
-  }
-
+  private exporter?: HarExporter;
   private networkObservable?: Observer<NetworkRequest>;
   private addr?: Addr;
   private _connection?: Connection;
@@ -58,7 +42,8 @@ export class Plugin {
     private readonly logger: Logger,
     private readonly fileManager: FileManager,
     private readonly connectionFactory: ConnectionFactory,
-    private readonly observerFactory: ObserverFactory
+    private readonly observerFactory: ObserverFactory,
+    private readonly exporterFactory: HarExporterFactory
   ) {}
 
   public ensureBrowserFlags(
@@ -93,6 +78,10 @@ export class Plugin {
       );
     }
 
+    this.exporter = await this.exporterFactory.create({
+      predicatePath: options.filter,
+      rootDir: options.rootDir
+    });
     this._connection = this.connectionFactory.create({
       ...this.addr,
       maxRetries: 20,
@@ -140,15 +129,11 @@ export class Plugin {
     await this.networkObservable?.unsubscribe();
     delete this.networkObservable;
 
-    if (this.buffer) {
-      this.buffer.end();
+    if (this.exporter) {
+      this.exporter.end();
+      await this.fileManager.removeFile(this.exporter.path);
+      delete this.exporter;
     }
-
-    if (this.tmpPath) {
-      await this.fileManager.removeFile(this.tmpPath);
-    }
-
-    delete this.buffer;
   }
 
   private parseElectronSwitches(browser: Cypress.Browser): string[] {
@@ -171,8 +156,8 @@ Please refer to the documentation:
   }
 
   private async buildHar(): Promise<string | undefined> {
-    if (this.tmpPath) {
-      const content = await this.fileManager.readFile(this.tmpPath);
+    if (this.exporter) {
+      const content = await this.fileManager.readFile(this.exporter.path);
 
       if (content) {
         const entries = content
@@ -203,8 +188,6 @@ Please refer to the documentation:
   }
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
-    this.buffer = await this.fileManager.createTmpWriteStream();
-
     const network = this._connection?.discoverNetwork();
 
     this.networkObservable = this.observerFactory.createNetworkObserver(
@@ -213,51 +196,9 @@ Please refer to the documentation:
       options
     );
 
-    let filter: ((request: Entry) => unknown) | undefined;
-
-    if (options.filter) {
-      const modulePath = resolve(options.rootDir, options.filter);
-      const module = this.interopRequireDefault(
-        // eslint-disable-next-line @typescript-eslint/no-var-requires -- `ts-node` does not handle the dynamic imports like `import(modulePath)`
-        require(/* webpackIgnore: true */ modulePath)
-      );
-      filter = module?.default;
-    }
-
-    return this.networkObservable.subscribe(async (request: NetworkRequest) => {
-      // TODO: extract this logic to a separate class
-      const entry = await new EntryBuilder(request).build();
-
-      if (await this.applyPredicate(filter, entry)) {
-        return;
-      }
-
-      const entryStr = JSON.stringify(entry);
-
-      // @ts-expect-error type mismatch
-      if (this.buffer && !this.buffer.closed) {
-        this.buffer.write(`${entryStr}${EOL}`);
-      }
-    });
-  }
-
-  // TODO: extract to the util/helper class
-  private interopRequireDefault(obj: unknown): {
-    default: (request: Entry) => unknown;
-  } {
-    // @ts-expect-error unknown is not assignable to the module type
-    return (obj as any)?.__esModule ? obj : { default: obj };
-  }
-
-  private async applyPredicate(
-    predicate: ((request: Entry) => unknown) | undefined,
-    entry: Entry
-  ) {
-    try {
-      return typeof predicate === 'function' && (await predicate?.(entry));
-    } catch {
-      return false;
-    }
+    return this.networkObservable.subscribe((request: NetworkRequest) =>
+      this.exporter?.write(request)
+    );
   }
 
   private async closeConnection(): Promise<void> {
