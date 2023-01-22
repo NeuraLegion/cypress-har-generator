@@ -222,12 +222,12 @@ describe('Plugin', () => {
   });
 
   describe('saveHar', () => {
+    const options = {
+      fileName: 'file.har',
+      outDir: tmpdir()
+    } as SaveOptions;
+
     it(`should return undefined to satisfy Cypress's contract when connection is not established yet`, async () => {
-      // arrange
-      const options = {
-        fileName: 'file.har',
-        outDir: tmpdir()
-      } as SaveOptions;
       // act
       const result = await plugin.saveHar(options);
       // assert
@@ -235,11 +235,6 @@ describe('Plugin', () => {
     });
 
     it('should log an error message when the connection is corrupted', async () => {
-      // arrange
-      const options = {
-        fileName: 'file.har',
-        outDir: tmpdir()
-      } as SaveOptions;
       // act
       await plugin.saveHar(options);
       // assert
@@ -257,17 +252,14 @@ describe('Plugin', () => {
         observerFactoryMock.createNetworkObserver(anything(), anything())
       ).thenReturn(instance(networkObserverMock));
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
-      const outDir = tmpdir();
-      const options = {
-        outDir,
-        fileName: 'file.har'
-      } as SaveOptions;
       // act
       await plugin.saveHar(options);
       // assert
-      verify(fileManagerMock.createFolder(outDir)).once();
+      verify(fileManagerMock.createFolder(options.outDir)).once();
     });
 
     it('should wait for completing all pending requests before saving a HAR', async () => {
@@ -286,18 +278,16 @@ describe('Plugin', () => {
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
-
-      const outDir = tmpdir();
-      const fileName = 'file.har';
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
       when(fileManagerMock.readFile(anyString())).thenResolve(
         JSON.stringify(entry)
       );
       // act
       await plugin.saveHar({
-        outDir,
-        fileName,
+        ...options,
         waitForIdle: true
       });
       // assert
@@ -319,22 +309,21 @@ describe('Plugin', () => {
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
-
-      const outDir = tmpdir();
-      const fileName = 'file.har';
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
       when(fileManagerMock.readFile(anyString())).thenResolve(
         JSON.stringify(entry)
       );
       // act
-      await plugin.saveHar({
-        outDir,
-        fileName
-      });
+      await plugin.saveHar(options);
       // assert
       verify(
-        fileManagerMock.writeFile(match(fileName), match(`"version": "1.2"`))
+        fileManagerMock.writeFile(
+          match(options.fileName),
+          match(`"version": "1.2"`)
+        )
       ).once();
     });
 
@@ -353,19 +342,15 @@ describe('Plugin', () => {
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn('temp-file.txt');
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
-
-      const outDir = tmpdir();
-      const fileName = 'file.har';
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
       when(fileManagerMock.readFile(anyString())).thenThrow(
         new Error('something went wrong')
       );
       // act
-      await plugin.saveHar({
-        outDir,
-        fileName
-      });
+      await plugin.saveHar(options);
       // assert
       verify(
         loggerMock.err(
@@ -383,16 +368,12 @@ describe('Plugin', () => {
         observerFactoryMock.createNetworkObserver(anything(), anything())
       ).thenReturn(instance(networkObserverMock));
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
-
-      const outDir = tmpdir();
-      const fileName = 'file.har';
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
       // act
-      await plugin.saveHar({
-        outDir,
-        fileName
-      });
+      await plugin.saveHar(options);
       // assert
       verify(networkObserverMock.unsubscribe()).once();
     });
@@ -413,19 +394,15 @@ describe('Plugin', () => {
       when(writableStreamMock.closed).thenReturn(true);
       when(writableStreamMock.path).thenReturn(tempFilePath);
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
-
-      const outDir = tmpdir();
-      const fileName = 'file.har';
+      await plugin.recordHar({
+        rootDir: '/'
+      });
 
       when(fileManagerMock.readFile(anyString())).thenResolve(
         JSON.stringify(entry)
       );
       // act
-      await plugin.saveHar({
-        outDir,
-        fileName
-      });
+      await plugin.saveHar(options);
       // assert
       verify(writableStreamMock.end()).once();
       verify(fileManagerMock.removeFile(tempFilePath)).once();
@@ -433,6 +410,13 @@ describe('Plugin', () => {
   });
 
   describe('recordHar', () => {
+    const options = {
+      content: true,
+      excludePaths: [],
+      includeHosts: [],
+      rootDir: '/'
+    } as RecordOptions;
+
     beforeEach(() => {
       when(connectionFactoryMock.create(anything())).thenReturn(
         instance(connectionMock)
@@ -444,11 +428,6 @@ describe('Plugin', () => {
 
     it('should open connection and listen to network events', async () => {
       // arrange
-      const options = {
-        content: true,
-        excludePaths: [],
-        includeHosts: []
-      } as RecordOptions;
       plugin.ensureBrowserFlags(chrome, []);
       // act
       await plugin.recordHar(options);
@@ -465,11 +444,6 @@ describe('Plugin', () => {
 
     it('should close connection when it is already opened', async () => {
       // arrange
-      const options = {
-        content: true,
-        excludePaths: [],
-        includeHosts: []
-      } as RecordOptions;
       plugin.ensureBrowserFlags(chrome, []);
       await plugin.recordHar(options);
       // act
@@ -481,7 +455,6 @@ describe('Plugin', () => {
 
     it('should write an entry to a stream', async () => {
       // arrange
-      const options = {} as RecordOptions;
       when(fileManagerMock.createTmpWriteStream()).thenResolve(
         resolvableInstance(writableStreamMock)
       );
@@ -506,7 +479,6 @@ describe('Plugin', () => {
 
     it('should do nothing when a stream is closed', async () => {
       // arrange
-      const options = {} as RecordOptions;
       when(fileManagerMock.createTmpWriteStream()).thenResolve(
         resolvableInstance(writableStreamMock)
       );
@@ -549,7 +521,9 @@ describe('Plugin', () => {
     it('should dispose of a stream', async () => {
       // arrange
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
+      await plugin.recordHar({
+        rootDir: '/'
+      });
       // act
       await plugin.disposeOfHar();
       // assert
@@ -559,7 +533,9 @@ describe('Plugin', () => {
     it('should unsubscribe from the network events', async () => {
       // arrange
       plugin.ensureBrowserFlags(chrome, []);
-      await plugin.recordHar({});
+      await plugin.recordHar({
+        rootDir: '/'
+      });
       // act
       await plugin.disposeOfHar();
       // assert

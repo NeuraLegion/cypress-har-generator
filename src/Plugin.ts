@@ -26,9 +26,7 @@ export interface SaveOptions {
 }
 
 export type RecordOptions = NetworkObserverOptions & {
-  /**
-   * @deprecated this option is experimental.
-   */
+  rootDir: string;
   filter?: string;
 };
 
@@ -218,10 +216,12 @@ Please refer to the documentation:
     let filter: ((request: Entry) => unknown) | undefined;
 
     if (options.filter) {
-      // TODO: should we resolve the path relative to the spec path or the root?
-      const modulePath = resolve(options.filter);
-      // FIXME: allow loading and transpile .ts files as well?
-      filter = (await import(/* webpackIgnore: true */ modulePath))?.default;
+      const modulePath = resolve(options.rootDir, options.filter);
+      const module = this.interopRequireDefault(
+        // eslint-disable-next-line @typescript-eslint/no-var-requires -- `ts-node` does not handle the dynamic imports like `import(modulePath)`
+        require(/* webpackIgnore: true */ modulePath)
+      );
+      filter = module?.default;
     }
 
     return this.networkObservable.subscribe(async (request: NetworkRequest) => {
@@ -239,6 +239,14 @@ Please refer to the documentation:
         this.buffer.write(`${entryStr}${EOL}`);
       }
     });
+  }
+
+  // TODO: extract to the util/helper class
+  private interopRequireDefault(obj: unknown): {
+    default: (request: Entry) => unknown;
+  } {
+    // @ts-expect-error unknown is not assignable to the module type
+    return (obj as any)?.__esModule ? obj : { default: obj };
   }
 
   private async applyPredicate(

@@ -11,7 +11,7 @@ declare global {
   namespace Cypress {
     interface Chainable<Subject> {
       saveHar(options?: Partial<SaveOptions>): Chainable<Subject>;
-      recordHar(options?: RecordOptions): Chainable<Subject>;
+      recordHar(options?: Partial<RecordOptions>): Chainable<Subject>;
       disposeOfHar(): Chainable<Subject>;
     }
   }
@@ -68,7 +68,11 @@ export const enableExperimentalLifecycle = (
       'To activate the experimental mechanism for setting up lifecycle, you must either disable the interactive mode or activate the "experimentalInteractiveRunEvents" feature. For further information, please refer to: https://docs.cypress.io/guides/references/experiments#Configuration'
     );
   } else {
-    on('before:spec', (_: Cypress.Spec) => plugin.recordHar({}));
+    on('before:spec', (_: Cypress.Spec) =>
+      plugin.recordHar({
+        rootDir: StringUtils.dirname(Cypress.spec.absolute)
+      })
+    );
     on('after:spec', (spec: Cypress.Spec, _: CypressCommandLine.RunResult) =>
       plugin.saveHar({
         fileName: StringUtils.normalizeName(spec.name, { ext: '.har' }),

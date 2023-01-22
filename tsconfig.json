@@ -2,9 +2,9 @@
   "compileOnSave": false,
   "compilerOptions": {
     "target": "es2016",
-    "lib": ["es2020", "dom"],
+    "lib": ["es2021", "dom"],
     "newLine": "LF",
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -32,6 +32,11 @@
     "resolveJsonModule": true,
     "typeRoots": ["node_modules/@types", "typings"],
     "types": ["cypress", "node", "chrome-remote-interface"]
+  },
+  "ts-node": {
+    "compilerOptions": {
+      "module": "commonjs"
+    }
   },
   "exclude": ["node_modules", "dist", "example", "**/.*/"]
 }

@@ -2,6 +2,44 @@ import { StringUtils } from './StringUtils';
 import { describe, expect, it } from '@jest/globals';
 
 describe('StringUtils', () => {
+  describe('dirname', () => {
+    it('should return the directory name of a unix path', () => {
+      const path = '/path/to/file.txt';
+      const expectedResult = '/path/to';
+
+      const result = StringUtils.dirname(path);
+
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should return the directory name of a Window path', () => {
+      const path = '\\path\\to\\file.txt';
+      const expectedResult = '\\path\\to';
+
+      const result = StringUtils.dirname(path);
+
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle paths with trailing slashes correctly', () => {
+      const path = '/path/to/file/';
+      const expectedResult = '/path/to';
+
+      const result = StringUtils.dirname(path);
+
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should handle paths with trailing backslashes correctly', () => {
+      const path = '\\path\\to\\file\\';
+      const expectedResult = '\\path\\to';
+
+      const result = StringUtils.dirname(path);
+
+      expect(result).toEqual(expectedResult);
+    });
+  });
+
   describe('normalizeName', () => {
     it('should return the name of the file with the specified extension', () => {
       const path = '/path/to/file.txt';
