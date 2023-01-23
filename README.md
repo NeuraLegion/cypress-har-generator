@@ -220,7 +220,7 @@ cy.recordHar({ includeBlobs: false });
 
 > ✴ As of version 6, this flag will be disabled by default.
 
-You can specify the `filter` option as a path to a JS/TS module that exports a function to filter out unwanted entries from the HAR. The function should take an [Entry object](http://www.softwareishard.com/blog/har-12-spec/#entries) as a parameter and return a boolean indicating whether the entry should be included in the final HAR or not.
+You can specify the `filter` option as a path to a module that exports a function (it can be sync or async) to filter out unwanted entries from the HAR. The function should take an [Entry object](http://www.softwareishard.com/blog/har-12-spec/#entries) as a parameter and return a boolean indicating whether the entry should be included in the final HAR or not.
 
 Here's an example of how to use the `filter` option:
 
@@ -242,9 +242,11 @@ export default async (entry: Entry) => {
 };
 ```
 
+> ✴ The plugin also supports files with `.js`, `.mjs` and `.cjs` extensions.
+
 In this example, the `filter` function will only exclude entries in the HAR where the request body contains a JSON object with a password field.
 
-You can also specify a `rootDir` option that will be used to resolve the path of the `filter` option. By default, the path is relative to the spec folder. But by providing a `rootDir` it will look for the module in the provided directory:
+By default, the path is relative to the spec folder. But by providing a `rootDir` it will look for the module in the provided directory:
 
 ```js
 cy.recordHar({

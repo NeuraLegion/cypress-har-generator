@@ -20,7 +20,7 @@ export class DefaultHarExporterFactory implements HarExporterFactory {
 
     if (predicatePath) {
       const absolutePath = resolve(rootDir, predicatePath);
-      predicate = Loader.load(absolutePath);
+      predicate = await Loader.load(absolutePath);
     }
 
     return new DefaultHarExporter(

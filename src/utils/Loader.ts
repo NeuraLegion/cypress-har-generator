@@ -1,17 +1,35 @@
-export class Loader {
-  public static load<T>(path: string): T | undefined {
-    const module = this.interopRequireDefault(
-      // eslint-disable-next-line @typescript-eslint/no-var-requires -- `ts-node` does not handle the dynamic imports like `import(path)`
-      require(/* webpackIgnore: true */ path)
-    );
+import { ErrorUtils } from './ErrorUtils';
 
-    return module?.default as T | undefined;
+export class Loader {
+  public static async load<T>(path: string): Promise<T | undefined> {
+    let module: unknown;
+
+    try {
+      module = require(/* webpackIgnore: true */ path);
+    } catch (err) {
+      if (!this.shouldUseDynamicImport(err)) {
+        throw err;
+      }
+
+      module = (await import(/* webpackIgnore: true */ path)).default;
+    }
+
+    return this.interopRequireDefault<T | undefined>(module);
   }
 
-  private static interopRequireDefault(obj: unknown): {
-    default: unknown;
-  } {
+  private static shouldUseDynamicImport(err: unknown): boolean {
+    const stack = ErrorUtils.isError(err) ? err.stack : undefined;
+
+    return !!(
+      stack?.includes('[ERR_REQUIRE_ESM]') ||
+      stack?.includes(
+        'SyntaxError: Cannot use import statement outside a module'
+      )
+    );
+  }
+
+  private static interopRequireDefault<T>(m: unknown): T | undefined {
     // @ts-expect-error unknown is not assignable to the module type
-    return obj?.__esModule ? obj : { default: obj };
+    return m && m.__esModule && m.default ? m.default : m;
   }
 }

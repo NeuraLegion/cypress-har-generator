@@ -55,7 +55,7 @@ describe('DefaultHarExporterFactory', () => {
       when(fileManagerMock.createTmpWriteStream()).thenResolve(
         resolvableInstance(writeStreamMock)
       );
-      when(loaderSpy.load('/root/predicate.js')).thenReturn(predicate);
+      when(loaderSpy.load('/root/predicate.js')).thenResolve(predicate);
 
       // act
       const result = await factory.create(options);

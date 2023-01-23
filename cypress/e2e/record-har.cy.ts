@@ -21,37 +21,23 @@ describe('Record HAR', () => {
       });
   });
 
-  it('excludes a request using the custom filter from .ts file', () => {
-    cy.recordHar({ filter: '../support/ts-filter.ts' });
+  ['.js', '.mjs', '.ts', '.cjs'].forEach(ext =>
+    it.only(`excludes a request using the custom filter from ${ext} file`, () => {
+      cy.recordHar({ filter: `../support/filter${ext}` });
 
-    cy.get('a[href$=fetch]').click();
+      cy.get('a[href$=fetch]').click();
 
-    cy.saveHar({ waitForIdle: true });
+      cy.saveHar({ waitForIdle: true });
 
-    cy.findHar()
-      .its('log.entries')
-      .should('not.contain.something.like', {
-        response: {
-          content: { text: /\{"products":\[/ }
-        }
-      });
-  });
-
-  it('excludes a request using the custom filter from .js file', () => {
-    cy.recordHar({ filter: '../support/js-filter.js' });
-
-    cy.get('a[href$=fetch]').click();
-
-    cy.saveHar({ waitForIdle: true });
-
-    cy.findHar()
-      .its('log.entries')
-      .should('not.contain.something.like', {
-        response: {
-          content: { text: /\{"products":\[/ }
-        }
-      });
-  });
+      cy.findHar()
+        .its('log.entries')
+        .should('not.contain.something.like', {
+          response: {
+            content: { text: /\{"products":\[/ }
+          }
+        });
+    })
+  );
 
   it('excludes a request by its path', () => {
     cy.recordHar({ excludePaths: ['^\\/api\\/products$', '^\\/api\\/users$'] });
