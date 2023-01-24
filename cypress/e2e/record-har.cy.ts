@@ -21,6 +21,26 @@ describe('Record HAR', () => {
       });
   });
 
+  // ADHOC: .mjs files are excluded as Cypress forces ts-node to use the 'commonjs' module format. Covered by unit tests.
+  // For details please refer to https://github.com/cypress-io/cypress/blob/e6b2466f7b219a86da46c1ac720432ef75193ca4/packages/server/lib/plugins/child/ts_node.js#L25
+  ['.js', '.ts', '.cjs'].forEach(ext =>
+    it(`excludes a request using the custom filter from ${ext} file`, () => {
+      cy.recordHar({ filter: `../fixtures/filter${ext}` });
+
+      cy.get('a[href$=fetch]').click();
+
+      cy.saveHar({ waitForIdle: true });
+
+      cy.findHar()
+        .its('log.entries')
+        .should('not.contain.something.like', {
+          response: {
+            content: { text: /\{"products":\[/ }
+          }
+        });
+    })
+  );
+
   it('excludes a request by its path', () => {
     cy.recordHar({ excludePaths: ['^\\/api\\/products$', '^\\/api\\/users$'] });
 

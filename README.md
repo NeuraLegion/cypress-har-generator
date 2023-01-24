@@ -220,6 +220,41 @@ cy.recordHar({ includeBlobs: false });
 
 > ✴ As of version 6, this flag will be disabled by default.
 
+You can specify the `filter` option as a path to a module that exports a function (it can be sync or async) to filter out unwanted entries from the HAR. The function should take an [Entry object](http://www.softwareishard.com/blog/har-12-spec/#entries) as a parameter and return a boolean indicating whether the entry should be included in the final HAR or not.
+
+Here's an example of how to use the `filter` option:
+
+```js
+cy.recordHar({ filter: '../support/include-password.ts' });
+```
+
+And here's an example of what the `include-password.ts` filter module might look like:
+
+```ts
+import { Entry } from 'har-format';
+
+export default async (entry: Entry) => {
+  try {
+    return /\"password":/.test(entry.request.postData.text ?? '');
+  } catch {
+    return false;
+  }
+};
+```
+
+> ✴ The plugin also supports files with `.js`, `.mjs` and `.cjs` extensions.
+
+In this example, the `filter` function will only exclude entries in the HAR where the request body contains a JSON object with a password field.
+
+By default, the path is relative to the spec folder. But by providing a `rootDir` it will look for the module in the provided directory:
+
+```js
+cy.recordHar({
+  filter: 'cypress/support/include-password.ts',
+  rootDir: Cypress.config('projectRoot')
+});
+```
+
 ### saveHar
 
 Stops recording and saves all requests that have occurred since `recordHar` was run to a HAR file. By default, the file is saved to the root of the project with a file name that includes the current spec's name (e.g. `{specName}.har`).

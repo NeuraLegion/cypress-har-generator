@@ -1,0 +1,10 @@
+import type { HarExporter } from './HarExporter';
+
+export interface HarExporterOptions {
+  rootDir: string;
+  predicatePath?: string;
+}
+
+export interface HarExporterFactory {
+  create(options: HarExporterOptions): Promise<HarExporter>;
+}

@@ -3,8 +3,18 @@ import type { RecordOptions, SaveOptions } from './Plugin';
 
 Cypress.Commands.add(
   'recordHar',
-  (options?: RecordOptions): Cypress.Chainable =>
-    cy.task('recordHar', Object.assign({ content: true }, options))
+  (options?: Partial<RecordOptions>): Cypress.Chainable =>
+    cy.task(
+      'recordHar',
+      Object.assign(
+        {
+          content: true,
+          includeBlobs: true,
+          rootDir: StringUtils.dirname(Cypress.spec.absolute)
+        },
+        options
+      )
+    )
 );
 
 Cypress.Commands.add(

@@ -1,15 +1,18 @@
 export class StringUtils {
+  public static dirname(path: string): string {
+    const normalizedPath = this.removeTrailingSlash(path);
+    const fileNameIdx = this.fileNameIdx(normalizedPath);
+    const dirname = normalizedPath.substring(0, fileNameIdx);
+
+    return this.removeTrailingSlash(dirname);
+  }
+
   public static normalizeName(
     path: string,
     options?: { ext?: string }
   ): string {
-    const fileNameIdx =
-      path.indexOf('\\') >= 0 ? path.lastIndexOf('\\') : path.lastIndexOf('/');
-    let name = path.substring(fileNameIdx);
-
-    if (name.indexOf('\\') === 0 || name.indexOf('/') === 0) {
-      name = name.substring(1);
-    }
+    const fileNameIdx = this.fileNameIdx(path);
+    const name = this.removeLeadingSlash(path.substring(fileNameIdx));
 
     const extIdx = name.lastIndexOf('.');
 
@@ -54,5 +57,19 @@ export class StringUtils {
     }
 
     return result;
+  }
+
+  private static fileNameIdx(path: string): number {
+    return path.indexOf('\\') >= 0
+      ? path.lastIndexOf('\\')
+      : path.lastIndexOf('/');
+  }
+
+  private static removeLeadingSlash(path: string): string {
+    return path.replace(/^\/|^\\/, '');
+  }
+
+  private static removeTrailingSlash(path: string): string {
+    return path.replace(/\/+$|\\+$/, '');
   }
 }
