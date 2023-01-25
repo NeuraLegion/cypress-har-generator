@@ -2,6 +2,58 @@ import { StringUtils } from './StringUtils';
 import { describe, expect, it } from '@jest/globals';
 
 describe('StringUtils', () => {
+  describe('isString', () => {
+    it.each([
+      { input: 'test', expected: true },
+      { input: '', expected: true },
+      { input: 0, expected: false },
+      { input: undefined, expected: false },
+      { input: null, expected: false },
+      { input: [], expected: false },
+      { input: {}, expected: false },
+      { input: Symbol.search, expected: false }
+    ])(
+      'should return $expected when value is $input',
+      ({ input, expected }) => {
+        // act
+        const result = StringUtils.isString(input);
+        // assert
+        expect(result).toBe(expected);
+      }
+    );
+  });
+
+  describe('toRegexSource', () => {
+    it.each([
+      { input: 'test', expected: 'test' },
+      { input: '', expected: '' },
+      { input: /test/, expected: 'test' },
+      { input: new RegExp(''), expected: '(?:)' }
+    ])(
+      'should return a copy of the text of the $input pattern',
+      ({ input, expected }) => {
+        // act
+        const result = StringUtils.toRegexSource(input);
+        // assert
+        expect(result).toBe(expected);
+      }
+    );
+  });
+
+  describe('toRegex', () => {
+    it.each([
+      { input: 'test' },
+      { input: '' },
+      { input: /test/ },
+      { input: new RegExp('test') }
+    ])('should return an instance of the regular expression', ({ input }) => {
+      // act
+      const result = StringUtils.toRegex(input);
+      // assert
+      expect(result).toBeInstanceOf(RegExp);
+    });
+  });
+
   describe('dirname', () => {
     it('should return the directory name of a unix path', () => {
       const path = '/path/to/file.txt';

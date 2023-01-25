@@ -35,7 +35,7 @@ describe('PathFilter', () => {
 
     it.each([
       { excludePaths: ['example.com'] },
-      { excludePaths: ['example.com$'] },
+      { excludePaths: [/example\.com$/] },
       { excludePaths: ['example.com', 'sub.example.com'] }
     ])(
       'should return true when the filter is applicable (options: %j)',
@@ -66,7 +66,7 @@ describe('PathFilter', () => {
       // arrange
       const url = new URL('https://example.com');
       when(networkRequestMock.parsedURL).thenReturn(url);
-      const options = { excludePaths: ['/login$'] };
+      const options = { excludePaths: [/\/login$/] };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert

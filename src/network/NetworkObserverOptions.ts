@@ -1,7 +1,7 @@
 export interface NetworkObserverOptions {
   content?: boolean;
-  excludePaths?: string[];
-  includeHosts?: string[];
+  excludePaths?: (string | RegExp)[];
+  includeHosts?: (string | RegExp)[];
   includeMimes?: string[];
   excludeStatusCodes?: number[];
   /**

@@ -42,7 +42,7 @@ describe('Record HAR', () => {
   );
 
   it('excludes a request by its path', () => {
-    cy.recordHar({ excludePaths: ['^\\/api\\/products$', '^\\/api\\/users$'] });
+    cy.recordHar({ excludePaths: [/^\/api\/products$/, '^\\/api\\/users$'] });
 
     cy.get('a[href$=fetch]').click();
 

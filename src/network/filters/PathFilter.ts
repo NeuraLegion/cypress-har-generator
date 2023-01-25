@@ -1,5 +1,6 @@
 import { NetworkRequest } from '../NetworkRequest';
 import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
+import { StringUtils } from '../../utils/StringUtils';
 
 export class PathFilter implements RequestFilter {
   public apply(
@@ -8,8 +9,8 @@ export class PathFilter implements RequestFilter {
   ): boolean {
     const { pathname = '/' } = request.parsedURL;
 
-    return !excludePaths?.some((pattern: string): boolean =>
-      new RegExp(pattern).test(pathname)
+    return !excludePaths?.some(pattern =>
+      StringUtils.toRegex(pattern).test(pathname)
     );
   }
 

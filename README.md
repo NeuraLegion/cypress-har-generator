@@ -177,13 +177,13 @@ cy.recordHar({ content: false });
 To include only requests on specific hosts, you can pass an array of patterns specifying a list of hosts using the `includeHosts` for which to record requests:
 
 ```js
-cy.recordHar({ includeHosts: ['.*.execute-api.eu-west-1.amazonaws.com'] });
+cy.recordHar({ includeHosts: [/.*\.execute-api\.eu-west-1\.amazonaws\.com/] });
 ```
 
 To exclude some requests, you can pass an array of patterns specifying a list of paths using the `excludePaths` to be excluded from the logs:
 
 ```js
-cy.recordHar({ excludePaths: ['^/login', 'logout$'] });
+cy.recordHar({ excludePaths: [/^\/login/, /logout$/] });
 ```
 
 You can also pass an array of MIME types for which to record requests:
