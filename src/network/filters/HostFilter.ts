@@ -1,5 +1,6 @@
 import { NetworkRequest } from '../NetworkRequest';
 import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
+import { StringUtils } from '../../utils/StringUtils';
 
 export class HostFilter implements RequestFilter {
   public apply(
@@ -8,8 +9,8 @@ export class HostFilter implements RequestFilter {
   ): boolean {
     const { host } = request.parsedURL;
 
-    return !!includeHosts?.some((pattern: string): boolean =>
-      new RegExp(pattern).test(host)
+    return !!includeHosts?.some(pattern =>
+      StringUtils.toRegex(pattern).test(host)
     );
   }
 

@@ -35,7 +35,7 @@ describe('HostFilter', () => {
 
     it.each([
       { includeHosts: ['example.com'] },
-      { includeHosts: ['example.com$'] },
+      { includeHosts: [/example\.com$/] },
       { includeHosts: ['example.com', 'sub.example.com'] }
     ])(
       'should return true when the filter is applicable (options: %j)',
@@ -66,7 +66,7 @@ describe('HostFilter', () => {
       // arrange
       const url = new URL('https://example.com');
       when(networkRequestMock.parsedURL).thenReturn(url);
-      const options = { includeHosts: ['example.com$'] };
+      const options = { includeHosts: [/example\.com$/] };
       // act
       const result = sut.apply(instance(networkRequestMock), options);
       // assert

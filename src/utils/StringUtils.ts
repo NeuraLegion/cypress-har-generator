@@ -1,4 +1,16 @@
 export class StringUtils {
+  public static isString(value: unknown): value is string {
+    return typeof value === 'string';
+  }
+
+  public static toRegexSource(pattern: RegExp | string): string {
+    return this.isString(pattern) ? pattern : pattern.source;
+  }
+
+  public static toRegex(pattern: RegExp | string): RegExp {
+    return this.isString(pattern) ? new RegExp(pattern) : pattern;
+  }
+
   public static dirname(path: string): string {
     const normalizedPath = this.removeTrailingSlash(path);
     const fileNameIdx = this.fileNameIdx(normalizedPath);
