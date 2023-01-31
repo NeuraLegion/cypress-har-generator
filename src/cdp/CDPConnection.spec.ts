@@ -3,7 +3,7 @@ import { Logger } from '../utils/Logger';
 import { RetryStrategy } from './RetryStrategy';
 import {
   CONNECTED,
-  CONNECTION_IS_NOT_DEFINED,
+  CONNECTION_NOT_ESTABLISHED,
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT
 } from './messages';
@@ -180,7 +180,7 @@ describe('CDPConnection', () => {
       // act
       const act = () => sut.discoverNetwork();
       // assert
-      expect(act).toThrow(CONNECTION_IS_NOT_DEFINED);
+      expect(act).toThrow(CONNECTION_NOT_ESTABLISHED);
     });
 
     it('should create a new network monitor', async () => {

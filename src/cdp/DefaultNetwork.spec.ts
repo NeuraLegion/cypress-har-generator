@@ -1,38 +1,44 @@
 import { DefaultNetwork } from './DefaultNetwork';
+import type { Logger } from '../utils/Logger';
 import {
-  mock,
-  instance,
-  when,
-  verify,
+  TARGET_OR_BROWSER_CLOSED,
+  UNABLE_TO_ATTACH_TO_TARGET
+} from './messages';
+import {
   anyFunction,
-  reset,
+  anything,
   deepEqual,
-  anything
+  instance,
+  mock,
+  reset,
+  verify,
+  when
 } from 'ts-mockito';
 import type { Client } from 'chrome-remote-interface';
 import {
+  afterEach,
   beforeEach,
   describe,
-  jest,
-  it,
   expect,
-  afterEach
+  it,
+  jest
 } from '@jest/globals';
 import type Protocol from 'devtools-protocol';
 
 describe('DefaultNetwork', () => {
   const clientMock = mock<Client>();
+  const loggerMock = mock<Logger>();
   const listener = jest.fn();
 
   let sut!: DefaultNetwork;
 
   beforeEach(() => {
-    sut = new DefaultNetwork(instance(clientMock));
+    sut = new DefaultNetwork(instance(clientMock), instance(loggerMock));
   });
 
   afterEach(() => {
     listener.mockReset();
-    reset(clientMock);
+    reset<Client | Logger>(clientMock, loggerMock);
   });
 
   describe('attachToTargets', () => {
@@ -88,6 +94,17 @@ describe('DefaultNetwork', () => {
           })
         )
       ).once();
+    });
+
+    it('should ignore a error while subscribing to the security domain', async () => {
+      // arrange
+      when(clientMock.send('Security.enable')).thenReject(
+        new Error('Something went wrong.')
+      );
+      // act
+      const act = sut.attachToTargets(listener);
+      // assert
+      await expect(act).resolves.not.toThrow();
     });
 
     it('should start tracking sessions', async () => {
@@ -274,6 +291,64 @@ describe('DefaultNetwork', () => {
       ).once();
     });
 
+    it('should throw an error when an unexpected error is happened', async () => {
+      // arrange
+      const sessionId = '1';
+      const targetInfo: Protocol.Target.TargetInfo = {
+        targetId: '1',
+        type: 'page',
+        url: '',
+        title: '',
+        attached: true,
+        canAccessOpener: false
+      };
+      let act: ((...args: unknown[]) => Promise<void>) | undefined;
+      when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
+        (_, callback) => (act = callback)
+      );
+      when(
+        clientMock.send(
+          'Runtime.runIfWaitingForDebugger',
+          anything(),
+          sessionId
+        )
+      ).thenReject(new Error('Something went wrong'));
+      await sut.attachToTargets(listener);
+      // act
+      const result = act?.({ sessionId, targetInfo, waitingForDebugger: true });
+      // assert
+      await expect(result).rejects.toThrow();
+      verify(loggerMock.err(UNABLE_TO_ATTACH_TO_TARGET)).once();
+    });
+
+    it.each([{ input: 'Target closed' }, { input: 'Session closed' }])(
+      'should silently handle an error when the $input has been closed',
+      async ({ input }) => {
+        // arrange
+        const sessionId = '1';
+        const targetInfo: Protocol.Target.TargetInfo = {
+          targetId: '1',
+          type: 'page',
+          url: '',
+          title: '',
+          attached: true,
+          canAccessOpener: false
+        };
+        let act: ((...args: unknown[]) => Promise<void>) | undefined;
+        when(clientMock.on('Target.attachedToTarget', anyFunction())).thenCall(
+          (_, callback) => (act = callback)
+        );
+        when(
+          clientMock.send('Network.enable', deepEqual({}), sessionId)
+        ).thenReject(new Error(input));
+        await sut.attachToTargets(listener);
+        // act
+        await act?.({ sessionId, targetInfo, waitingForDebugger: true });
+        // assert
+        verify(loggerMock.debug(TARGET_OR_BROWSER_CLOSED)).once();
+      }
+    );
+
     it('should ignore certificate errors', async () => {
       // arrange
       const eventId = 1;
@@ -323,6 +398,17 @@ describe('DefaultNetwork', () => {
         clientMock.off('Network.requestWillBeSent', anyFunction())
       ).never();
       verify(clientMock.off('Network.webSocketCreated', anyFunction())).never();
+    });
+
+    it('should ignore any errors while unsubscribing from the security domain', async () => {
+      // arrange
+      when(clientMock.send('Security.disable')).thenReject(
+        new Error('Something went wrong.')
+      );
+      // act
+      const act = sut.detachFromTargets();
+      // assert
+      await expect(act).resolves.not.toThrow();
     });
 
     it('should unsubscribe from the security domain', async () => {

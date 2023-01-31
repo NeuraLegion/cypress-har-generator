@@ -3,7 +3,7 @@ import { Logger } from '../utils/Logger';
 import {
   ATTEMPT_TO_CONNECT,
   CONNECTED,
-  CONNECTION_IS_NOT_DEFINED,
+  CONNECTION_NOT_ESTABLISHED,
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT,
   FAILED_TO_CONNECT
@@ -67,11 +67,11 @@ export class CDPConnection implements Connection {
 
   public discoverNetwork(): Network {
     if (!this.cdp) {
-      throw new Error(CONNECTION_IS_NOT_DEFINED);
+      throw new Error(CONNECTION_NOT_ESTABLISHED);
     }
 
     if (!this._network) {
-      this._network = new DefaultNetwork(this.cdp);
+      this._network = new DefaultNetwork(this.cdp, this.logger);
     }
 
     return this._network;

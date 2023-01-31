@@ -10,6 +10,11 @@ import type {
 import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
 import type { Connection, ConnectionFactory } from './cdp';
+import {
+  ADDRESS_OPTION_NAME,
+  PORT_OPTION_NAME,
+  SUPPORTED_BROWSERS
+} from './constants';
 import { join } from 'path';
 import { EOL } from 'os';
 import { promisify } from 'util';
@@ -35,8 +40,6 @@ export class Plugin {
   private networkObservable?: Observer<NetworkRequest>;
   private addr?: Addr;
   private _connection?: Connection;
-  private readonly PORT_OPTION_NAME = '--remote-debugging-port';
-  private readonly ADDRESS_OPTION_NAME = '--remote-debugging-address';
 
   constructor(
     private readonly logger: Logger,
@@ -137,18 +140,16 @@ export class Plugin {
   }
 
   private parseElectronSwitches(browser: Cypress.Browser): string[] {
-    if (
-      !process.env.ELECTRON_EXTRA_LAUNCH_ARGS?.includes(this.PORT_OPTION_NAME)
-    ) {
+    if (!process.env.ELECTRON_EXTRA_LAUNCH_ARGS?.includes(PORT_OPTION_NAME)) {
       this.logger
-        .err(`The '${browser.name}' browser was detected, however, the required '${this.PORT_OPTION_NAME}' command line switch was not provided. 
+        .err(`The '${browser.name}' browser was detected, however, the required '${PORT_OPTION_NAME}' command line switch was not provided. 
 This switch is necessary to enable remote debugging over HTTP on the specified port. 
 
 Please refer to the documentation:
   - https://www.electronjs.org/docs/latest/api/command-line-switches#--remote-debugging-portport
   - https://docs.cypress.io/api/plugins/browser-launch-api#Modify-Electron-app-switches`);
       throw new Error(
-        `Missing '${this.PORT_OPTION_NAME}' command line switch for Electron browser`
+        `Missing '${PORT_OPTION_NAME}' command line switch for Electron browser`
       );
     }
 
@@ -209,7 +210,7 @@ Please refer to the documentation:
   }
 
   private isSupportedBrowser(browser: Cypress.Browser): boolean {
-    return ['chromium'].includes(browser?.family);
+    return SUPPORTED_BROWSERS.includes(browser?.family);
   }
 
   private ensureRdpAddrArgs(args: string[]): string[] {
@@ -222,19 +223,19 @@ Please refer to the documentation:
 
     return [
       ...args,
-      `${this.PORT_OPTION_NAME}=${port}`,
-      `${this.ADDRESS_OPTION_NAME}=${host}`
+      `${PORT_OPTION_NAME}=${port}`,
+      `${ADDRESS_OPTION_NAME}=${host}`
     ];
   }
 
   private extractAddrFromArgs(args: string[]): Partial<Addr> {
     const port: string | undefined = this.findAndParseIfPossible(
       args,
-      this.PORT_OPTION_NAME
+      PORT_OPTION_NAME
     );
     const host: string | undefined = this.findAndParseIfPossible(
       args,
-      this.ADDRESS_OPTION_NAME
+      ADDRESS_OPTION_NAME
     );
 
     let addr: { port?: number; host?: string } = {};
