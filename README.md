@@ -292,14 +292,17 @@ Here's an example of how you might use this command to dispose of the HAR:
 
 ```js
 describe('my tests', () => {
-  before(() => {
+  beforeEach(() => {
     // start recording
     cy.recordHar();
   });
 
-  after(() => {
-    // decide not to save the recorded logs
-    cy.disposeOfHar();
+  afterEach(function () {
+    const { state } = this.currentTest;
+    if (state === 'passed') {
+      // decide not to save the recorded logs
+      cy.disposeOfHar();
+    }
   });
 });
 ```
