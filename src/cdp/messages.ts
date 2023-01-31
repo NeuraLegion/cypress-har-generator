@@ -1,13 +1,20 @@
-export const FAILED_ATTEMPT_TO_CONNECT = `Failed to connect to Chrome Debugging Protocol`;
-export const ATTEMPT_TO_CONNECT = `Attempting to connect to Chrome Debugging Protocol`;
-export const CONNECTED = `Connected to Chrome Debugging Protocol`;
-export const DISCONNECTED = `Chrome Debugging Protocol disconnected`;
-export const CONNECTION_IS_NOT_DEFINED = `Connection to Chrome Debugging Protocol isn't defined yet.`;
+export const FAILED_ATTEMPT_TO_CONNECT =
+  'Failed to connect to Chrome Debugging Protocol';
+export const ATTEMPT_TO_CONNECT =
+  'Attempting to connect to Chrome Debugging Protocol';
+export const CONNECTED = 'Connected to Chrome Debugging Protocol';
+export const DISCONNECTED = 'Chrome Debugging Protocol disconnected';
+export const CONNECTION_NOT_ESTABLISHED = `Chrome Debugging Protocol connection has not been established.`;
+export const TARGET_OR_BROWSER_CLOSED =
+  'The target or browser may have closed before completion of initialization';
+export const UNABLE_TO_ATTACH_TO_TARGET = `Unable to attach to target. Please open an issue on the repository: https://github.com/NeuraLegion/cypress-har-generator/issues for assistance.
+
+The stack trace for this error is:`;
 export const FAILED_TO_CONNECT = `${FAILED_ATTEMPT_TO_CONNECT}
 
-Common situations why this would fail:
-  - you forgot to run Chrome in headless mode
-  - you use Chrome version 58 or earlier
-  - you have weird RDP configuration settings
+Possible reasons for failure:
+  - Chrome not running in headless mode
+  - Using Chrome version 58 or earlier
+  - Inconsistent RDP configuration settings.
   
 The stack trace for this error is:`;

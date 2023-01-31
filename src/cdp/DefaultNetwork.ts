@@ -1,4 +1,10 @@
 import type { Network, NetworkEvent } from '../network';
+import { ErrorUtils } from '../utils/ErrorUtils';
+import { Logger } from '../utils/Logger';
+import {
+  TARGET_OR_BROWSER_CLOSED,
+  UNABLE_TO_ATTACH_TO_TARGET
+} from './messages';
 import type { Client, EventMessage } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
@@ -16,7 +22,7 @@ export class DefaultNetwork implements Network {
   private listener?: (event: NetworkEvent) => unknown;
   private readonly sessions = new Map<string, string | undefined>();
 
-  constructor(private readonly cdp: Client) {}
+  constructor(private readonly cdp: Client, private readonly logger: Logger) {}
 
   public async attachToTargets(
     listener: (event: NetworkEvent) => unknown
@@ -41,10 +47,14 @@ export class DefaultNetwork implements Network {
       delete this.listener;
     }
 
-    await Promise.all([
-      this.cdp.send('Security.disable'),
-      this.enableAutoAttach(false)
-    ]);
+    try {
+      await Promise.all([
+        this.cdp.send('Security.disable'),
+        this.enableAutoAttach(false)
+      ]);
+    } catch (e) {
+      // ADHOC: handle any unforeseen issues while detaching from targets.
+    }
 
     this.sessions.clear();
   }
@@ -80,10 +90,17 @@ export class DefaultNetwork implements Network {
 
   private async ignoreCertificateError(): Promise<void> {
     this.cdp.on('Security.certificateError', this.certificateErrorListener);
-    await this.cdp.send('Security.enable');
-    await this.cdp.send('Security.setOverrideCertificateErrors', {
-      override: true
-    });
+    try {
+      await this.cdp.send('Security.enable');
+      await this.cdp.send('Security.setOverrideCertificateErrors', {
+        override: true
+      });
+    } catch (e) {
+      // ADHOC: The CDP protocol may not support the Security domain.
+      this.logger.debug(
+        ErrorUtils.isError(e) ? e.message : `Something went wrong: ${e}`
+      );
+    }
   }
 
   private networkEventListener = async (eventMessage: EventMessage) => {
@@ -114,6 +131,7 @@ export class DefaultNetwork implements Network {
     type: string;
   }): Promise<void> {
     await this.enableAutoAttach(true, options.sessionId);
+
     if (this.ALLOWED_TARGETS.has(options.type)) {
       await this.trackNetworkEvents(options.sessionId);
     }
@@ -148,27 +166,53 @@ export class DefaultNetwork implements Network {
     targetInfo,
     waitingForDebugger
   }: Protocol.Target.AttachedToTargetEvent): Promise<void> => {
-    await this.recursivelyAttachToTargets({ sessionId, type: targetInfo.type });
+    try {
+      await this.recursivelyAttachToTargets({
+        sessionId,
+        type: targetInfo.type
+      });
 
-    if (waitingForDebugger) {
-      await this.cdp.send(
-        'Runtime.runIfWaitingForDebugger',
-        undefined,
-        sessionId
-      );
+      if (waitingForDebugger) {
+        await this.cdp.send(
+          'Runtime.runIfWaitingForDebugger',
+          undefined,
+          sessionId
+        );
+      }
+    } catch (e) {
+      this.logger.err(UNABLE_TO_ATTACH_TO_TARGET);
+      throw e;
     }
   };
 
   private async trackNetworkEvents(sessionId?: string): Promise<void> {
-    await Promise.all([
-      this.cdp.send('Network.enable', {}, sessionId),
-      this.cdp.send(
-        'Network.setCacheDisabled',
-        {
-          cacheDisabled: true
-        },
-        sessionId
-      )
-    ]);
+    try {
+      await Promise.all([
+        this.cdp.send('Network.enable', {}, sessionId),
+        this.cdp.send(
+          'Network.setCacheDisabled',
+          {
+            cacheDisabled: true
+          },
+          sessionId
+        )
+      ]);
+    } catch (e) {
+      if (this.targetClosedError(e)) {
+        this.logger.debug(TARGET_OR_BROWSER_CLOSED);
+
+        return;
+      }
+
+      throw e;
+    }
+  }
+
+  private targetClosedError(e: unknown): boolean {
+    return (
+      ErrorUtils.isError(e) &&
+      (e.message.includes('Target closed') ||
+        e.message.includes('Session closed'))
+    );
   }
 }
