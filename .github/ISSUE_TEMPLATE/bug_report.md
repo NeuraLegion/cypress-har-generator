@@ -10,6 +10,13 @@ assignees: derevnjuk
 **Description**
 A clear and concise description of what the bug is.
 
+**Stack trace**
+An output of execution with `NODE_DEBUG=cypress-har-generator` in the environment:
+
+```
+CYPRESS-HAR-GENERATOR 43075: Failed request: 44670.125. Reason: net::ERR_ABORTED
+```
+
 **Steps to reproduce**
 1. Go to '...'
 2. Click on '....'
@@ -21,6 +28,3 @@ A clear and concise description of what you expected to happen.
 
 **Actual behavior**
 A clear description of the outcome that occurred in reality, as opposed to the expected outcome
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
