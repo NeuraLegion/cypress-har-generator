@@ -62,8 +62,8 @@ describe('DefaultHarExporterFactory', () => {
       // arrange
       const options = {
         rootDir: '/root',
-        predicatePath: 'predicate.js',
-        transformPath: 'transform.js'
+        filter: 'predicate.js',
+        transform: 'transform.js'
       };
       when(fileManagerMock.createTmpWriteStream()).thenResolve(
         resolvableInstance(writeStreamMock)
@@ -77,6 +77,7 @@ describe('DefaultHarExporterFactory', () => {
       // assert
       expect(result).toBeInstanceOf(DefaultHarExporter);
       verify(loaderSpy.load('/root/predicate.js')).once();
+      verify(loaderSpy.load('/root/transform.js')).once();
     });
 
     it('should create a HarExporter instance without pre and post processors', async () => {
