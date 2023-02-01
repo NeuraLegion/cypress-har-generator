@@ -1,6 +1,6 @@
-module.exports = async req => {
+module.exports = async entry => {
   try {
-    return /\{"products":\[/.test(req.response.content.text ?? '');
+    return /\{"products":\[/.test(entry.response.content.text ?? '');
   } catch {
     return false;
   }

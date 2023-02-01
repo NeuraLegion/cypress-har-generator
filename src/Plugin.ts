@@ -5,7 +5,8 @@ import type {
   HarExporterFactory,
   NetworkObserverOptions,
   Observer,
-  ObserverFactory
+  ObserverFactory,
+  HarExporterOptions
 } from './network';
 import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
@@ -25,10 +26,7 @@ export interface SaveOptions {
   waitForIdle?: boolean;
 }
 
-export type RecordOptions = NetworkObserverOptions & {
-  rootDir: string;
-  filter?: string;
-};
+export type RecordOptions = NetworkObserverOptions & HarExporterOptions;
 
 interface Addr {
   port: number;
@@ -81,10 +79,7 @@ export class Plugin {
       );
     }
 
-    this.exporter = await this.exporterFactory.create({
-      predicatePath: options.filter,
-      rootDir: options.rootDir
-    });
+    this.exporter = await this.exporterFactory.create(options);
     this._connection = this.connectionFactory.create({
       ...this.addr,
       maxRetries: 20,

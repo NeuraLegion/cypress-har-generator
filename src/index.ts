@@ -22,7 +22,7 @@ const plugin = new Plugin(
   FileManager.Instance,
   new DefaultConnectionFactory(Logger.Instance),
   new DefaultObserverFactory(Logger.Instance),
-  new DefaultHarExporterFactory(FileManager.Instance)
+  new DefaultHarExporterFactory(FileManager.Instance, Logger.Instance)
 );
 
 export const install = (on: Cypress.PluginEvents): void => {

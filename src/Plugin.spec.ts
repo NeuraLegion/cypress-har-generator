@@ -1,7 +1,7 @@
 import type { RecordOptions, SaveOptions } from './Plugin';
 import { Plugin } from './Plugin';
-import { Logger } from './utils/Logger';
-import { FileManager } from './utils/FileManager';
+import type { Logger } from './utils/Logger';
+import type { FileManager } from './utils/FileManager';
 import type {
   Observer,
   ObserverFactory,

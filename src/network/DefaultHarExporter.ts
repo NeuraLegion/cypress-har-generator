@@ -1,9 +1,17 @@
 import { EntryBuilder } from './EntryBuilder';
 import type { NetworkRequest } from './NetworkRequest';
 import type { HarExporter } from './HarExporter';
+import type { Logger } from '../utils/Logger';
+import { ErrorUtils } from '../utils/ErrorUtils';
+import type {
+  DefaultHarExporterOptions,
+  Filter,
+  Transformer
+} from './DefaultHarExporterOptions';
 import type { Entry } from 'har-format';
 import type { WriteStream } from 'fs';
 import { EOL } from 'os';
+import { format } from 'util';
 
 export class DefaultHarExporter implements HarExporter {
   get path(): string {
@@ -12,23 +20,57 @@ export class DefaultHarExporter implements HarExporter {
     return Buffer.isBuffer(path) ? path.toString('utf-8') : path;
   }
 
+  private get filter(): Filter | undefined {
+    return this.options?.filter;
+  }
+
+  private get transform(): Transformer | undefined {
+    return this.options?.transform;
+  }
+
   constructor(
+    private readonly logger: Logger,
     private readonly buffer: WriteStream,
-    private readonly predicate?: (entry: Entry) => Promise<unknown> | unknown
+    private readonly options?: DefaultHarExporterOptions
   ) {}
 
   public async write(networkRequest: NetworkRequest): Promise<void> {
     const entry = await new EntryBuilder(networkRequest).build();
 
-    if (await this.applyPredicate(entry)) {
+    if (await this.applyFilter(entry)) {
       return;
     }
 
-    const json = JSON.stringify(entry);
+    const json = await this.serializeEntry(entry);
 
     // @ts-expect-error type mismatch
-    if (!this.buffer.closed) {
+    if (!this.buffer.closed && json) {
       this.buffer.write(`${json}${EOL}`);
+    }
+  }
+
+  public async serializeEntry(entry: Entry): Promise<string | undefined> {
+    try {
+      const result =
+        typeof this.transform === 'function'
+          ? await this.transform(entry)
+          : entry;
+
+      return JSON.stringify(result);
+    } catch (e) {
+      const stack = ErrorUtils.isError(e) ? e.stack : e;
+
+      this.logger.debug(
+        format(`The entry has been filtered out due to an error: %j`, entry)
+      );
+      this.logger.err(
+        `The entry is missing as a result of an error in the 'transform' function.
+s
+The stack trace for this error is: 
+${stack}`
+      );
+
+      return undefined;
     }
   }
 
@@ -36,12 +78,16 @@ export class DefaultHarExporter implements HarExporter {
     this.buffer.end();
   }
 
-  private async applyPredicate(entry: Entry) {
+  private async applyFilter(entry: Entry): Promise<unknown> {
     try {
-      return (
-        typeof this.predicate === 'function' && (await this.predicate?.(entry))
+      return typeof this.filter === 'function' && (await this.filter(entry));
+    } catch (e) {
+      const message = ErrorUtils.isError(e) ? e.message : e;
+
+      this.logger.debug(
+        `The operation has encountered an error while processing the entry. ${message}`
       );
-    } catch {
+
       return false;
     }
   }
