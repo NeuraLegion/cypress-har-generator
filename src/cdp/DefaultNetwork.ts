@@ -1,6 +1,6 @@
 import type { Network, NetworkEvent } from '../network';
 import { ErrorUtils } from '../utils/ErrorUtils';
-import { Logger } from '../utils/Logger';
+import type { Logger } from '../utils/Logger';
 import {
   TARGET_OR_BROWSER_CLOSED,
   UNABLE_TO_ATTACH_TO_TARGET

@@ -21,3 +21,4 @@ export { HarBuilder } from './HarBuilder';
 export { NetworkIdleMonitor } from './NetworkIdleMonitor';
 export { NetworkObserver } from './NetworkObserver';
 export { NetworkRequest, WebSocketFrameType } from './NetworkRequest';
+export type { DefaultHarExporterOptions } from './DefaultHarExporterOptions';

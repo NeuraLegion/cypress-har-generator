@@ -28,6 +28,7 @@ export interface SaveOptions {
 export type RecordOptions = NetworkObserverOptions & {
   rootDir: string;
   filter?: string;
+  transform?: string;
 };
 
 interface Addr {
@@ -81,10 +82,7 @@ export class Plugin {
       );
     }
 
-    this.exporter = await this.exporterFactory.create({
-      predicatePath: options.filter,
-      rootDir: options.rootDir
-    });
+    this.exporter = await this.exporterFactory.create(options);
     this._connection = this.connectionFactory.create({
       ...this.addr,
       maxRetries: 20,
