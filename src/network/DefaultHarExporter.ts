@@ -65,8 +65,8 @@ export class DefaultHarExporter implements HarExporter {
       );
       this.logger.err(
         `The entry is missing as a result of an error in the 'transform' function.
-s
-The stack trace for this error is: 
+
+The stack trace for this error is:
 ${stack}`
       );
 
