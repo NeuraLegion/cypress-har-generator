@@ -59,14 +59,13 @@ export class DefaultHarExporter implements HarExporter {
       return JSON.stringify(result);
     } catch (e) {
       const stack = ErrorUtils.isError(e) ? e.stack : e;
-      const formattedEntry = format('%j', entry);
 
+      this.logger.debug(
+        format(`The entry has been filtered out due to an error: %j`, entry)
+      );
       this.logger.err(
         `The entry is missing as a result of an error in the 'transform' function.
-
-The passed entry:
-${formattedEntry}
-
+s
 The stack trace for this error is: 
 ${stack}`
       );
