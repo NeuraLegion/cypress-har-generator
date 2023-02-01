@@ -256,18 +256,18 @@ Here's a simple example of what the `remove-sensitive-data.ts` module might look
 ```ts
 import { Entry } from 'har-format';
 
-const PASSWORD_REGEXP = /\"password":.*?(?=,)/g;
+const PASSWORD_REGEXP = /"password":.*?(?=,)/g;
 
 export default async (entry: Entry) => {
   try {
     // Remove sensitive information from the request and response bodies
     entry.request.postData.text = entry.request.postData.text.replace(
       PASSWORD_REGEXP,
-      `"password": "***"`
+      `"password":"***"`
     );
     entry.response.content.text = entry.response.content.text.replace(
       PASSWORD_REGEXP,
-      `"password": "***"`
+      `"password":"***"`
     );
     return entry;
   } catch {
