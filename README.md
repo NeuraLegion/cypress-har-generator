@@ -242,9 +242,43 @@ export default async (entry: Entry) => {
 };
 ```
 
-> ✴ The plugin also supports files with `.js`, `.mjs` and `.cjs` extensions.
-
 In this example, the `filter` function will only exclude entries in the HAR where the request body contains a JSON object with a password field.
+
+You can also modify the entries before saving the HAR by using the transform option. This option should be set to a path to a module that exports a function, similar to the filter option, to change the Entry object as desired.
+The function should take an Entry object as a parameter and return the modified Entry object.
+
+```js
+cy.recordHar({ transform: '../support/remove-sensitive-data.ts' });
+```
+
+Here's a simple example of what the `remove-sensitive-data.ts` module might look like:
+
+```ts
+import { Entry } from 'har-format';
+
+const PASSWORD_REGEXP = /\"password":.*?(?=,)/g;
+
+export default async (entry: Entry) => {
+  try {
+    // Remove sensitive information from the request and response bodies
+    entry.request.postData.text = entry.request.postData.text.replace(
+      PASSWORD_REGEXP,
+      `"password": "***"`
+    );
+    entry.response.content.text = entry.response.content.text.replace(
+      PASSWORD_REGEXP,
+      `"password": "***"`
+    );
+    return entry;
+  } catch {
+    return entry;
+  }
+};
+```
+
+In this example, the transform function will replace any instances of password with `***` in both the request and response bodies of each entry.
+
+> ✴ The plugin also supports files with `.js`, `.mjs` and `.cjs` extensions.
 
 By default, the path is relative to the spec folder. But by providing a `rootDir` it will look for the module in the provided directory:
 
