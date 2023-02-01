@@ -2,8 +2,8 @@ import type { HarExporter } from './HarExporter';
 
 export interface HarExporterOptions {
   rootDir: string;
-  predicatePath?: string;
-  transformPath?: string;
+  filter?: string;
+  transform?: string;
 }
 
 export interface HarExporterFactory {

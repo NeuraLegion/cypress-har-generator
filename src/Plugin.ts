@@ -7,7 +7,12 @@ import type {
   Observer,
   ObserverFactory
 } from './network';
-import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
+import {
+  HarBuilder,
+  HarExporterOptions,
+  NetworkIdleMonitor,
+  NetworkRequest
+} from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
 import type { Connection, ConnectionFactory } from './cdp';
 import {
@@ -25,11 +30,7 @@ export interface SaveOptions {
   waitForIdle?: boolean;
 }
 
-export type RecordOptions = NetworkObserverOptions & {
-  rootDir: string;
-  filter?: string;
-  transform?: string;
-};
+export type RecordOptions = NetworkObserverOptions & HarExporterOptions;
 
 interface Addr {
   port: number;

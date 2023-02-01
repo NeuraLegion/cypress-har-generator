@@ -95,7 +95,7 @@ describe('DefaultHarExporter', () => {
       // arrange
       // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
-      when(optionsSpy.predicate).thenReturn(predicate);
+      when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
 
       // act
@@ -109,7 +109,7 @@ describe('DefaultHarExporter', () => {
       // arrange
       // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
-      when(optionsSpy.predicate).thenReturn(predicate);
+      when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(
         Promise.reject(new Error('something went wrong'))
       );
@@ -157,7 +157,7 @@ describe('DefaultHarExporter', () => {
       // arrange
       // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
-      when(optionsSpy.predicate).thenReturn(predicate);
+      when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(true);
 
       // act
@@ -171,7 +171,7 @@ describe('DefaultHarExporter', () => {
       // arrange
       // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(true);
-      when(optionsSpy.predicate).thenReturn(predicate);
+      when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
 
       // act

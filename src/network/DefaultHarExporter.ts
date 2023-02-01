@@ -5,7 +5,7 @@ import type { Logger } from '../utils/Logger';
 import { ErrorUtils } from '../utils/ErrorUtils';
 import type {
   DefaultHarExporterOptions,
-  Predicate,
+  Filter,
   Transformer
 } from './DefaultHarExporterOptions';
 import type { Entry } from 'har-format';
@@ -20,8 +20,8 @@ export class DefaultHarExporter implements HarExporter {
     return Buffer.isBuffer(path) ? path.toString('utf-8') : path;
   }
 
-  private get predicate(): Predicate | undefined {
-    return this.options?.predicate;
+  private get filter(): Filter | undefined {
+    return this.options?.filter;
   }
 
   private get transform(): Transformer | undefined {
@@ -37,7 +37,7 @@ export class DefaultHarExporter implements HarExporter {
   public async write(networkRequest: NetworkRequest): Promise<void> {
     const entry = await new EntryBuilder(networkRequest).build();
 
-    if (await this.applyPredicate(entry)) {
+    if (await this.applyFilter(entry)) {
       return;
     }
 
@@ -79,11 +79,9 @@ ${stack}`
     this.buffer.end();
   }
 
-  private async applyPredicate(entry: Entry): Promise<unknown> {
+  private async applyFilter(entry: Entry): Promise<unknown> {
     try {
-      return (
-        typeof this.predicate === 'function' && (await this.predicate?.(entry))
-      );
+      return typeof this.filter === 'function' && (await this.filter(entry));
     } catch (e) {
       const message = ErrorUtils.isError(e) ? e.message : e;
 

@@ -9,7 +9,7 @@ import type { FileManager } from '../utils/FileManager';
 import type { Logger } from '../utils/Logger';
 import type {
   DefaultHarExporterOptions,
-  Predicate,
+  Filter,
   Transformer
 } from './DefaultHarExporterOptions';
 import { resolve } from 'path';
@@ -28,21 +28,22 @@ export class DefaultHarExporterFactory implements HarExporterFactory {
   }
 
   private async createSettings({
-    predicatePath,
-    transformPath,
+    filter,
+    transform,
     rootDir
   }: HarExporterOptions) {
-    const [predicate, transform]: (Predicate | Transformer | undefined)[] =
+    const [preProcessor, postProcessor]: (Filter | Transformer | undefined)[] =
       await Promise.all(
-        [predicatePath, transformPath].map(path =>
-          this.loadCustomProcessor(path, rootDir)
-        )
+        [filter, transform].map(path => this.loadCustomProcessor(path, rootDir))
       );
 
-    return { predicate, transform } as DefaultHarExporterOptions;
+    return {
+      filter: preProcessor,
+      transform: postProcessor
+    } as DefaultHarExporterOptions;
   }
 
-  private async loadCustomProcessor<T extends Predicate | Transformer>(
+  private async loadCustomProcessor<T extends Filter | Transformer>(
     path: string | undefined,
     rootDir: string
   ): Promise<T | undefined> {
