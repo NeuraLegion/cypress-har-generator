@@ -188,7 +188,14 @@ export class DefaultNetwork implements Network {
   private async trackNetworkEvents(sessionId?: string): Promise<void> {
     try {
       await Promise.all([
-        this.cdp.send('Network.enable', {}, sessionId),
+        this.cdp.send(
+          'Network.enable',
+          {
+            maxResourceBufferSize: 256 * 1024 * 1204,
+            maxTotalBufferSize: 256 * 1024 * 1204
+          },
+          sessionId
+        ),
         this.cdp.send(
           'Network.setCacheDisabled',
           {

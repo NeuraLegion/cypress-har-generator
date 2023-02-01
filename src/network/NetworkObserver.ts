@@ -405,11 +405,11 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     return newNetworkRequest;
   }
 
-  private finishRequest(
+  private async finishRequest(
     networkRequest: NetworkRequest,
     finishTime: Protocol.Network.MonotonicTime,
     encodedDataLength: number
-  ): void {
+  ) {
     networkRequest.endTime = finishTime;
 
     if (encodedDataLength >= 0) {
@@ -425,6 +425,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     }
 
     this.loadContent(networkRequest);
+
+    await networkRequest.finalized;
 
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
 
