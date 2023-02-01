@@ -5,14 +5,10 @@ import type {
   HarExporterFactory,
   NetworkObserverOptions,
   Observer,
-  ObserverFactory
+  ObserverFactory,
+  HarExporterOptions
 } from './network';
-import {
-  HarBuilder,
-  HarExporterOptions,
-  NetworkIdleMonitor,
-  NetworkRequest
-} from './network';
+import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
 import type { Connection, ConnectionFactory } from './cdp';
 import {
