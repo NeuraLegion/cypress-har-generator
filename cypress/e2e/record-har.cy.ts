@@ -41,6 +41,24 @@ describe('Record HAR', () => {
     })
   );
 
+  ['.js', '.ts', '.cjs'].forEach(ext =>
+    it(`transforms a request using the custom postprocessor from ${ext} file`, () => {
+      cy.recordHar({ transform: `../fixtures/transform${ext}` });
+
+      cy.get('a[href$=fetch]').click();
+
+      cy.saveHar({ waitForIdle: true });
+
+      cy.findHar()
+        .its('log.entries')
+        .should('contain.something.like', {
+          response: {
+            content: { text: /\{"items":\[/ }
+          }
+        });
+    })
+  );
+
   it('excludes a request by its path', () => {
     cy.recordHar({ excludePaths: [/^\/api\/products$/, '^\\/api\\/users$'] });
 

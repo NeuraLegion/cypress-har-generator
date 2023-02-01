@@ -1,8 +1,8 @@
 import { Entry } from 'har-format';
 
-export default async (req: Entry) => {
+export default async (entry: Entry) => {
   try {
-    return /\{"products":\[/.test(req.response.content.text ?? '');
+    return /\{"products":\[/.test(entry.response.content.text ?? '');
   } catch {
     return false;
   }
