@@ -13,8 +13,8 @@ import { ErrorUtils } from './utils/ErrorUtils';
 import type { Connection, ConnectionFactory } from './cdp';
 import {
   ADDRESS_OPTION_NAME,
-  MAX_NETWORK_IDLE_TIME,
-  MAX_NETWORK_IDLE_TIMEOUT,
+  MAX_NETWORK_IDLE_THRESHOLD,
+  MAX_NETWORK_IDLE_DURATION,
   PORT_OPTION_NAME,
   SUPPORTED_BROWSERS
 } from './constants';
@@ -26,8 +26,8 @@ export interface SaveOptions {
   fileName: string;
   outDir: string;
   waitForIdle?: boolean;
-  networkIdleTime?: number;
-  networkIdleTimeout?: number;
+  minIdleDuration?: number;
+  maxWaitDuration?: number;
 }
 
 export type RecordOptions = NetworkObserverOptions & HarExporterOptions;
@@ -175,18 +175,18 @@ Please refer to the documentation:
   }
 
   private async waitForNetworkIdle(
-    options: Pick<SaveOptions, 'networkIdleTimeout' | 'networkIdleTime'>
+    options: Pick<SaveOptions, 'minIdleDuration' | 'maxWaitDuration'>
   ): Promise<void> {
     const {
-      networkIdleTime = MAX_NETWORK_IDLE_TIME,
-      networkIdleTimeout = MAX_NETWORK_IDLE_TIMEOUT
+      minIdleDuration = MAX_NETWORK_IDLE_THRESHOLD,
+      maxWaitDuration = MAX_NETWORK_IDLE_DURATION
     } = options;
-    const cancellation = promisify(setTimeout)(networkIdleTimeout);
+    const cancellation = promisify(setTimeout)(maxWaitDuration);
 
     return Promise.race([
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       new NetworkIdleMonitor(this.networkObservable!).waitForIdle(
-        networkIdleTime
+        minIdleDuration
       ),
       cancellation
     ]);
