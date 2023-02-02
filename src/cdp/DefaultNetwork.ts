@@ -5,6 +5,7 @@ import {
   TARGET_OR_BROWSER_CLOSED,
   UNABLE_TO_ATTACH_TO_TARGET
 } from './messages';
+import type { NetworkOptions } from './NetworkOptions';
 import type { Client, EventMessage } from 'chrome-remote-interface';
 import type Protocol from 'devtools-protocol';
 
@@ -22,7 +23,11 @@ export class DefaultNetwork implements Network {
   private listener?: (event: NetworkEvent) => unknown;
   private readonly sessions = new Map<string, string | undefined>();
 
-  constructor(private readonly cdp: Client, private readonly logger: Logger) {}
+  constructor(
+    private readonly cdp: Client,
+    private readonly logger: Logger,
+    private readonly options?: NetworkOptions
+  ) {}
 
   public async attachToTargets(
     listener: (event: NetworkEvent) => unknown
@@ -188,14 +193,7 @@ export class DefaultNetwork implements Network {
   private async trackNetworkEvents(sessionId?: string): Promise<void> {
     try {
       await Promise.all([
-        this.cdp.send(
-          'Network.enable',
-          {
-            maxResourceBufferSize: 256 * 1024 * 1204,
-            maxTotalBufferSize: 256 * 1024 * 1204
-          },
-          sessionId
-        ),
+        this.cdp.send('Network.enable', this.options ?? {}, sessionId),
         this.cdp.send(
           'Network.setCacheDisabled',
           {

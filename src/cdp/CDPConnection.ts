@@ -12,6 +12,7 @@ import type { Connection } from './Connection';
 import type { Network } from '../network';
 import { DefaultNetwork } from './DefaultNetwork';
 import { ErrorUtils } from '../utils/ErrorUtils';
+import type { NetworkOptions } from './NetworkOptions';
 import CDP, { Version } from 'chrome-remote-interface';
 import type { Client, Options } from 'chrome-remote-interface';
 
@@ -65,13 +66,13 @@ export class CDPConnection implements Connection {
     }
   }
 
-  public discoverNetwork(): Network {
+  public discoverNetwork(options?: NetworkOptions): Network {
     if (!this.cdp) {
       throw new Error(CONNECTION_NOT_ESTABLISHED);
     }
 
     if (!this._network) {
-      this._network = new DefaultNetwork(this.cdp, this.logger);
+      this._network = new DefaultNetwork(this.cdp, this.logger, options);
     }
 
     return this._network;
