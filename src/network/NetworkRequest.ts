@@ -46,10 +46,6 @@ export class NetworkRequest {
     Promise.resolve(undefined);
   private _formParametersPromise?: Promise<Param[]>;
 
-  get finalized() {
-    return Promise.all([this._contentData, this._formParametersPromise]);
-  }
-
   private _signedExchangeInfo?: Protocol.Network.SignedExchangeInfo;
 
   // TODO: use to finalize a response in the `requestWillBeSent` event handler or

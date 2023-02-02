@@ -61,11 +61,14 @@ describe('Record HAR', () => {
   });
 
   it('records a large response body greater than 100MB', () => {
-    cy.recordHar();
+    cy.recordHar({
+      maxTotalBufferSize: 256 * 1024 ** 2,
+      maxResourceBufferSize: 500 * 1024 ** 2
+    });
 
     cy.get('a[href$=large-content]').click();
 
-    cy.saveHar({ waitForIdle: true });
+    cy.saveHar({ waitForIdle: true, networkIdleTimeout: 20000 });
 
     cy.findHar()
       .its('log.entries')
