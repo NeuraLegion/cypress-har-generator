@@ -1,5 +1,5 @@
 export interface NetworkOptions {
-  maxResourceBufferSize: number;
-  maxTotalBufferSize: number;
-  maxPostDataSize: number;
+  maxResourceBufferSize?: number;
+  maxTotalBufferSize?: number;
+  maxPostDataSize?: number;
 }

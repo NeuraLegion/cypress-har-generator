@@ -15,9 +15,6 @@ import {
   ADDRESS_OPTION_NAME,
   MAX_NETWORK_IDLE_THRESHOLD,
   MAX_NETWORK_IDLE_DURATION,
-  MAX_POST_DATA_SIZE,
-  MAX_RESOURCE_BUFFER_SIZE,
-  MAX_TOTAL_BUFFER_SIZE,
   PORT_OPTION_NAME,
   SUPPORTED_BROWSERS
 } from './constants';
@@ -35,7 +32,7 @@ export interface SaveOptions {
 
 export type RecordOptions = NetworkObserverOptions &
   HarExporterOptions &
-  Partial<NetworkOptions>;
+  NetworkOptions;
 
 interface Addr {
   port: number;
@@ -197,17 +194,8 @@ Please refer to the documentation:
     ]);
   }
 
-  private async listenNetworkEvents({
-    maxPostDataSize = MAX_POST_DATA_SIZE,
-    maxResourceBufferSize = MAX_RESOURCE_BUFFER_SIZE,
-    maxTotalBufferSize = MAX_TOTAL_BUFFER_SIZE,
-    ...options
-  }: RecordOptions): Promise<void> {
-    const network = this._connection?.discoverNetwork({
-      maxPostDataSize,
-      maxTotalBufferSize,
-      maxResourceBufferSize
-    });
+  private async listenNetworkEvents(options: RecordOptions): Promise<void> {
+    const network = this._connection?.discoverNetwork(options);
 
     this.networkObservable = this.observerFactory.createNetworkObserver(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
