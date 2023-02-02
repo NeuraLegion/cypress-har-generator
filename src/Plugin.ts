@@ -3,16 +3,18 @@ import { FileManager } from './utils/FileManager';
 import type {
   HarExporter,
   HarExporterFactory,
+  HarExporterOptions,
   NetworkObserverOptions,
   Observer,
-  ObserverFactory,
-  HarExporterOptions
+  ObserverFactory
 } from './network';
 import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
 import type { Connection, ConnectionFactory } from './cdp';
 import {
   ADDRESS_OPTION_NAME,
+  MAX_NETWORK_IDLE_TIME,
+  MAX_NETWORK_IDLE_TIMEOUT,
   PORT_OPTION_NAME,
   SUPPORTED_BROWSERS
 } from './constants';
@@ -24,6 +26,8 @@ export interface SaveOptions {
   fileName: string;
   outDir: string;
   waitForIdle?: boolean;
+  networkIdleTime?: number;
+  networkIdleTimeout?: number;
 }
 
 export type RecordOptions = NetworkObserverOptions & HarExporterOptions;
@@ -105,7 +109,7 @@ export class Plugin {
       await this.fileManager.createFolder(options.outDir);
 
       if (options.waitForIdle) {
-        await this.waitForNetworkIdle();
+        await this.waitForNetworkIdle(options);
       }
 
       const har: string | undefined = await this.buildHar();
@@ -171,14 +175,19 @@ Please refer to the documentation:
   }
 
   private async waitForNetworkIdle(
-    options: { idleTime?: number; timeout?: number } = {}
+    options: Pick<SaveOptions, 'networkIdleTimeout' | 'networkIdleTime'>
   ): Promise<void> {
-    const { idleTime = 100, timeout = 5000 } = options;
-    const cancellation = promisify(setTimeout)(timeout);
+    const {
+      networkIdleTime = MAX_NETWORK_IDLE_TIME,
+      networkIdleTimeout = MAX_NETWORK_IDLE_TIMEOUT
+    } = options;
+    const cancellation = promisify(setTimeout)(networkIdleTimeout);
 
     return Promise.race([
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      new NetworkIdleMonitor(this.networkObservable!).waitForIdle(idleTime),
+      new NetworkIdleMonitor(this.networkObservable!).waitForIdle(
+        networkIdleTime
+      ),
       cancellation
     ]);
   }
