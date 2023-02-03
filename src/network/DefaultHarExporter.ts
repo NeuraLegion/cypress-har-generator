@@ -43,7 +43,6 @@ export class DefaultHarExporter implements HarExporter {
 
     const json = await this.serializeEntry(entry);
 
-    // @ts-expect-error type mismatch
     if (!this.buffer.closed && json) {
       this.buffer.write(`${json}${EOL}`);
     }
