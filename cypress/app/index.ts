@@ -91,7 +91,7 @@ app.get('/api/keys', (_: Request, res: Response) =>
     keys: Array(1000)
       .fill(0)
       .map((_noop, idx) => ({
-        key: randomBytes(50000).toString('hex'),
+        key: randomBytes(75000).toString('hex'),
         id: idx
       }))
   })

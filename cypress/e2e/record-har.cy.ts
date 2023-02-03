@@ -70,7 +70,7 @@ describe('Record HAR', () => {
 
     cy.saveHar({
       waitForIdle: true,
-      networkIdleTimeout: 20000
+      maxWaitDuration: 20000
     });
 
     cy.findHar()
@@ -81,7 +81,7 @@ describe('Record HAR', () => {
         },
         response: {
           content: {
-            size: 100019900,
+            size: 150019900,
             text: /.+/
           }
         }
