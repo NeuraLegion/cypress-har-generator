@@ -93,7 +93,6 @@ describe('DefaultHarExporter', () => {
   describe('write', () => {
     it('should write the entry to the buffer', async () => {
       // arrange
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
@@ -107,7 +106,6 @@ describe('DefaultHarExporter', () => {
 
     it('should write the entry to the buffer if the predicate returns throws an error', async () => {
       // arrange
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(
@@ -125,7 +123,6 @@ describe('DefaultHarExporter', () => {
       // arrange
       const entry = { foo: 'bar' } as unknown as Entry;
       const entryString = JSON.stringify(entry);
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.transform).thenReturn(transform);
       transform.mockReturnValue(Promise.resolve(entry));
@@ -139,7 +136,6 @@ describe('DefaultHarExporter', () => {
 
     it('should skip the entry when the transformation is failed with an error', async () => {
       // arrange
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.transform).thenReturn(transform);
       transform.mockReturnValue(
@@ -155,7 +151,6 @@ describe('DefaultHarExporter', () => {
 
     it('should not write the entry to the buffer if the predicate returns true', async () => {
       // arrange
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(true);
@@ -169,7 +164,6 @@ describe('DefaultHarExporter', () => {
 
     it('should not write the entry to the buffer if the buffer is closed', async () => {
       // arrange
-      // @ts-expect-error type mismatch
       when(streamMock.closed).thenReturn(true);
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
