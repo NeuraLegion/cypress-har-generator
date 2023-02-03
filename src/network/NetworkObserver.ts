@@ -428,9 +428,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
 
-    if (!this.excludeRequest(networkRequest)) {
+    if (!this.shouldExcludeRequest(networkRequest)) {
       networkRequest
-        .waitForComplete()
+        .waitForCompletion()
         .then(() => this.destination?.(networkRequest))
         .finally(() => this._entries.delete(networkRequest.requestId));
     }
@@ -557,7 +557,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     );
   }
 
-  private excludeRequest(request: NetworkRequest): boolean {
+  private shouldExcludeRequest(request: NetworkRequest): boolean {
     return this.requestFilter?.wouldApply(this.options)
       ? !this.requestFilter.apply(request, this.options)
       : false;

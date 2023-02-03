@@ -478,7 +478,7 @@ export class NetworkRequest {
     this.url = url;
   }
 
-  public async waitForComplete(): Promise<void> {
+  public async waitForCompletion(): Promise<void> {
     await Promise.all([this._contentData, this._formParametersPromise]);
   }
 
