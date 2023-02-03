@@ -478,6 +478,10 @@ export class NetworkRequest {
     this.url = url;
   }
 
+  public async waitForCompletion(): Promise<void> {
+    await Promise.all([this._contentData, this._formParametersPromise]);
+  }
+
   public isBlob(): boolean {
     return this._url.startsWith('blob:');
   }

@@ -14,7 +14,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     Protocol.Network.RequestId,
     ExtraInfoBuilder
   >;
-  private destination?: (chromeEntry: NetworkRequest) => void;
+  private destination?: (chromeEntry: NetworkRequest) => unknown;
 
   get empty(): boolean {
     return this._entries.size === 0;
@@ -34,9 +34,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   public async subscribe(
-    callback: (chromeEntry: NetworkRequest) => void
+    callback: (chromeEntry: NetworkRequest) => unknown
   ): Promise<void> {
-    this.destination = (entry: NetworkRequest): void => callback(entry);
+    this.destination = callback;
 
     await this.network.attachToTargets((event: NetworkEvent): void =>
       this.handleEvent(event)
@@ -427,10 +427,12 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.loadContent(networkRequest);
 
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
-    this._entries.delete(networkRequest.requestId);
 
-    if (!this.excludeRequest(networkRequest)) {
-      this.destination?.(networkRequest);
+    if (!this.shouldExcludeRequest(networkRequest)) {
+      networkRequest
+        .waitForCompletion()
+        .then(() => this.destination?.(networkRequest))
+        .finally(() => this._entries.delete(networkRequest.requestId));
     }
   }
 
@@ -555,7 +557,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     );
   }
 
-  private excludeRequest(request: NetworkRequest): boolean {
+  private shouldExcludeRequest(request: NetworkRequest): boolean {
     return this.requestFilter?.wouldApply(this.options)
       ? !this.requestFilter.apply(request, this.options)
       : false;

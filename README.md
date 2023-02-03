@@ -317,6 +317,22 @@ cy.saveHar({ waitForIdle: true });
 
 This option is false by default. When set to true, the plugin will monitor the count of pending requests and wait for it to reach zero before proceeding with saving the HAR file. This ensures that all responses have been received and the data in the file is complete and accurate.
 
+Additionally, you can pass the `maxWaitDuration` option to specify the maximum time to wait for the pending requests to complete:
+
+```js
+cy.saveHar({ waitForIdle: true, maxWaitDuration: 20000 });
+```
+
+The `maxWaitDuration` option is set to 5000 milliseconds by default, meaning it will wait for 5 seconds until all pending requests have completed.
+
+You can also pass the `minIdleDuration` option to specify the minimum duration in milliseconds to wait for the network idle during the `maxWaitDuration` time. The network is idle if there are no pending requests during this time.
+
+```js
+cy.saveHar({ waitForIdle: true, minIdleDuration: 1000 });
+```
+
+The `minIdleDuration` option is set to 100 milliseconds by default.
+
 ### disposeOfHar
 
 Stops the ongoing recording of network requests and disposes of the recorded logs, which will be not saved to a HAR file.
