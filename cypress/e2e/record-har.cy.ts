@@ -1,9 +1,7 @@
 import { Entry } from 'har-format';
 
 describe('Record HAR', () => {
-  beforeEach(() => {
-    cy.visit('/');
-  });
+  beforeEach(() => cy.visit('/'));
 
   it('excludes a request by mime type', () => {
     cy.recordHar({ includeMimes: ['application/json'] });
@@ -18,6 +16,28 @@ describe('Record HAR', () => {
         response: {
           content: { mimeType: 'application/json' }
         }
+      });
+  });
+
+  // ADHOC: Cypress will automatically attach this header at the network proxy level, outside of the browser.
+  // Therefore you will not see this header in the Dev Tools and the resulting HAR.
+  // For details please refer to the notice at https://docs.cypress.io/api/commands/visit#Add-basic-auth-headers
+  it.skip('records headers added by the proxy', () => {
+    cy.recordHar();
+
+    cy.visit('/', { auth: { password: 'admin', username: 'admin' } });
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should((data: Entry[]) => {
+        const expected = data.find(({ request }: Entry) => request.url === '/');
+        const headers = expected?.request.headers ?? [];
+        expect(headers).to.contain.something.like({
+          name: 'authorization',
+          value: /.+/
+        });
       });
   });
 
