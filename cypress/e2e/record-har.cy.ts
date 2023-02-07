@@ -41,6 +41,25 @@ describe('Record HAR', () => {
       });
   });
 
+  // ADHOC: cy.request() sends requests to actual endpoints, bypassing the interceptor
+  // For details please refer to the documentation at
+  // https://docs.cypress.io/api/commands/request#cyrequest-sends-requests-to-actual-endpoints-bypassing-those-defined-using-cyintercept
+  it.skip('records a request made by Cypress (not the tested app)', () => {
+    cy.recordHar();
+
+    cy.request('/api/products');
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: /\/api\/products$/
+        }
+      });
+  });
+
   // ADHOC: .mjs files are excluded as Cypress forces ts-node to use the 'commonjs' module format. Covered by unit tests.
   // For details please refer to https://github.com/cypress-io/cypress/blob/e6b2466f7b219a86da46c1ac720432ef75193ca4/packages/server/lib/plugins/child/ts_node.js#L25
   ['.js', '.ts', '.cjs'].forEach(ext =>
