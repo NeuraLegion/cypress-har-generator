@@ -19,7 +19,7 @@ like.extend({
 Cypress.Commands.add('findHar', (fileName?: string) =>
   cy
     .readFile(fileName ?? Cypress.spec.name.replace('.ts', '.har'))
-    .then(data => cy.wrap<Har>(JSON.parse(data)))
+    .then(data => cy.wrap<Har>(data ? JSON.parse(data) : undefined))
 );
 
 // check a file/folder existence
