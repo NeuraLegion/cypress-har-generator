@@ -60,6 +60,25 @@ describe('Record HAR', () => {
       });
   });
 
+  it('records a large response body greater than 100MB', () => {
+    cy.recordHar({
+      maxTotalBufferSize: 256 * 1024 ** 2,
+      maxResourceBufferSize: 256 * 1024 ** 2
+    });
+
+    cy.get('a[href$=large-content]').click();
+
+    cy.saveHar({
+      waitForIdle: true,
+      maxWaitDuration: 20000
+    });
+
+    // ADHOC: due to the large size of the resulting HAR, we cannot use the `cy.findHar` command
+    cy.match(
+      /(\/api\/keys)(\n|.)*?("size":\s*150019900)(\n|.)*?("text":\s*"(?!Request content was evicted from inspector cache"))/
+    ).should('be.true');
+  });
+
   // ADHOC: .mjs files are excluded as Cypress forces ts-node to use the 'commonjs' module format. Covered by unit tests.
   // For details please refer to https://github.com/cypress-io/cypress/blob/e6b2466f7b219a86da46c1ac720432ef75193ca4/packages/server/lib/plugins/child/ts_node.js#L25
   ['.js', '.ts', '.cjs'].forEach(ext =>

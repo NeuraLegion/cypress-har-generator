@@ -1,7 +1,7 @@
 import { install } from './src';
 import { defineConfig } from 'cypress';
 import { promisify } from 'util';
-import { access, constants, unlink } from 'fs';
+import { access, constants, unlink, readFile } from 'fs';
 import { tmpdir } from 'os';
 
 export default defineConfig({
@@ -19,7 +19,22 @@ export default defineConfig({
       install(on);
 
       on('task', {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* eslint-disable @typescript-eslint/naming-convention */
+        async 'fs:match'({
+          path,
+          regexp
+        }: {
+          path: string;
+          regexp: RegExp;
+        }): Promise<boolean> {
+          try {
+            const result = await promisify(readFile)(path, 'utf-8');
+
+            return new RegExp(regexp).test(result);
+          } catch {
+            return false;
+          }
+        },
         async 'fs:exists'(path: string): Promise<boolean> {
           try {
             await promisify(access)(path, constants.F_OK);
@@ -29,7 +44,6 @@ export default defineConfig({
             return false;
           }
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         async 'fs:remove'(path: string): Promise<null> {
           try {
             await promisify(unlink)(path);
@@ -39,10 +53,10 @@ export default defineConfig({
 
           return null;
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'fs:tmpdir'(): string {
           return tmpdir();
         }
+        /* eslint-enable @typescript-eslint/naming-convention */
       });
     }
   }

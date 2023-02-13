@@ -15,13 +15,21 @@ like.extend({
   }
 });
 
+const getDefaultHarPath = (): string =>
+  Cypress.spec.name.replace('.ts', '.har');
+
 // assert a recorded HAR file
 Cypress.Commands.add('findHar', (fileName?: string) =>
   cy
-    .readFile(fileName ?? Cypress.spec.name.replace('.ts', '.har'))
+    .readFile(fileName ?? getDefaultHarPath())
     .then(data => cy.wrap<Har>(data ? JSON.parse(data) : undefined))
 );
-
+// check if file matches with the given pattern
+Cypress.Commands.add(
+  'match',
+  (regexp: RegExp, path: string = getDefaultHarPath()) =>
+    cy.task('fs:match', { path, regexp: regexp.source })
+);
 // check a file/folder existence
 Cypress.Commands.add('exists', (path: string) => cy.task('fs:exists', path));
 // remove a file/folder

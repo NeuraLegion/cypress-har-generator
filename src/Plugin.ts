@@ -10,7 +10,7 @@ import type {
 } from './network';
 import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
 import { ErrorUtils } from './utils/ErrorUtils';
-import type { Connection, ConnectionFactory } from './cdp';
+import type { Connection, ConnectionFactory, NetworkOptions } from './cdp';
 import {
   ADDRESS_OPTION_NAME,
   MAX_NETWORK_IDLE_THRESHOLD,
@@ -30,7 +30,9 @@ export interface SaveOptions {
   maxWaitDuration?: number;
 }
 
-export type RecordOptions = NetworkObserverOptions & HarExporterOptions;
+export type RecordOptions = NetworkObserverOptions &
+  HarExporterOptions &
+  NetworkOptions;
 
 interface Addr {
   port: number;
@@ -193,7 +195,7 @@ Please refer to the documentation:
   }
 
   private async listenNetworkEvents(options: RecordOptions): Promise<void> {
-    const network = this._connection?.discoverNetwork();
+    const network = this._connection?.discoverNetwork(options);
 
     this.networkObservable = this.observerFactory.createNetworkObserver(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

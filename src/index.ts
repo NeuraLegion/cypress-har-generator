@@ -71,6 +71,8 @@ export const enableExperimentalLifecycle = (
   } else {
     on('before:spec', (_: Cypress.Spec) =>
       plugin.recordHar({
+        content: true,
+        includeBlobs: true,
         rootDir: StringUtils.dirname(Cypress.spec.absolute)
       })
     );

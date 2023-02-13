@@ -2,6 +2,7 @@ import express, { Request, Response, json } from 'express';
 import minimist from 'minimist';
 import WebSocket, { Server } from 'ws';
 import { join } from 'path';
+import { randomBytes } from 'crypto';
 
 const app = express();
 const ws = new Server({ noServer: true, path: '/ws' });
@@ -35,7 +36,8 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'worker', name: 'Workers (Shared and Web)' },
       { id: 'multi-targets', name: 'Multi targets' },
       { id: 'server-sent-events', name: 'Server-sent events' },
-      { id: 'websocket', name: 'WebSocket' }
+      { id: 'websocket', name: 'WebSocket' },
+      { id: 'large-content', name: 'Large content' }
     ]
   })
 );
@@ -75,13 +77,23 @@ app.post('/api/math', json(), (req: Request, res: Response) => {
 app.get('/api/products', (_: Request, res: Response) =>
   res.json({
     products: [
-      { Name: 'Cheese', Price: 2.5, Location: 'Refrigerated foods' },
-      { Name: 'Crisps', Price: 3, Location: 'the Snack isle' },
-      { Name: 'Pizza', Price: 4, Location: 'Refrigerated foods' },
-      { Name: 'Chocolate', Price: 1.5, Location: 'the Snack isle' },
-      { Name: 'Self-raising flour', Price: 1.5, Location: 'Home baking' },
-      { Name: 'Ground almonds', Price: 3, Location: 'Home baking' }
+      { name: 'Cheese', price: 2.5, location: 'Refrigerated foods' },
+      { name: 'Crisps', price: 3, location: 'the Snack isle' },
+      { name: 'Pizza', price: 4, location: 'Refrigerated foods' },
+      { name: 'Chocolate', price: 1.5, location: 'the Snack isle' },
+      { name: 'Self-raising flour', price: 1.5, location: 'Home baking' },
+      { name: 'Ground almonds', price: 3, location: 'Home baking' }
     ]
+  })
+);
+app.get('/api/keys', (_: Request, res: Response) =>
+  res.json({
+    keys: Array(1000)
+      .fill(0)
+      .map((_noop, idx) => ({
+        key: randomBytes(75000).toString('hex'),
+        id: idx
+      }))
   })
 );
 const server = app.listen(port);
