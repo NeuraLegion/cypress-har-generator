@@ -19,7 +19,7 @@ export default defineConfig({
       install(on);
 
       on('task', {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        /* eslint-disable @typescript-eslint/naming-convention */
         async 'fs:match'({
           path,
           regexp
@@ -35,7 +35,6 @@ export default defineConfig({
             return false;
           }
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         async 'fs:exists'(path: string): Promise<boolean> {
           try {
             await promisify(access)(path, constants.F_OK);
@@ -45,7 +44,6 @@ export default defineConfig({
             return false;
           }
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         async 'fs:remove'(path: string): Promise<null> {
           try {
             await promisify(unlink)(path);
@@ -55,10 +53,10 @@ export default defineConfig({
 
           return null;
         },
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'fs:tmpdir'(): string {
           return tmpdir();
         }
+        /* eslint-enable @typescript-eslint/naming-convention */
       });
     }
   }
