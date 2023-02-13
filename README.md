@@ -168,6 +168,17 @@ Here's an example of how to use the `recordHar` command:
 cy.recordHar();
 ```
 
+> ⚠ The maximum size of a single resource that can be preserved is 10MB. If you need to receive a larger response body, you should adjust the `maxResourceBufferSize` and `maxTotalBufferSize` accordingly:
+>
+> ```js
+> cy.recordHar({
+>   maxTotalBufferSize: 1024 ** 3,
+>   maxResourceBufferSize: 100 * 1024 ** 2
+> });
+> ```
+>
+> However, note that the resource buffer size cannot be greater than 256MB due to [the limit](https://source.chromium.org/chromium/chromium/src/+/main:content/browser/devtools/devtools_http_handler.cc;l=90?aq=kSendBufferSizeForDevTools&ss=chromium) for WebSocket connections in Chrome.
+
 You can set the `content` boolean flag to `false` to skip loading `content` field in the HAR.
 
 ```js
