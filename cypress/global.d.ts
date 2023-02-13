@@ -8,5 +8,6 @@ namespace Cypress {
     exists(path: string): Chainable<boolean>;
     tmpdir(): Chainable<string>;
     remove(path: string): Chainable<void>;
+    match(regexp: RegExp, path?: string): Chainable<boolean>;
   }
 }
