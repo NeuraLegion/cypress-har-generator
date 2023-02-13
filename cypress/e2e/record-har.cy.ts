@@ -70,7 +70,7 @@ describe('Record HAR', () => {
 
     cy.saveHar({
       waitForIdle: true,
-      maxWaitDuration: 25000
+      maxWaitDuration: 20000
     });
 
     // ADHOC: due to the large size of the resulting HAR, we cannot use the `cy.findHar` command
