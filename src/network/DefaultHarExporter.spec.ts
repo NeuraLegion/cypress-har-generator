@@ -3,6 +3,7 @@ import { DefaultHarExporter } from './DefaultHarExporter';
 import type { Logger } from '../utils/Logger';
 import type { DefaultHarExporterOptions } from './DefaultHarExporterOptions';
 import {
+  anyFunction,
   anyString,
   instance,
   match,
@@ -94,6 +95,9 @@ describe('DefaultHarExporter', () => {
     it('should write the entry to the buffer', async () => {
       // arrange
       when(streamMock.closed).thenReturn(false);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
 
@@ -101,13 +105,16 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(match(`${EOL}`))).once();
+      verify(streamMock.write(match(`${EOL}`), anyFunction())).once();
     });
 
     it('should write the entry to the buffer if the predicate returns throws an error', async () => {
       // arrange
       when(streamMock.closed).thenReturn(false);
       when(optionsSpy.filter).thenReturn(predicate);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       predicate.mockReturnValue(
         Promise.reject(new Error('something went wrong'))
       );
@@ -116,7 +123,7 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(match(`${EOL}`))).once();
+      verify(streamMock.write(match(`${EOL}`), anyFunction())).once();
     });
 
     it('should transform the entry before writing to the buffer', async () => {
@@ -124,6 +131,9 @@ describe('DefaultHarExporter', () => {
       const entry = { foo: 'bar' } as unknown as Entry;
       const entryString = JSON.stringify(entry);
       when(streamMock.closed).thenReturn(false);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       when(optionsSpy.transform).thenReturn(transform);
       transform.mockReturnValue(Promise.resolve(entry));
 
@@ -131,12 +141,17 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(match(`${entryString}${EOL}`))).once();
+      verify(
+        streamMock.write(match(`${entryString}${EOL}`), anyFunction())
+      ).once();
     });
 
     it('should skip the entry when the transformation is failed with an error', async () => {
       // arrange
       when(streamMock.closed).thenReturn(false);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       when(optionsSpy.transform).thenReturn(transform);
       transform.mockReturnValue(
         Promise.reject(new Error('Something went wrong.'))
@@ -146,12 +161,15 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(anyString())).never();
+      verify(streamMock.write(anyString(), anyFunction())).never();
     });
 
     it('should not write the entry to the buffer if the predicate returns true', async () => {
       // arrange
       when(streamMock.closed).thenReturn(false);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(true);
 
@@ -159,12 +177,15 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(anyString())).never();
+      verify(streamMock.write(anyString(), anyFunction())).never();
     });
 
     it('should not write the entry to the buffer if the buffer is closed', async () => {
       // arrange
       when(streamMock.closed).thenReturn(true);
+      when(streamMock.write(anyString(), anyFunction())).thenCall(
+        (_, callback) => callback()
+      );
       when(optionsSpy.filter).thenReturn(predicate);
       predicate.mockReturnValue(false);
 
@@ -172,7 +193,7 @@ describe('DefaultHarExporter', () => {
       await harExporter.write(networkRequest);
 
       // assert
-      verify(streamMock.write(anyString())).never();
+      verify(streamMock.write(anyString(), anyFunction())).never();
     });
   });
 });

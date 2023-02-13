@@ -11,7 +11,7 @@ import type {
 import type { Entry } from 'har-format';
 import type { WriteStream } from 'fs';
 import { EOL } from 'os';
-import { format } from 'util';
+import { format, promisify } from 'util';
 
 export class DefaultHarExporter implements HarExporter {
   get path(): string {
@@ -44,7 +44,8 @@ export class DefaultHarExporter implements HarExporter {
     const json = await this.serializeEntry(entry);
 
     if (!this.buffer.closed && json) {
-      this.buffer.write(`${json}${EOL}`);
+      // @ts-expect-error signature mismatch due to overloading issues
+      await promisify(this.buffer.write).call(this.buffer, `${json}${EOL}`);
     }
   }
 
