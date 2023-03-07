@@ -59,7 +59,7 @@ export class DefaultNetwork implements Network {
       ]);
     } catch (e) {
       // ADHOC: handle any unforeseen issues while detaching from targets.
-      this.logger.debug(`Unforeseen error while detaching from targets: ${e}`);
+      this.logger.debug(`Unexpected error while detaching from targets: ${e}`);
     }
 
     this.sessions.clear();
@@ -161,17 +161,10 @@ export class DefaultNetwork implements Network {
       | Protocol.Network.WebSocketCreatedEvent,
     sessionId?: string
   ) => {
-    if (sessionId) {
-      this.logger.debug(
-        `Session ${sessionId} associated with request: ${requestId}`
-      );
-    } else {
-      this.logger.debug(
-        `Browser session associated with request: ${requestId}`
-      );
-    }
-
     this.sessions.set(requestId, sessionId);
+    this.logger.debug(
+      `Session ${sessionId ?? 'N/A'} associated with request: ${requestId}`
+    );
   };
 
   private attachedToTargetListener = async ({
