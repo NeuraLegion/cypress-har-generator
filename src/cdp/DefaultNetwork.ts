@@ -104,12 +104,9 @@ export class DefaultNetwork implements Network {
     }
   }
 
-  private networkEventListener = async (eventMessage: EventMessage) => {
-    if (
-      this.matchNetworkEvents(eventMessage) &&
-      typeof this.listener === 'function'
-    ) {
-      this.listener(eventMessage);
+  private networkEventListener = (eventMessage: EventMessage) => {
+    if (this.matchNetworkEvents(eventMessage)) {
+      setImmediate(() => this.listener?.(eventMessage));
     }
   };
 

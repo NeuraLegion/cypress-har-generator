@@ -34,10 +34,12 @@ describe('DefaultNetwork', () => {
   let sut!: DefaultNetwork;
 
   beforeEach(() => {
+    jest.useFakeTimers();
     sut = new DefaultNetwork(instance(clientMock), instance(loggerMock));
   });
 
   afterEach(() => {
+    jest.useRealTimers();
     listener.mockReset();
     reset<Client | Logger>(clientMock, loggerMock);
   });
@@ -74,6 +76,8 @@ describe('DefaultNetwork', () => {
       when(clientMock.on('event', anyFunction())).thenCall((_, callback) => {
         callback(unexpectedEvent);
         callback(expectedEvent);
+        // ADHOC: spawn `setImmediate` immediately
+        jest.runAllTimers();
       });
       // act
       await sut.attachToTargets(listener);

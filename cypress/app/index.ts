@@ -1,4 +1,4 @@
-import express, { Request, Response, json } from 'express';
+import express, { Request, Response, json, raw } from 'express';
 import minimist from 'minimist';
 import WebSocket, { Server } from 'ws';
 import { join } from 'path';
@@ -87,7 +87,12 @@ app.get('/api/products', (_: Request, res: Response) =>
     ]
   })
 );
-app.get('/api/echo', (req: Request, res: Response) => res.json(req.body));
+app.post(
+  '/api/echo',
+  raw({ type: ['text/xml', 'application/json'] }),
+  (req: Request, res: Response) =>
+    res.send(Buffer.isBuffer(req.body) ? req.body.toString() : req.body)
+);
 app.get('/api/keys', (_: Request, res: Response) =>
   res.json({
     keys: Array(1000)
