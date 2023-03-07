@@ -361,7 +361,7 @@ describe('Record HAR', () => {
       });
   });
 
-  it.only('records a request body', () => {
+  it('records a request body', () => {
     cy.recordHar({ content: false });
 
     cy.get('a[href$=post-data]').click();
