@@ -36,9 +36,9 @@ export class DefaultNetwork implements Network {
 
     this.cdp.on('event', this.networkEventListener);
     this.cdp.on('Target.attachedToTarget', this.attachedToTargetListener);
-
+    this.cdp.on('Network.requestWillBeSent', this.sessionListener);
+    this.cdp.on('Network.webSocketCreated', this.sessionListener);
     await this.ignoreCertificateError();
-    await this.trackSessions();
     await this.recursivelyAttachToTargets({ type: 'browser' });
   }
 
@@ -59,6 +59,7 @@ export class DefaultNetwork implements Network {
       ]);
     } catch (e) {
       // ADHOC: handle any unforeseen issues while detaching from targets.
+      this.logger.debug(`Unexpected error while detaching from targets: ${e}`);
     }
 
     this.sessions.clear();
@@ -86,11 +87,6 @@ export class DefaultNetwork implements Network {
       },
       this.sessions.get(requestId)
     );
-  }
-
-  private async trackSessions(): Promise<void> {
-    this.cdp.on('Network.requestWillBeSent', this.sessionListener);
-    this.cdp.on('Network.webSocketCreated', this.sessionListener);
   }
 
   private async ignoreCertificateError(): Promise<void> {
@@ -164,7 +160,12 @@ export class DefaultNetwork implements Network {
       | Protocol.Network.RequestWillBeSentEvent
       | Protocol.Network.WebSocketCreatedEvent,
     sessionId?: string
-  ) => this.sessions.set(requestId, sessionId);
+  ) => {
+    this.sessions.set(requestId, sessionId);
+    this.logger.debug(
+      `Session ${sessionId ?? 'N/A'} associated with request: ${requestId}`
+    );
+  };
 
   private attachedToTargetListener = async ({
     sessionId,
@@ -186,6 +187,7 @@ export class DefaultNetwork implements Network {
       }
     } catch (e) {
       this.logger.err(UNABLE_TO_ATTACH_TO_TARGET);
+      this.logger.err(e);
       throw e;
     }
   };

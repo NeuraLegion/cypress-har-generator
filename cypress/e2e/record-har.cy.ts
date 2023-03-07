@@ -360,4 +360,23 @@ describe('Record HAR', () => {
         }
       });
   });
+
+  it('records a request body', () => {
+    cy.recordHar({ content: false });
+
+    cy.get('a[href$=post-data]').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: /api\/echo$/,
+          postData: {
+            text: /^\{"document":"/
+          }
+        }
+      });
+  });
 });

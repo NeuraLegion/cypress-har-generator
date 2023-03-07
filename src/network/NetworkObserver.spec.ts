@@ -200,9 +200,7 @@ describe('NetworkObserver', () => {
       // assert
       expect(result).toBe(false);
     });
-  });
 
-  describe('subscribe', () => {
     it('should attach to network events', async () => {
       // act
       await sut.subscribe(callback);
@@ -510,6 +508,79 @@ describe('NetworkObserver', () => {
           requestId: '1'
         })
       );
+    });
+
+    it('should load the request body', async () => {
+      // arrange
+      when(networkMock.getRequestBody('1')).thenResolve({
+        postData: 'test'
+      });
+      when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
+        await cb({
+          ...requestWillBeSentEvent,
+          params: {
+            ...requestWillBeSentEvent.params,
+            request: {
+              ...requestWillBeSentEvent.params.request,
+              method: 'POST',
+              hasPostData: true
+            }
+          }
+        });
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(networkMock.getRequestBody('1')).once();
+    });
+
+    it('should utilize the preloaded request body', async () => {
+      // arrange
+      when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
+        await cb({
+          ...requestWillBeSentEvent,
+          params: {
+            ...requestWillBeSentEvent.params,
+            request: {
+              ...requestWillBeSentEvent.params.request,
+              method: 'POST',
+              postData: 'test',
+              hasPostData: true
+            }
+          }
+        });
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(networkMock.getRequestBody('1')).never();
+    });
+
+    it('should prevent loading the request body when the request method forbids the body', async () => {
+      // arrange
+      when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
+        await cb({
+          ...requestWillBeSentEvent,
+          params: {
+            ...requestWillBeSentEvent.params,
+            request: {
+              ...requestWillBeSentEvent.params.request,
+              method: 'OPTIONS',
+              hasPostData: false
+            }
+          }
+        });
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(networkMock.getRequestBody('1')).never();
     });
 
     it('should filter a request out when it does not match a filter criteria', async () => {

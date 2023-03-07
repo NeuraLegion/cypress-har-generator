@@ -457,7 +457,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
       request.headers
     );
     chromeRequest.setRequestFormData(
-      this.getRequestPostData(chromeRequest, request)
+      request.hasPostData
+        ? this.getRequestPostData(chromeRequest, request)
+        : Promise.resolve(undefined)
     );
     chromeRequest.initialPriority = request.initialPriority;
   }
@@ -465,9 +467,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private getRequestPostData(
     request: NetworkRequest,
     rawRequest: Protocol.Network.Request
-  ): string | Promise<string | undefined> {
-    return rawRequest.hasPostData && rawRequest.postData
-      ? rawRequest.postData
+  ): Promise<string | undefined> {
+    return rawRequest.postData !== undefined
+      ? Promise.resolve(rawRequest.postData)
       : this.network
           .getRequestBody(request.requestId)
           .then(

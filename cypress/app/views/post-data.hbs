@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv='X-UA-Compatible' content='IE=edge,chrome=1' />
+    <meta name='viewport' content='width=device-width' />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <title>Post Data</title>
+  </head>
+  <body>
+    <h1>Post Data</h1>
+    <pre></pre>
+  </body>
+  <script>
+    const postData = {
+      document: document.body.innerHTML,
+    };
+    const pre = document.querySelector('pre')
+
+    fetch('/api/echo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(postData)
+    })
+      .then(response => response.json())
+      .then(data => pre.innerText = JSON.stringify(data, null, 2))
+      .catch(error => console.error(error));
+  </script>
+</html>
