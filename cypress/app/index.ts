@@ -37,7 +37,8 @@ app.get('/', (_: Request, res: Response) =>
       { id: 'multi-targets', name: 'Multi targets' },
       { id: 'server-sent-events', name: 'Server-sent events' },
       { id: 'websocket', name: 'WebSocket' },
-      { id: 'large-content', name: 'Large content' }
+      { id: 'large-content', name: 'Large content' },
+      { id: 'post-data', name: 'Post data' }
     ]
   })
 );
@@ -86,6 +87,7 @@ app.get('/api/products', (_: Request, res: Response) =>
     ]
   })
 );
+app.get('/api/echo', (req: Request, res: Response) => res.json(req.body));
 app.get('/api/keys', (_: Request, res: Response) =>
   res.json({
     keys: Array(1000)
