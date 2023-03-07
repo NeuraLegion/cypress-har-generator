@@ -361,7 +361,7 @@ describe('Record HAR', () => {
       });
   });
 
-  it('records a request body', () => {
+  it('records a text request body', () => {
     cy.recordHar({ content: false });
 
     cy.get('a[href$=post-data]').click();
@@ -374,7 +374,26 @@ describe('Record HAR', () => {
         request: {
           url: /api\/echo$/,
           postData: {
-            text: /^\{"document":"/
+            text: /^\{"name":"/
+          }
+        }
+      });
+  });
+
+  it('records a blob request body', () => {
+    cy.recordHar({ content: false });
+
+    cy.get('a[href$=post-data]').click();
+
+    cy.saveHar({ waitForIdle: true });
+
+    cy.findHar()
+      .its('log.entries')
+      .should('contain.something.like', {
+        request: {
+          url: /api\/echo$/,
+          postData: {
+            text: /^<html xmlns/
           }
         }
       });

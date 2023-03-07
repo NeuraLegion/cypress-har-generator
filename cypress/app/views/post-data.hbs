@@ -9,21 +9,44 @@
   </head>
   <body>
     <h1>Post Data</h1>
-    <pre></pre>
+    <details>
+      <summary>
+        Text
+      </summary>
+      <pre id="text"></pre>
+    </details>
+    <details>
+      <summary>
+        Blob
+      </summary>
+      <pre id="blob"></pre>
+    </details>
   </body>
   <script>
-    const postData = {
-      document: document.body.innerHTML,
-    };
-    const pre = document.querySelector('pre')
+    const text = document.querySelector('#text');
+    const blob = document.querySelector('#blob');
+    const blobContent = new XMLSerializer().serializeToString(document);
 
     fetch('/api/echo', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(postData)
+      body: JSON.stringify({
+        name: 'John Doe',
+        email: 'john.doe@example.com',
+        message: 'Hello, world!'
+      })
     })
       .then(response => response.json())
-      .then(data => pre.innerText = JSON.stringify(data, null, 2))
+      .then(data => text.innerText = JSON.stringify(data, null, 2))
+      .catch(error => console.error(error));
+
+    fetch('/api/echo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/xml' },
+      body: new Blob([blobContent])
+    })
+      .then(response => response.text())
+      .then(data => blob.innerText = data)
       .catch(error => console.error(error));
   </script>
 </html>
