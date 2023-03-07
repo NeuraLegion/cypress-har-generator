@@ -9,6 +9,7 @@ import {
   anything,
   deepEqual,
   instance,
+  match,
   mock,
   reset,
   verify,
@@ -369,6 +370,29 @@ describe('DefaultNetwork', () => {
         )
       ).once();
     });
+
+    it.each([
+      { input: 'Network.requestWillBeSent' },
+      { input: 'Network.webSocketCreated' }
+    ])(
+      'should associate a session with a request on $input',
+      async ({ input }) => {
+        // arrange
+        const requestId = '1';
+        const sessionId = '2';
+        when(clientMock.on(input, anyFunction())).thenCall((_, callback) =>
+          callback({ requestId }, sessionId)
+        );
+        // act
+        await sut.attachToTargets(listener);
+        // assert
+        verify(
+          loggerMock.debug(
+            match(`Session ${sessionId} associated with request: ${requestId}`)
+          )
+        ).once();
+      }
+    );
   });
 
   describe('detachFromTargets', () => {

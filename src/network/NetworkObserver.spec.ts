@@ -510,6 +510,32 @@ describe('NetworkObserver', () => {
       );
     });
 
+    it('should load the request body', async () => {
+      // arrange
+      when(networkMock.getRequestBody('1')).thenResolve({
+        postData: 'test'
+      });
+      when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
+        await cb({
+          ...requestWillBeSentEvent,
+          params: {
+            ...requestWillBeSentEvent.params,
+            request: {
+              ...requestWillBeSentEvent.params.request,
+              method: 'POST',
+              hasPostData: true
+            }
+          }
+        });
+        await cb(responseReceivedEvent);
+        await cb(loadingFinishedEvent);
+      });
+      // act
+      await sut.subscribe(callback);
+      // assert
+      verify(networkMock.getRequestBody('1')).once();
+    });
+
     it('should utilize the preloaded request body', async () => {
       // arrange
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
@@ -534,7 +560,7 @@ describe('NetworkObserver', () => {
       verify(networkMock.getRequestBody('1')).never();
     });
 
-    it('should prevent loading the request body when the request method forbid the body', async () => {
+    it('should prevent loading the request body when the request method forbids the body', async () => {
       // arrange
       when(networkMock.attachToTargets(anyFunction())).thenCall(async cb => {
         await cb({
