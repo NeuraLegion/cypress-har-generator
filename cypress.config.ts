@@ -5,9 +5,11 @@ import { access, constants, unlink, readFile } from 'fs';
 import { tmpdir } from 'os';
 
 export default defineConfig({
+  projectId: 'ir8zwo',
   video: false,
   fixturesFolder: false,
   screenshotOnRunFailure: false,
+  trashAssetsBeforeRuns: true,
   e2e: {
     baseUrl: 'http://localhost:8080',
     supportFile: 'cypress/support/e2e.ts',
