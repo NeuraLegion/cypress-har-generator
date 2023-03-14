@@ -183,9 +183,17 @@ export class DefaultNetwork implements Network {
         );
       }
     } catch (e) {
-      this.logger.err(UNABLE_TO_ATTACH_TO_TARGET);
-      this.logger.err(e);
-      throw e;
+      const stack = ErrorUtils.isError(e) ? e.stack : e;
+
+      this.logger.debug(
+        `We encountered an issue while initializing the target for the session: ${sessionId}.`
+      );
+      this.logger.debug(
+        `The information about the target is as follows: ${JSON.stringify(
+          targetInfo
+        )}`
+      );
+      this.logger.warn(`${UNABLE_TO_ATTACH_TO_TARGET}\n${stack}`);
     }
   };
 
@@ -212,7 +220,7 @@ export class DefaultNetwork implements Network {
     }
   }
 
-  private targetClosedError(e: unknown): boolean {
+  private targetClosedError(e: unknown): e is Error {
     return (
       ErrorUtils.isError(e) &&
       (e.message.includes('Target closed') ||

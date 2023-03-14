@@ -7,7 +7,14 @@ export const DISCONNECTED = 'Chrome Debugging Protocol disconnected';
 export const CONNECTION_NOT_ESTABLISHED = `Chrome Debugging Protocol connection has not been established.`;
 export const TARGET_OR_BROWSER_CLOSED =
   'The target or browser may have closed before completion of initialization';
-export const UNABLE_TO_ATTACH_TO_TARGET = `Unable to attach to target. Please open an issue on the repository: https://github.com/NeuraLegion/cypress-har-generator/issues for assistance.
+export const UNABLE_TO_ATTACH_TO_TARGET = `Unable to attach to the target (e.g. page, worker, etc). 
+
+Possible reasons for the failure include:
+  - Chrome not running in headless mode.
+  - The target may have closed during initialization.
+  - The target may have crashed due to memory issues.
+
+Please open an issue on the repository: https://github.com/NeuraLegion/cypress-har-generator/issues for assistance.
 
 The stack trace for this error is:`;
 export const FAILED_TO_CONNECT = `${FAILED_ATTEMPT_TO_CONNECT}
