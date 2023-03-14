@@ -4,6 +4,7 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/231b9635d2cc00131b69/test_coverage)](https://codeclimate.com/github/NeuraLegion/cypress-har-generator/test_coverage)
 [![Build Status](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml/badge.svg?branch=master&event=push)](https://github.com/NeuraLegion/cypress-har-generator/actions/workflows/coverage.yml?query=branch%3Amaster+event%3Apush)
 [![NPM Downloads](https://img.shields.io/npm/dw/@neuralegion/cypress-har-generator?label=NPM%20Downloads)](https://www.npmjs.com/package/@neuralegion/cypress-har-generator)
+[![cypress-har-generator](https://img.shields.io/endpoint?url=https://cloud.cypress.io/badge/detailed/ir8zwo/master&style=flat&logo=cypress)](https://cloud.cypress.io/projects/ir8zwo/runs)
 
 The Cypress plugin for generating [HTTP Archive (HAR)](http://www.softwareishard.com/blog/har-12-spec/) files is a tool that allows developers and QA engineers to capture detailed information about network requests made during the execution of Cypress tests.
 
