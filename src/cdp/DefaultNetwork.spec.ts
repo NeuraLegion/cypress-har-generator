@@ -1,9 +1,6 @@
 import { DefaultNetwork } from './DefaultNetwork';
 import type { Logger } from '../utils/Logger';
-import {
-  TARGET_OR_BROWSER_CLOSED,
-  UNABLE_TO_ATTACH_TO_TARGET
-} from './messages';
+import { TARGET_OR_BROWSER_CLOSED } from './messages';
 import {
   anyFunction,
   anything,
@@ -296,7 +293,7 @@ describe('DefaultNetwork', () => {
       ).once();
     });
 
-    it('should throw an error when an unexpected error is happened', async () => {
+    it('should not throw an error when an unexpected error is happened', async () => {
       // arrange
       const sessionId = '1';
       const targetInfo: Protocol.Target.TargetInfo = {
@@ -320,10 +317,9 @@ describe('DefaultNetwork', () => {
       ).thenReject(new Error('Something went wrong'));
       await sut.attachToTargets(listener);
       // act
-      const result = act?.({ sessionId, targetInfo, waitingForDebugger: true });
+      await act?.({ sessionId, targetInfo, waitingForDebugger: true });
       // assert
-      await expect(result).rejects.toThrow();
-      verify(loggerMock.err(UNABLE_TO_ATTACH_TO_TARGET)).once();
+      verify(loggerMock.warn(match('Unable to attach to the target'))).once();
     });
 
     it.each([{ input: 'Target closed' }, { input: 'Session closed' }])(
