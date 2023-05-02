@@ -14,9 +14,10 @@ updates:
     reviewers:
       - 'derevnjuk'
     ignore:
-      - dependency-name: 'eslint*'
+      - dependency-name: '*eslint*'
       - dependency-name: '*semantic-release*'
       - dependency-name: 'cypress'
+      - dependency-name: 'webpack*'
       - dependency-name: '@commitlint/*'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
