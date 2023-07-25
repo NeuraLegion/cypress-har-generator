@@ -22,7 +22,7 @@
     popupWindowLink.addEventListener('click', (e) => {
       e.preventDefault();
       const newWindow = window.open('/pages/popup', undefined, 'popup,height=200,width=150');
-      if (window.focus) {
+      if (newWindow?.focus) {
         newWindow.focus();
       }
       return false;
