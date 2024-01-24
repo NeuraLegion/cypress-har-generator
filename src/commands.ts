@@ -22,7 +22,7 @@ Cypress.Commands.add(
   'saveHar',
   (options?: Partial<SaveOptions>): Cypress.Chainable => {
     const fallbackFileName = Cypress.spec.name;
-    const outDir = (Cypress.env('hars_folders') as string) ?? './';
+    const outDir = (Cypress.env('hars_folder') as string) ?? './';
 
     return cy.task('saveHar', {
       outDir,

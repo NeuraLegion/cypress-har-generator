@@ -39,24 +39,14 @@ The plugin allows you to record network requests from multiple targets such as p
 To install the plugin as development dependency, run the following command:
 
 ```bash
-$ npm i --save-dev @neuralegion/cypress-har-generator
+$ npm i -D @neuralegion/cypress-har-generator
 ```
 
 > ✴ For details about changes between versions, and information about updates on previous releases, see the Releases tab on GitHub: https://github.com/NeuraLegion/cypress-har-generator/releases
 
 ## Setting Up the Plugin
 
-To use the plugin, you'll need to update the `cypress/plugins/index.js` file as follows:
-
-```js
-const { install } = require('@neuralegion/cypress-har-generator');
-
-module.exports = on => {
-  install(on);
-};
-```
-
-If you're using Cypress version 10.0.0 or higher, you'll need to update your `cypress.config.js` file as follows (for details see [the migration guide](https://docs.cypress.io/guides/references/migration-guide#Plugins-File-Removed)):
+To use the plugin, you'll need to update your `cypress.config.js` file as follows:
 
 ```js
 const { defineConfig } = require('cypress');
@@ -65,7 +55,9 @@ const { install } = require('@neuralegion/cypress-har-generator');
 module.exports = defineConfig({
   e2e: {
     setupNodeEvents(on) {
-      install(on);
+      install({ on });
+      // Alternatively, you can use the shorthand version:
+      // install(on);
     }
   }
 });
@@ -73,31 +65,43 @@ module.exports = defineConfig({
 
 > ✴ `setupNodeEvents` can be defined in either the e2e or component configuration
 
-> ⚠ Please note that the `setupNodeEvents` does not support multiple `on` event listeners without overwriting previously defined listeners. To work around this issue, you can either call the `install` function at the end of the `setupNodeEvents` function, or use the deprecated `ensureBrowserFlags` as follows:
+> ⚠ Please note that Cypress has a limitation, especially if you're installing many plugins that use events like `task`, `before:browser:launch`, `before:spec`, or `after:spec`.
+> Cypress restricts to only one [on](https://docs.cypress.io/api/plugins/writing-a-plugin#on) listener per event. If you add more, it replaces the previous ones every time it's called, which makes it hard to use many plugins together.
+>
+> To address this, utilize the [cypress-plugin-init](https://github.com/elaichenkov/cypress-plugin-init) library as a workaround:
 >
 > ```js
 > const { defineConfig } = require('cypress');
-> const {
->   install,
->   ensureBrowserFlags
-> } = require('@neuralegion/cypress-har-generator');
+> const { install } = require('@neuralegion/cypress-har-generator');
+> const localstoragePlugin = require('cypress-localstorage-commands/plugin'); // or any other plugin
+> const { initPlugins } = require('cypress-plugin-init');
 >
 > module.exports = defineConfig({
 >   e2e: {
 >     setupNodeEvents(on) {
->       install(on);
->       on('before:browser:launch', (browser = {}, launchOptions) => {
->         ensureBrowserFlags(browser, launchOptions);
->         return launchOptions;
->       });
+>       initPlugins(on, [install, localstoragePlugin]);
 >     }
 >   }
 > });
 > ```
 >
-> For more information, see [this GitHub issue](https://github.com/cypress-io/cypress/issues/5240).
+> For further details and context regarding this issue, refer to [this GitHub issue](https://github.com/cypress-io/cypress/issues/5240).
 
-Next, add the following line to your `cypress/support/index.js` file to register commands that perform the manipulation with a HAR file:
+To use the new lifecycle feature, change the `setupNodeEvents` like this:
+
+```diff
+- setupNodeEvents(on) {
+-   install({ on });
++ setupNodeEvents(on, config) {
++   install({ on, config, experimentalLifecycle: true });
+}
+```
+
+> ⚠ Please note, to utilize this experimental mechanism for setting up lifecycle, you must either disable the interactive mode or enable the "experimentalInteractiveRunEvents" feature. For more details, see the documentation: https://docs.cypress.io/guides/references/experiments#Configuration
+
+This feature lets you handle complex settings and manage different stages more easily. You can set up hooks all at once, without having to add them to every spec file separately.
+
+Next, add the following line to your [support file](https://docs.cypress.io/guides/core-concepts/writing-and-organizing-tests#Support-file) to register commands that perform the manipulation with a HAR file:
 
 ```js
 require('@neuralegion/cypress-har-generator/commands');
@@ -125,20 +129,20 @@ describe('my tests', () => {
 
 By default, the plugin will save the generated HAR file to the root of your project with a file name that includes the current spec's name (e.g. `{specName}.har`).
 
-You can also specify a different destination folder for the generated HAR file by setting the `CYPRESS_HARS_FOLDERS` environment variable or the `hars_folders` field in the `env` object in your Cypress config file:
+You can also specify a different destination folder for the generated HAR file by setting the `CYPRESS_HARS_FOLDER` environment variable or the `hars_folder` field in the `env` object in your Cypress config file:
 
 ```json
 {
   "env": {
-    "hars_folders": "cypress/hars"
+    "hars_folder": "cypress/hars"
   }
 }
 ```
 
-Alternatively, you can pass the `hars_folders` variable in the CLI using the `--env` option:
+Alternatively, you can pass the `hars_folder` variable in the CLI using the `--env` option:
 
 ```bash
-$ cypress run --browser chrome --env hars_folders=cypress/hars
+$ cypress run --browser chrome --env hars_folder=cypress/hars
 ```
 
 Finally, to start running your tests, use the following command:
@@ -206,31 +210,11 @@ cy.recordHar({ includeMimes: ['application/json'] });
 
 This will record only requests with a MIME type of `application/json`.
 
-To exclude requests based on their status code, you can use the `minStatusCodeToInclude` field.
-
-For example, to only include requests that have a status code of 400 or greater, you can pass the `minStatusCodeToInclude` option as follows:
-
-```js
-cy.recordHar({ minStatusCodeToInclude: 400 });
-```
-
-> ✴ As of version 6, this option will be removed. Use `excludeStatusCodes` instead.
-
-Alternatively, you can have more granular control over the requests to exclude by passing an array of status codes you want to exclude from the recorded HAR file.
+To gain finer control over which requests are excluded based on their status codes, you can specify an array of the specific status codes you wish to omit from the recorded HAR file:
 
 ```js
 cy.recordHar({ excludeStatusCodes: [200, 201, 204] });
 ```
-
-> ⚠ Please note that both options `minStatusCodeToInclude` and `excludeStatusCodes` are mutually exclusive.
-
-By default, when you use `recordHar` command, it will include the blob requests in the recorded HAR file. However, those requests only make sense when they are used on the same page they were created. To exclude the blob requests from the recorded HAR file, set the `includeBlobs` to false as follows:
-
-```js
-cy.recordHar({ includeBlobs: false });
-```
-
-> ✴ As of version 6, this flag will be disabled by default.
 
 You can specify the `filter` option as a path to a module that exports a function (it can be sync or async) to filter out unwanted entries from the HAR. The function should take an [Entry object](http://www.softwareishard.com/blog/har-12-spec/#entries) as a parameter and return a boolean indicating whether the entry should be included in the final HAR or not.
 
@@ -409,27 +393,6 @@ describe('my tests', () => {
   });
 });
 ```
-
-If you're using Cypress version 6.2.0 or higher, you can set up hooks in a single step, eliminating the need to define them in each spec file. To do this, you need to call `enableExperimentalLifecycle` in addition to `install` as shown below:
-
-```js
-const { defineConfig } = require('cypress');
-const {
-  install,
-  enableExperimentalLifecycle
-} = require('@neuralegion/cypress-har-generator');
-
-module.exports = defineConfig({
-  e2e: {
-    setupNodeEvents(on, config) {
-      install(on);
-      enableExperimentalLifecycle(on, config);
-    }
-  }
-});
-```
-
-> ⚠ Please note, to utilize this experimental mechanism for setting up lifecycle, you must either disable the interactive mode or enable the "experimentalInteractiveRunEvents" feature. For more details, see the documentation: https://docs.cypress.io/guides/references/experiments#Configuration
 
 ## License
 

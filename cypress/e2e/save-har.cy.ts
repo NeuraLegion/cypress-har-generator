@@ -1,6 +1,6 @@
 describe('Save HAR', () => {
   beforeEach(() => {
-    Cypress.env('hars_folders', undefined);
+    Cypress.env('hars_folder', undefined);
 
     cy.visit('/');
 
@@ -49,7 +49,7 @@ describe('Save HAR', () => {
     cy.get('@options')
       .its('outDir')
       .then(value => {
-        Cypress.env('hars_folders', value);
+        Cypress.env('hars_folder', value);
       });
 
     cy.visit('/');
@@ -60,7 +60,7 @@ describe('Save HAR', () => {
     cy.get('@options')
       .its('fileName')
       .then(fileName => {
-        const path = `${Cypress.env('hars_folders')}/${fileName}`;
+        const path = `${Cypress.env('hars_folder')}/${fileName}`;
 
         cy.exists(path).should('be.true');
       });

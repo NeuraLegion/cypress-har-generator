@@ -2,7 +2,6 @@ import { NetworkRequest } from '../NetworkRequest';
 import { HostFilter } from './HostFilter';
 import { PathFilter } from './PathFilter';
 import { MimeFilter } from './MimeFilter';
-import { MinStatusCodeFilter } from './MinStatusCodeFilter';
 import { BlobFilter } from './BlobFilter';
 import { StatusCodeFilter } from './StatusCodeFilter';
 import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
@@ -14,7 +13,6 @@ export class CompositeFilter implements RequestFilter {
       new PathFilter(),
       new MimeFilter(),
       new BlobFilter(),
-      new MinStatusCodeFilter(),
       new StatusCodeFilter()
     ]
   ) {}
