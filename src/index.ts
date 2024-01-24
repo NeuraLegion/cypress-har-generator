@@ -17,6 +17,19 @@ declare global {
   }
 }
 
+export type InstallOptions = {
+  on: Cypress.PluginEvents;
+} & (
+  | {
+      config: Cypress.PluginConfigOptions;
+      experimentalLifecycle: true;
+    }
+  | {
+      experimentalLifecycle?: false | undefined;
+      config?: Cypress.PluginConfigOptions | undefined;
+    }
+);
+
 const plugin = new Plugin(
   Logger.Instance,
   FileManager.Instance,
@@ -25,17 +38,32 @@ const plugin = new Plugin(
   new DefaultHarExporterFactory(FileManager.Instance, Logger.Instance)
 );
 
-export const install = (on: Cypress.PluginEvents): void => {
+export const install = (options: Cypress.PluginEvents | InstallOptions) => {
+  const { on, config, experimentalLifecycle } =
+    typeof options === 'function'
+      ? ({ on: options } as InstallOptions)
+      : options;
+
+  registerTasks(on);
+
+  configure(on);
+
+  if (experimentalLifecycle) {
+    enableExperimentalLifecycle(on, config);
+  }
+};
+
+const registerTasks = (on: Cypress.PluginEvents) => {
   // ADHOC: Cypress expect the return value to be null to signal that the given event has been handled properly.
   // https://docs.cypress.io/api/commands/task#Usage
   on('task', {
-    saveHar: async (options: SaveOptions): Promise<null> => {
-      await plugin.saveHar(options);
+    saveHar: async (data: SaveOptions): Promise<null> => {
+      await plugin.saveHar(data);
 
       return null;
     },
-    recordHar: async (options: RecordOptions): Promise<null> => {
-      await plugin.recordHar(options);
+    recordHar: async (data: RecordOptions): Promise<null> => {
+      await plugin.recordHar(data);
 
       return null;
     },
@@ -45,21 +73,28 @@ export const install = (on: Cypress.PluginEvents): void => {
       return null;
     }
   });
+};
 
+const configure = (on: Cypress.PluginEvents) => {
   on(
     'before:browser:launch',
     (
       browser: Cypress.Browser | null,
-      launchOptions: Cypress.BrowserLaunchOptions
+      launchOptions: Cypress.BeforeBrowserLaunchOptions
     ) => {
-      ensureBrowserFlags((browser ?? {}) as Cypress.Browser, launchOptions);
+      launchOptions.args.push(
+        ...plugin.ensureBrowserFlags(
+          browser ?? ({} as Cypress.Browser),
+          launchOptions.args
+        )
+      );
 
       return launchOptions;
     }
   );
 };
 
-export const enableExperimentalLifecycle = (
+const enableExperimentalLifecycle = (
   on: Cypress.PluginEvents,
   config: Cypress.PluginConfigOptions
 ) => {
@@ -72,40 +107,16 @@ export const enableExperimentalLifecycle = (
     on('before:spec', (_: Cypress.Spec) =>
       plugin.recordHar({
         content: true,
-        includeBlobs: true,
         rootDir: StringUtils.dirname(Cypress.spec.absolute)
       })
     );
     on('after:spec', (spec: Cypress.Spec, _: CypressCommandLine.RunResult) =>
       plugin.saveHar({
         fileName: StringUtils.normalizeName(spec.name, { ext: '.har' }),
-        outDir: config.env.hars_folders ?? '.'
+        outDir: config.env.hars_folder ?? '.'
       })
     );
   }
-};
-
-/**
- * Function has been deprecated. Use {@link install} instead as follows:
- * ```diff
- * setupNodeEvents(on) {
- *   install(on);
- * -  // bind to the event we care about
- * -  on('before:browser:launch', (browser = {}, launchOptions) => {
- * -    ensureBrowserFlags(browser, launchOptions);
- * -    return launchOptions;
- * -  });
- * }
- * ```
- * In case of any issues please refer to {@link https://github.com/cypress-io/cypress/issues/5240}
- */
-export const ensureBrowserFlags = (
-  browser: Cypress.Browser,
-  launchOptions: Cypress.BrowserLaunchOptions
-): void => {
-  launchOptions.args.push(
-    ...plugin.ensureBrowserFlags(browser, launchOptions.args)
-  );
 };
 
 export type { SaveOptions, RecordOptions } from './Plugin';
