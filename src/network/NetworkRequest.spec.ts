@@ -1,9 +1,9 @@
-import { NetworkRequest } from './NetworkRequest';
+import { NetworkRequest } from './NetworkRequest.js';
 import { describe, expect, it } from '@jest/globals';
-import Protocol from 'devtools-protocol';
+import type protocol from 'devtools-protocol';
 
 describe('NetworkRequest', () => {
-  const timing: Protocol.Network.ResourceTiming = {
+  const timing: protocol.Network.ResourceTiming = {
     requestTime: 3,
     proxyStart: 4,
     proxyEnd: 5,
@@ -21,7 +21,8 @@ describe('NetworkRequest', () => {
     pushEnd: 17,
     receiveHeadersEnd: 18,
     workerFetchStart: 19,
-    workerRespondWithSettled: 20
+    workerRespondWithSettled: 20,
+    receiveHeadersStart: 21
   };
 
   let sut!: NetworkRequest;

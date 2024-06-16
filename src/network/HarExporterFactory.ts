@@ -1,4 +1,4 @@
-import type { HarExporter } from './HarExporter';
+import type { HarExporter } from './HarExporter.js';
 
 export interface HarExporterOptions {
   rootDir: string;

@@ -1,7 +1,7 @@
-import { NetworkRequest } from './NetworkRequest';
-import { DefaultHarExporter } from './DefaultHarExporter';
-import type { Logger } from '../utils/Logger';
-import type { DefaultHarExporterOptions } from './DefaultHarExporterOptions';
+import { NetworkRequest } from './NetworkRequest.js';
+import { DefaultHarExporter } from './DefaultHarExporter.js';
+import type { Logger } from '../utils/Logger.js';
+import type { DefaultHarExporterOptions } from './DefaultHarExporterOptions.js';
 import {
   anyFunction,
   anyString,
@@ -15,8 +15,8 @@ import {
 } from 'ts-mockito';
 import type { Entry } from 'har-format';
 import { beforeEach, describe, it, jest, expect } from '@jest/globals';
-import type { WriteStream } from 'fs';
-import { EOL } from 'os';
+import type { WriteStream } from 'node:fs';
+import { EOL } from 'node:os';
 
 describe('DefaultHarExporter', () => {
   const streamMock = mock<WriteStream>();
@@ -27,7 +27,7 @@ describe('DefaultHarExporter', () => {
     'https://example.com',
     '1'
   );
-  const predicate = jest.fn<(entry: Entry) => Promise<unknown> | unknown>();
+  const predicate = jest.fn<(entry: Entry) => unknown>();
   const transform = jest.fn<(entry: Entry) => Promise<Entry> | Entry>();
 
   let harExporter!: DefaultHarExporter;

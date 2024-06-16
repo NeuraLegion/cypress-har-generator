@@ -1,5 +1,5 @@
-import { NetworkRequest } from '../NetworkRequest';
-import { BlobFilter } from './BlobFilter';
+import { type NetworkRequest } from '../NetworkRequest.js';
+import { BlobFilter } from './BlobFilter.js';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock, reset, when } from 'ts-mockito';
 

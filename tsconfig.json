@@ -1,10 +1,10 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2016",
-    "lib": ["es2021", "dom"],
+    "target": "ES2022",
+    "lib": ["ES2023", "dom"],
     "newLine": "LF",
-    "module": "esnext",
+    "module": "ES2022",
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -18,11 +18,9 @@
     "noUnusedLocals": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedParameters": true,
-    // FIXME: enable the two flags below
-    "noUncheckedIndexedAccess": false,
+    "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
@@ -34,9 +32,7 @@
     "types": ["cypress", "node", "chrome-remote-interface"]
   },
   "ts-node": {
-    "compilerOptions": {
-      "module": "commonjs"
-    }
+    "esm": true
   },
   "exclude": ["node_modules", "dist", "example", "**/.*/"]
 }

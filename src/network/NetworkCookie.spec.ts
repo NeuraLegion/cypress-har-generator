@@ -1,4 +1,4 @@
-import { CookieAttribute, NetworkCookie } from './NetworkCookie';
+import { CookieAttribute, NetworkCookie } from './NetworkCookie.js';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 
 describe('NetworkCookie', () => {
@@ -12,17 +12,6 @@ describe('NetworkCookie', () => {
     it('should set the name and value', () => {
       expect(cookie.name).toBe('name');
       expect(cookie.value).toBe('value');
-    });
-  });
-
-  describe('size', () => {
-    it('should set the size', () => {
-      // arrange
-      const size = 100;
-      // act
-      cookie.size = size;
-      // assert
-      expect(cookie.size).toBe(size);
     });
   });
 

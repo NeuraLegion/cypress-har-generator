@@ -1,13 +1,13 @@
-import type { Network, NetworkEvent } from '../network';
-import { ErrorUtils } from '../utils/ErrorUtils';
-import type { Logger } from '../utils/Logger';
+import type { Network, NetworkEvent } from '../network/Network.js';
+import { ErrorUtils } from '../utils/ErrorUtils.js';
+import type { Logger } from '../utils/Logger.js';
 import {
   TARGET_OR_BROWSER_CLOSED,
   UNABLE_TO_ATTACH_TO_TARGET
-} from './messages';
-import type { NetworkOptions } from './NetworkOptions';
+} from './messages.js';
+import type { NetworkOptions } from './NetworkOptions.js';
 import type { Client, EventMessage } from 'chrome-remote-interface';
-import type Protocol from 'devtools-protocol';
+import type protocol from 'devtools-protocol';
 
 export class DefaultNetwork implements Network {
   private readonly DOMAIN = 'Network';
@@ -67,7 +67,7 @@ export class DefaultNetwork implements Network {
 
   public getRequestBody(
     requestId: string
-  ): Promise<Protocol.Network.GetRequestPostDataResponse> {
+  ): Promise<protocol.Network.GetRequestPostDataResponse> {
     return this.cdp.send(
       'Network.getRequestPostData',
       {
@@ -79,7 +79,7 @@ export class DefaultNetwork implements Network {
 
   public getResponseBody(
     requestId: string
-  ): Promise<Protocol.Network.GetResponseBodyResponse> {
+  ): Promise<protocol.Network.GetResponseBodyResponse> {
     return this.cdp.send(
       'Network.getResponseBody',
       {
@@ -112,7 +112,7 @@ export class DefaultNetwork implements Network {
 
   private certificateErrorListener = ({
     eventId
-  }: Protocol.Security.CertificateErrorEvent) =>
+  }: protocol.Security.CertificateErrorEvent) =>
     this.cdp.send('Security.handleCertificateError', {
       eventId,
       action: 'continue'
@@ -154,8 +154,8 @@ export class DefaultNetwork implements Network {
     {
       requestId
     }:
-      | Protocol.Network.RequestWillBeSentEvent
-      | Protocol.Network.WebSocketCreatedEvent,
+      | protocol.Network.RequestWillBeSentEvent
+      | protocol.Network.WebSocketCreatedEvent,
     sessionId?: string
   ) => {
     this.sessions.set(requestId, sessionId);
@@ -168,7 +168,7 @@ export class DefaultNetwork implements Network {
     sessionId,
     targetInfo,
     waitingForDebugger
-  }: Protocol.Target.AttachedToTargetEvent): Promise<void> => {
+  }: protocol.Target.AttachedToTargetEvent): Promise<void> => {
     try {
       await this.recursivelyAttachToTargets({
         sessionId,

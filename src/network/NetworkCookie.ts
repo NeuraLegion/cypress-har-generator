@@ -12,20 +12,12 @@ export enum CookieAttribute {
   MAXAGE = 'max-age'
 }
 
+type Samesite = 'Strict' | 'Lax' | 'None';
+
 export class NetworkCookie {
   private readonly _name: string;
   private readonly _value: string;
   private _attributes = new Map<CookieAttribute, string | undefined>();
-
-  private _size: number = 0;
-
-  get size(): number {
-    return this._size;
-  }
-
-  set size(size: number) {
-    this._size = size;
-  }
 
   get name(): string {
     return this._name;
@@ -44,7 +36,7 @@ export class NetworkCookie {
   }
 
   get sameSite(): 'Strict' | 'Lax' | 'None' | undefined {
-    return this._attributes.get(CookieAttribute.SAMESITE) as any;
+    return this._attributes.get(CookieAttribute.SAMESITE) as Samesite;
   }
 
   get session(): boolean | undefined {
@@ -85,11 +77,9 @@ export class NetworkCookie {
     this._value = value;
   }
 
-  public expiresDate(requestDate: Date): Date | undefined {
+  public expiresDate(requestDate: Date = new Date()): Date | undefined {
     if (this.maxAge) {
-      const targetDate = requestDate === null ? new Date() : requestDate;
-
-      return new Date(targetDate.getTime() + 1000 * this.maxAge);
+      return new Date(requestDate.getTime() + 1000 * this.maxAge);
     }
 
     if (this.expires) {

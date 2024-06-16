@@ -1,5 +1,5 @@
-import { NetworkRequest } from '../NetworkRequest';
-import type { NetworkObserverOptions } from '../NetworkObserverOptions';
+import { type NetworkRequest } from '../NetworkRequest.js';
+import type { NetworkObserverOptions } from '../NetworkObserverOptions.js';
 
 export type RequestFilterOptions = Omit<NetworkObserverOptions, 'content'>;
 

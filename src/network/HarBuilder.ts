@@ -1,10 +1,11 @@
 import type { Entry, Har } from 'har-format';
+import { createRequire } from 'module';
 
 export class HarBuilder {
   constructor(private readonly entries: Entry[]) {}
 
   public build(): Har {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const require = createRequire(import.meta.url);
     const { name, version, homepage: comment } = require('../../package.json');
 
     return {

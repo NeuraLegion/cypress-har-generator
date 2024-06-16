@@ -1,15 +1,14 @@
-import type { RecordOptions, SaveOptions } from './Plugin';
-import { Plugin } from './Plugin';
-import type { Logger } from './utils/Logger';
-import type { FileManager } from './utils/FileManager';
-import type {
-  Observer,
-  ObserverFactory,
-  HarExporter,
-  HarExporterFactory
-} from './network';
-import { NetworkRequest } from './network';
-import type { Connection, ConnectionFactory } from './cdp';
+import type { RecordOptions, SaveOptions } from './Plugin.js';
+import { Plugin } from './Plugin.js';
+import type { Logger } from './utils/Logger.js';
+import type { FileManager } from './utils/FileManager.js';
+import type { Observer } from './network/Observer.js';
+import { NetworkRequest } from './network/NetworkRequest.js';
+import type { Connection } from './cdp/Connection.js';
+import type { ConnectionFactory } from './cdp/ConnectionFactory.js';
+import { type ObserverFactory } from './network/ObserverFactory.js';
+import { type HarExporterFactory } from './network/HarExporterFactory.js';
+import { type HarExporter } from './network/HarExporter.js';
 import {
   anyFunction,
   anyString,
@@ -25,7 +24,7 @@ import {
 } from 'ts-mockito';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Entry } from 'har-format';
-import { tmpdir } from 'os';
+import { tmpdir } from 'node:os';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {

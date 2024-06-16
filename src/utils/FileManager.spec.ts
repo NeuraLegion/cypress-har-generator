@@ -1,9 +1,9 @@
-import { FileManager } from './FileManager';
+import { FileManager } from './FileManager.js';
 import { describe, beforeEach, it, expect } from '@jest/globals';
-import { randomBytes } from 'crypto';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { WriteStream } from 'fs';
+import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { WriteStream } from 'node:fs';
 
 describe('FileManager', () => {
   let path!: string;

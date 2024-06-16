@@ -1,7 +1,7 @@
-import type { NetworkObserverOptions } from './NetworkObserverOptions';
-import type { Observer } from './Observer';
-import { NetworkRequest } from './NetworkRequest';
-import type { Network } from './Network';
+import type { NetworkObserverOptions } from './NetworkObserverOptions.js';
+import type { Observer } from './Observer.js';
+import { type NetworkRequest } from './NetworkRequest.js';
+import type { Network } from './Network.js';
 
 export interface ObserverFactory {
   createNetworkObserver(

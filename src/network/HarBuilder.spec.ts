@@ -1,4 +1,4 @@
-import { HarBuilder } from './HarBuilder';
+import { HarBuilder } from './HarBuilder.js';
 import type { Entry } from 'har-format';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 

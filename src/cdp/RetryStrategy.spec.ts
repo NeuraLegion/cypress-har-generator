@@ -1,39 +1,12 @@
-import { RetryStrategy } from './RetryStrategy';
+import { RetryStrategy } from './RetryStrategy.js';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
-
-const findArg = <R>(
-  args: [unknown, unknown],
-  expected: 'function' | 'number'
-): R => (typeof args[0] === expected ? args[0] : args[1]) as R;
-
-const useFakeTimers = () => {
-  jest.useFakeTimers();
-
-  const mockedImplementation = jest
-    .spyOn(global, 'setTimeout')
-    .getMockImplementation();
-
-  jest
-    .spyOn(global, 'setTimeout')
-    .mockImplementation((...args: [unknown, unknown]) => {
-      // ADHOC: depending on implementation (promisify vs raw), the method signature will be different
-      const callback = findArg<(..._: unknown[]) => void>(args, 'function');
-      const ms = findArg<number>(args, 'number');
-      const timer = mockedImplementation?.(callback, ms);
-
-      jest.runAllTimers();
-
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return timer!;
-    });
-};
 
 describe('RetryStrategy', () => {
   let task!: jest.Mock;
 
   beforeEach(() => {
     task = jest.fn();
-    useFakeTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
@@ -56,6 +29,7 @@ describe('RetryStrategy', () => {
       const retryStrategy = new RetryStrategy(3, 10, 1000);
       // act
       for (let i = 0; i < 4; i++) {
+        process.nextTick(() => jest.runAllTimers());
         await retryStrategy.execute(task);
       }
       // assert
@@ -73,6 +47,7 @@ describe('RetryStrategy', () => {
       );
 
       // act
+      process.nextTick(() => jest.runAllTimers());
       await retryStrategy.execute(task);
 
       // assert
@@ -86,6 +61,7 @@ describe('RetryStrategy', () => {
       // arrange
       const retryStrategy = new RetryStrategy(3, 10, 1000);
       // act
+      process.nextTick(() => jest.runAllTimers());
       const retriesRemaining = await retryStrategy.execute(task);
       // assert
       expect(retriesRemaining).toBe(2);
@@ -95,6 +71,7 @@ describe('RetryStrategy', () => {
       // arrange
       const retryStrategy = new RetryStrategy(0, 10, 1000);
       // act
+      process.nextTick(() => jest.runAllTimers());
       await retryStrategy.execute(task);
       // assert
       expect(task).not.toHaveBeenCalled();

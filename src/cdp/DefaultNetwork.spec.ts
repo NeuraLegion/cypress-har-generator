@@ -1,6 +1,6 @@
-import { DefaultNetwork } from './DefaultNetwork';
-import type { Logger } from '../utils/Logger';
-import { TARGET_OR_BROWSER_CLOSED } from './messages';
+import { DefaultNetwork } from './DefaultNetwork.js';
+import type { Logger } from '../utils/Logger.js';
+import { TARGET_OR_BROWSER_CLOSED } from './messages.js';
 import {
   anyFunction,
   anything,
@@ -21,7 +21,7 @@ import {
   it,
   jest
 } from '@jest/globals';
-import type Protocol from 'devtools-protocol';
+import type protocol from 'devtools-protocol';
 
 describe('DefaultNetwork', () => {
   const clientMock = mock<Client>();
@@ -166,7 +166,7 @@ describe('DefaultNetwork', () => {
       async ({ input }) => {
         // arrange
         const sessionId = '1';
-        const targetInfo: Protocol.Target.TargetInfo = {
+        const targetInfo: protocol.Target.TargetInfo = {
           targetId: '1',
           type: input,
           url: '',
@@ -198,7 +198,7 @@ describe('DefaultNetwork', () => {
     it('should recursively attach to new targets', async () => {
       // arrange
       const sessionId = '1';
-      const targetInfo: Protocol.Target.TargetInfo = {
+      const targetInfo: protocol.Target.TargetInfo = {
         targetId: '1',
         type: 'page',
         url: '',
@@ -240,7 +240,7 @@ describe('DefaultNetwork', () => {
       async ({ input }) => {
         // arrange
         const sessionId = '1';
-        const targetInfo: Protocol.Target.TargetInfo = {
+        const targetInfo: protocol.Target.TargetInfo = {
           targetId: '1',
           type: input,
           url: '',
@@ -272,7 +272,7 @@ describe('DefaultNetwork', () => {
     it('should run if waiting for debugger', async () => {
       // arrange
       const sessionId = '1';
-      const targetInfo: Protocol.Target.TargetInfo = {
+      const targetInfo: protocol.Target.TargetInfo = {
         targetId: '1',
         type: 'page',
         url: '',
@@ -296,7 +296,7 @@ describe('DefaultNetwork', () => {
     it('should not throw an error when an unexpected error is happened', async () => {
       // arrange
       const sessionId = '1';
-      const targetInfo: Protocol.Target.TargetInfo = {
+      const targetInfo: protocol.Target.TargetInfo = {
         targetId: '1',
         type: 'page',
         url: '',
@@ -327,7 +327,7 @@ describe('DefaultNetwork', () => {
       async ({ input }) => {
         // arrange
         const sessionId = '1';
-        const targetInfo: Protocol.Target.TargetInfo = {
+        const targetInfo: protocol.Target.TargetInfo = {
           targetId: '1',
           type: 'page',
           url: '',
@@ -363,7 +363,7 @@ describe('DefaultNetwork', () => {
       verify(
         clientMock.send(
           'Security.handleCertificateError',
-          deepEqual<Protocol.Security.HandleCertificateErrorRequest>({
+          deepEqual<protocol.Security.HandleCertificateErrorRequest>({
             eventId,
             action: 'continue'
           })

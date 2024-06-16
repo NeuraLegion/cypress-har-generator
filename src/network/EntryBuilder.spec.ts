@@ -1,5 +1,5 @@
-import { EntryBuilder } from './EntryBuilder';
-import { NetworkRequest } from './NetworkRequest';
+import { EntryBuilder } from './EntryBuilder.js';
+import { NetworkRequest } from './NetworkRequest.js';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 describe('EntryBuilder', () => {

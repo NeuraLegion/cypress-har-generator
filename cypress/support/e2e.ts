@@ -1,5 +1,5 @@
-import '../../src/commands';
-import { Har } from 'har-format';
+import '../../src/commands.js';
+import { type Har } from 'har-format';
 import like from 'chai-like';
 import things from 'chai-things';
 

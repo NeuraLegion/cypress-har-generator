@@ -1,5 +1,5 @@
-import { Logger } from './Logger';
-import { promisify } from 'util';
+import { Logger } from './Logger.js';
+import { promisify } from 'node:util';
 import {
   access,
   constants,
@@ -8,15 +8,15 @@ import {
   unlink,
   writeFile,
   readFile,
-  WriteStream,
+  type WriteStream,
   createWriteStream
-} from 'fs';
-import { randomBytes } from 'crypto';
-import { tmpdir } from 'os';
-import { join } from 'path';
+} from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 export class FileManager {
-  private static _instance: FileManager;
+  private static _instance?: FileManager;
 
   // eslint-disable-next-line @typescript-eslint/naming-convention
   static get Instance(): FileManager {

@@ -1,8 +1,9 @@
-import express, { Request, Response, json, raw } from 'express';
+import express, { type Request, type Response, json, raw } from 'express';
 import minimist from 'minimist';
-import WebSocket, { Server } from 'ws';
-import { join } from 'path';
-import { randomBytes } from 'crypto';
+import type websocket from 'ws';
+import { Server } from 'ws';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 
 const app = express();
 const ws = new Server({ noServer: true, path: '/ws' });
@@ -16,7 +17,7 @@ app.use('/', express.static(join(__dirname, 'public')));
 app.set('views', join(__dirname, 'views'));
 app.set('view engine', 'hbs');
 
-const wsDispatcher = (socket: WebSocket) => {
+const wsDispatcher = (socket: websocket) => {
   const data = `This is a message at time ${Date.now()}`;
 
   socket.send(data);
@@ -52,10 +53,9 @@ const sseDispatcher = (res: Response) => {
 };
 app.get('/api/events', (req: Request, res: Response) => {
   const headers = {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
     'Content-Type': 'text/event-stream',
     'Connection': 'keep-alive',
-    // eslint-disable-next-line @typescript-eslint/naming-convention
+
     'Cache-Control': 'no-cache'
   };
   res.writeHead(200, headers);

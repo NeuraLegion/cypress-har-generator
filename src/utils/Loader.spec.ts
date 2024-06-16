@@ -1,4 +1,4 @@
-import { Loader } from './Loader';
+import { Loader } from './Loader.js';
 import { jest, describe, it, expect, afterEach } from '@jest/globals';
 
 describe('Loader', () => {
@@ -6,6 +6,8 @@ describe('Loader', () => {
   const module = 'example export';
 
   afterEach(() => {
+    jest.resetAllMocks();
+    jest.restoreAllMocks();
     jest.resetModules();
     jest.resetAllMocks();
   });
@@ -29,6 +31,13 @@ describe('Loader', () => {
 
     it('should load the es module from the given path', async () => {
       // arrange
+      jest.unstable_mockModule(
+        modulePath,
+        () => ({
+          default: module
+        }),
+        { virtual: true }
+      );
       jest.mock(
         modulePath,
         jest

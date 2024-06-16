@@ -1,9 +1,9 @@
 import type { Protocol } from 'devtools-protocol';
-import type ProtocolMappingApi from 'devtools-protocol/types/protocol-mapping';
+import type protocolMappingApi from 'devtools-protocol/types/protocol-mapping';
 
 export type NetworkEvents = Pick<
-  ProtocolMappingApi.Events,
-  `Network.${string}` & keyof ProtocolMappingApi.Events
+  protocolMappingApi.Events,
+  `Network.${string}` & keyof protocolMappingApi.Events
 >;
 export type NetworkEventParams<T extends keyof NetworkEvents> =
   NetworkEvents[T][0];

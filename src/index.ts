@@ -1,10 +1,11 @@
-import { Plugin } from './Plugin';
-import { Logger } from './utils/Logger';
-import { FileManager } from './utils/FileManager';
-import { DefaultConnectionFactory } from './cdp';
-import { DefaultHarExporterFactory, DefaultObserverFactory } from './network';
-import { StringUtils } from './utils/StringUtils';
-import type { RecordOptions, SaveOptions } from './Plugin';
+import { Plugin } from './Plugin.js';
+import { DefaultConnectionFactory } from './cdp/DefaultConnectionFactory.js';
+import { Logger } from './utils/Logger.js';
+import { DefaultHarExporterFactory } from './network/DefaultHarExporterFactory.js';
+import { FileManager } from './utils/FileManager.js';
+import { type RecordOptions, type SaveOptions } from './Plugin.js';
+import { DefaultObserverFactory } from './network/DefaultObserverFactory.js';
+import { StringUtils } from './utils/StringUtils.js';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -119,4 +120,4 @@ const enableExperimentalLifecycle = (
   }
 };
 
-export type { SaveOptions, RecordOptions } from './Plugin';
+export type { SaveOptions, RecordOptions } from './Plugin.js';

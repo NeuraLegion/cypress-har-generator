@@ -1,26 +1,30 @@
-import { Logger } from './utils/Logger';
-import { FileManager } from './utils/FileManager';
+import { type Logger } from './utils/Logger.js';
+import { type FileManager } from './utils/FileManager.js';
 import type {
-  HarExporter,
   HarExporterFactory,
-  HarExporterOptions,
-  NetworkObserverOptions,
-  Observer,
-  ObserverFactory
-} from './network';
-import { HarBuilder, NetworkIdleMonitor, NetworkRequest } from './network';
-import { ErrorUtils } from './utils/ErrorUtils';
-import type { Connection, ConnectionFactory, NetworkOptions } from './cdp';
+  HarExporterOptions
+} from './network/HarExporterFactory.js';
+import { ErrorUtils } from './utils/ErrorUtils.js';
 import {
   ADDRESS_OPTION_NAME,
   MAX_NETWORK_IDLE_THRESHOLD,
   MAX_NETWORK_IDLE_DURATION,
   PORT_OPTION_NAME,
   SUPPORTED_BROWSERS
-} from './constants';
-import { join } from 'path';
-import { EOL } from 'os';
-import { promisify } from 'util';
+} from './constants.js';
+import { type ConnectionFactory } from './cdp/ConnectionFactory.js';
+import { type NetworkObserverOptions } from './network/NetworkObserverOptions.js';
+import { type NetworkOptions } from './cdp/NetworkOptions.js';
+import { type HarExporter } from './network/HarExporter.js';
+import { type Observer } from './network/Observer.js';
+import { type NetworkRequest } from './network/NetworkRequest.js';
+import { type Connection } from './cdp/Connection.js';
+import { type ObserverFactory } from './network/ObserverFactory.js';
+import { HarBuilder } from './network/HarBuilder.js';
+import { NetworkIdleMonitor } from './network/NetworkIdleMonitor.js';
+import { promisify } from 'node:util';
+import { EOL } from 'node:os';
+import { join } from 'node:path';
 
 export interface SaveOptions {
   fileName: string;
@@ -216,7 +220,7 @@ Please refer to the documentation:
   }
 
   private isSupportedBrowser(browser: Cypress.Browser): boolean {
-    return SUPPORTED_BROWSERS.includes(browser?.family);
+    return SUPPORTED_BROWSERS.includes(browser.family);
   }
 
   private ensureRdpAddrArgs(args: string[]): string[] {
