@@ -1,5 +1,5 @@
-import { RetryStrategy } from './RetryStrategy';
-import { Logger } from '../utils/Logger';
+import { type RetryStrategy } from './RetryStrategy.js';
+import { type Logger } from '../utils/Logger.js';
 import {
   ATTEMPT_TO_CONNECT,
   CONNECTED,
@@ -7,12 +7,13 @@ import {
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT,
   FAILED_TO_CONNECT
-} from './messages';
-import type { Connection } from './Connection';
-import type { Network } from '../network';
-import { DefaultNetwork } from './DefaultNetwork';
-import { ErrorUtils } from '../utils/ErrorUtils';
-import type { NetworkOptions } from './NetworkOptions';
+} from './messages.js';
+import type { Connection } from './Connection.js';
+import type { Network } from '../network/Network.js';
+import { DefaultNetwork } from './DefaultNetwork.js';
+import { ErrorUtils } from '../utils/ErrorUtils.js';
+import type { NetworkOptions } from './NetworkOptions.js';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import CDP, { Version } from 'chrome-remote-interface';
 import type { Client, Options } from 'chrome-remote-interface';
 
@@ -80,11 +81,16 @@ export class CDPConnection implements Connection {
 
   private async populateBrowserTarget(): Promise<string> {
     const { port, host } = this.options;
-    const { webSocketDebuggerUrl } = await Version({
-      host,
-      port
-    });
 
-    return webSocketDebuggerUrl ?? `ws://${host}:${port}/devtools/browser`;
+    try {
+      const { webSocketDebuggerUrl } = await Version({
+        host,
+        port
+      });
+
+      return webSocketDebuggerUrl;
+    } catch {
+      return `ws://${host}:${port}/devtools/browser`;
+    }
   }
 }

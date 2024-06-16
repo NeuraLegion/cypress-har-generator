@@ -1,18 +1,17 @@
 import type {
   HarExporterFactory,
   HarExporterOptions
-} from './HarExporterFactory';
-import type { HarExporter } from './HarExporter';
-import { DefaultHarExporter } from './DefaultHarExporter';
-import { Loader } from '../utils/Loader';
-import type { FileManager } from '../utils/FileManager';
-import type { Logger } from '../utils/Logger';
-import type {
-  DefaultHarExporterOptions,
-  Filter,
-  Transformer
-} from './DefaultHarExporterOptions';
-import { resolve } from 'path';
+} from './HarExporterFactory.js';
+import type { HarExporter } from './HarExporter.js';
+import { DefaultHarExporter } from './DefaultHarExporter.js';
+import { Loader } from '../utils/Loader.js';
+import type { FileManager } from '../utils/FileManager.js';
+import type { Logger } from '../utils/Logger.js';
+import {
+  type DefaultHarExporterOptions,
+  type Filter
+} from './DefaultHarExporterOptions.js';
+import { resolve } from 'node:path';
 
 export class DefaultHarExporterFactory implements HarExporterFactory {
   constructor(

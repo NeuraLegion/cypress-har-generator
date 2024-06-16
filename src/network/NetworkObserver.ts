@@ -1,17 +1,22 @@
-import { Logger } from '../utils/Logger';
-import { NetworkRequest } from './NetworkRequest';
-import { ExtraInfoBuilder } from './ExtraInfoBuilder';
-import type { NetworkObserverOptions } from './NetworkObserverOptions';
-import type { Observer } from './Observer';
-import type { RequestFilter } from './filters';
-import type { Network, NetworkEvent } from './Network';
-import type Protocol from 'devtools-protocol';
+import { type Logger } from '../utils/Logger.js';
+import { NetworkRequest } from './NetworkRequest.js';
+import { ExtraInfoBuilder } from './ExtraInfoBuilder.js';
+import type { NetworkObserverOptions } from './NetworkObserverOptions.js';
+import type { Observer } from './Observer.js';
+import type { RequestFilter } from './filters/RequestFilter.js';
+import {
+  type Network,
+  type NetworkEvent,
+  type NetworkEventParams,
+  type NetworkEvents
+} from './Network.js';
+import type protocol from 'devtools-protocol';
 import type { Header } from 'har-format';
 
 export class NetworkObserver implements Observer<NetworkRequest> {
-  private readonly _entries: Map<Protocol.Network.RequestId, NetworkRequest>;
+  private readonly _entries: Map<protocol.Network.RequestId, NetworkRequest>;
   private readonly _extraInfoBuilders: Map<
-    Protocol.Network.RequestId,
+    protocol.Network.RequestId,
     ExtraInfoBuilder
   >;
   private destination?: (chromeEntry: NetworkRequest) => unknown;
@@ -26,9 +31,9 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     private readonly logger: Logger,
     private readonly requestFilter?: RequestFilter
   ) {
-    this._entries = new Map<Protocol.Network.RequestId, NetworkRequest>();
+    this._entries = new Map<protocol.Network.RequestId, NetworkRequest>();
     this._extraInfoBuilders = new Map<
-      Protocol.Network.RequestId,
+      protocol.Network.RequestId,
       ExtraInfoBuilder
     >();
   }
@@ -51,7 +56,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   public signedExchangeReceived(
-    params: Protocol.Network.SignedExchangeReceivedEvent
+    params: protocol.Network.SignedExchangeReceivedEvent
   ): void {
     const entry: NetworkRequest | undefined = this._entries.get(
       params.requestId
@@ -77,7 +82,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     requestId,
     request,
     wallTime
-  }: Protocol.Network.RequestWillBeSentEvent): void {
+  }: protocol.Network.RequestWillBeSentEvent): void {
     let entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (entry) {
@@ -95,7 +100,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
           response: redirectResponse
         });
       }
-      entry = this._appendRedirect(requestId, timestamp, request.url);
+      entry = this.appendRedirect(requestId, timestamp, request.url);
     } else {
       entry = this.createRequest(
         requestId,
@@ -122,7 +127,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     dataLength,
     encodedDataLength,
     timestamp
-  }: Protocol.Network.DataReceivedEvent): void {
+  }: protocol.Network.DataReceivedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
@@ -139,7 +144,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     response,
     timestamp,
     type
-  }: Omit<Protocol.Network.ResponseReceivedEvent, 'hasExtraInfo'>): void {
+  }: Omit<protocol.Network.ResponseReceivedEvent, 'hasExtraInfo'>): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -155,7 +160,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   public resourceChangedPriority({
     requestId,
     newPriority
-  }: Protocol.Network.ResourceChangedPriorityEvent): void {
+  }: protocol.Network.ResourceChangedPriorityEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -165,11 +170,11 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     entry.priority = newPriority;
   }
 
-  public async loadingFinished({
+  public loadingFinished({
     requestId,
     timestamp,
     encodedDataLength
-  }: Protocol.Network.LoadingFinishedEvent): Promise<void> {
+  }: protocol.Network.LoadingFinishedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -185,7 +190,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     canceled,
     type,
     timestamp
-  }: Protocol.Network.LoadingFailedEvent): void {
+  }: protocol.Network.LoadingFailedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
@@ -203,7 +208,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     initiator,
     requestId,
     url
-  }: Protocol.Network.WebSocketCreatedEvent): void {
+  }: protocol.Network.WebSocketCreatedEvent): void {
     const entry: NetworkRequest = this.createRequest(
       requestId,
       '',
@@ -221,7 +226,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     eventName,
     eventId,
     data
-  }: Protocol.Network.EventSourceMessageReceivedEvent): void {
+  }: protocol.Network.EventSourceMessageReceivedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
@@ -234,7 +239,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     requestId,
     timestamp,
     wallTime
-  }: Protocol.Network.WebSocketWillSendHandshakeRequestEvent): void {
+  }: protocol.Network.WebSocketWillSendHandshakeRequestEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
     if (!entry) {
       return;
@@ -248,7 +253,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     timestamp,
     response,
     requestId
-  }: Protocol.Network.WebSocketHandshakeResponseReceivedEvent): void {
+  }: protocol.Network.WebSocketHandshakeResponseReceivedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -258,7 +263,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     entry.statusCode = response.status;
     entry.statusText = response.statusText;
     entry.responseHeaders = this.headersMapToHeadersArray(response.headers);
-    entry.responseHeadersText = response.headersText || '';
+    entry.responseHeadersText = response.headersText ?? '';
 
     if (response.requestHeaders) {
       entry.requestHeaders = this.headersMapToHeadersArray(
@@ -278,7 +283,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     requestId,
     timestamp,
     response
-  }: Protocol.Network.WebSocketFrameSentEvent): void {
+  }: protocol.Network.WebSocketFrameSentEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -293,7 +298,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     requestId,
     timestamp,
     response
-  }: Protocol.Network.WebSocketFrameReceivedEvent): void {
+  }: protocol.Network.WebSocketFrameReceivedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -308,7 +313,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     errorMessage,
     requestId,
     timestamp
-  }: Protocol.Network.WebSocketFrameErrorEvent): void {
+  }: protocol.Network.WebSocketFrameErrorEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -322,7 +327,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   public webSocketClosed({
     requestId,
     timestamp
-  }: Protocol.Network.WebSocketClosedEvent): void {
+  }: protocol.Network.WebSocketClosedEvent): void {
     const entry: NetworkRequest | undefined = this._entries.get(requestId);
 
     if (!entry) {
@@ -335,7 +340,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   public requestWillBeSentExtraInfo({
     requestId,
     headers
-  }: Protocol.Network.RequestWillBeSentExtraInfoEvent): void {
+  }: protocol.Network.RequestWillBeSentExtraInfoEvent): void {
     this.getExtraInfoBuilder(requestId).addRequestExtraInfo({
       requestHeaders: this.headersMapToHeadersArray(headers)
     });
@@ -345,7 +350,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     requestId,
     headers,
     headersText
-  }: Protocol.Network.ResponseReceivedExtraInfoEvent): void {
+  }: protocol.Network.ResponseReceivedExtraInfoEvent): void {
     this.getExtraInfoBuilder(requestId).addResponseExtraInfo({
       responseHeaders: this.headersMapToHeadersArray(headers),
       responseHeadersText: headersText
@@ -353,7 +358,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   private getExtraInfoBuilder(
-    requestId: Protocol.Network.RequestId
+    requestId: protocol.Network.RequestId
   ): ExtraInfoBuilder {
     if (!this._extraInfoBuilders.has(requestId)) {
       this._extraInfoBuilders.set(
@@ -368,15 +373,16 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     return this._extraInfoBuilders.get(requestId)!;
   }
 
-  // eslint-disable-next-line @typescript-eslint/naming-convention
-  private _appendRedirect(
-    requestId: Protocol.Network.RequestId,
-    time: Protocol.Network.MonotonicTime,
+  private appendRedirect(
+    requestId: protocol.Network.RequestId,
+    time: protocol.Network.MonotonicTime,
     redirectURL: string
   ): NetworkRequest {
-    const originalNetworkRequest: NetworkRequest = this._entries.get(
-      requestId
-    ) as NetworkRequest;
+    const originalNetworkRequest = this._entries.get(requestId);
+
+    if (!originalNetworkRequest) {
+      throw new TypeError(`Unable to find ${requestId} request`);
+    }
 
     let redirectCount = 0;
     let redirect: NetworkRequest | undefined =
@@ -407,14 +413,13 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
   private finishRequest(
     networkRequest: NetworkRequest,
-    finishTime: Protocol.Network.MonotonicTime,
+    finishTime: protocol.Network.MonotonicTime,
     encodedDataLength: number
   ): void {
     networkRequest.endTime = finishTime;
 
     if (encodedDataLength >= 0) {
-      const redirectSource: NetworkRequest | undefined =
-        networkRequest.redirectSource;
+      const { redirectSource } = networkRequest;
 
       if (redirectSource?.signedExchangeInfo) {
         networkRequest.transferSize = 0;
@@ -429,7 +434,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     this.getExtraInfoBuilder(networkRequest.requestId).finished();
 
     if (!this.shouldExcludeRequest(networkRequest)) {
-      networkRequest
+      void networkRequest
         .waitForCompletion()
         .then(() => this.destination?.(networkRequest))
         .finally(() => this._entries.delete(networkRequest.requestId));
@@ -450,7 +455,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
   private updateNetworkRequestWithRequest(
     chromeRequest: NetworkRequest,
-    request: Protocol.Network.Request
+    request: protocol.Network.Request
   ): void {
     chromeRequest.requestMethod = request.method;
     chromeRequest.requestHeaders = this.headersMapToHeadersArray(
@@ -466,7 +471,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
 
   private getRequestPostData(
     request: NetworkRequest,
-    rawRequest: Protocol.Network.Request
+    rawRequest: protocol.Network.Request
   ): Promise<string | undefined> {
     return rawRequest.postData !== undefined
       ? Promise.resolve(rawRequest.postData)
@@ -475,18 +480,18 @@ export class NetworkObserver implements Observer<NetworkRequest> {
           .then(
             ({
               postData
-            }: Protocol.Network.GetRequestPostDataResponse): string => postData
+            }: protocol.Network.GetRequestPostDataResponse): string => postData
           )
           .catch(() => undefined);
   }
 
   private createRequest(
-    requestId: Protocol.Network.RequestId,
+    requestId: protocol.Network.RequestId,
     frameId: string | undefined,
-    loaderId: Protocol.Network.LoaderId,
+    loaderId: protocol.Network.LoaderId,
     url: string,
     documentURL: string,
-    initiator?: Protocol.Network.Initiator
+    initiator?: protocol.Network.Initiator
   ): NetworkRequest {
     return new NetworkRequest(
       requestId,
@@ -501,7 +506,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   // eslint-disable-next-line complexity
   private updateNetworkRequestWithResponse(
     networkRequest: NetworkRequest,
-    response: Protocol.Network.Response
+    response: protocol.Network.Response
   ): void {
     if (response.url && networkRequest.url !== response.url) {
       networkRequest.url = response.url;
@@ -533,7 +538,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
     if (response.remoteIPAddress) {
       networkRequest.setRemoteAddress(
         response.remoteIPAddress,
-        response.remotePort || -1
+        response.remotePort ?? -1
       );
     }
 
@@ -545,7 +550,7 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   private headersMapToHeadersArray(
-    headersMap: Protocol.Network.Headers
+    headersMap: protocol.Network.Headers
   ): Header[] {
     return Object.keys(headersMap).reduce(
       (acc: Header[], name: string): Header[] => {
@@ -566,10 +571,15 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   }
 
   private handleEvent({ method, params, sessionId }: NetworkEvent): void {
-    const methodName = method.substring(method.indexOf('.') + 1);
+    const methodName = method.substring(method.indexOf('.') + 1) as keyof this;
 
     if (typeof this[methodName] === 'function') {
-      this[methodName](params, sessionId);
+      (
+        this[methodName] as (
+          params: NetworkEventParams<keyof NetworkEvents>,
+          sessionId?: string
+        ) => unknown
+      )(params, sessionId);
     }
   }
 }

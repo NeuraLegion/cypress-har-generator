@@ -1,4 +1,4 @@
-import type { Connection } from './Connection';
+import type { Connection } from './Connection.js';
 
 export interface ConnectionOptions {
   port: number;

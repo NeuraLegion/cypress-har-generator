@@ -1,8 +1,8 @@
-import type { FileManager } from '../utils/FileManager';
-import { DefaultHarExporterFactory } from './DefaultHarExporterFactory';
-import { DefaultHarExporter } from './DefaultHarExporter';
-import { Loader } from '../utils/Loader';
-import type { Logger } from '../utils/Logger';
+import type { FileManager } from '../utils/FileManager.js';
+import { DefaultHarExporterFactory } from './DefaultHarExporterFactory.js';
+import { DefaultHarExporter } from './DefaultHarExporter.js';
+import { Loader } from '../utils/Loader.js';
+import type { Logger } from '../utils/Logger.js';
 import { instance, mock, reset, spy, verify, when } from 'ts-mockito';
 import {
   jest,
@@ -12,7 +12,7 @@ import {
   beforeEach,
   afterEach
 } from '@jest/globals';
-import type { WriteStream } from 'fs';
+import type { WriteStream } from 'node:fs';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {

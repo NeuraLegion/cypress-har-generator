@@ -1,9 +1,12 @@
-import { CookieParser } from './CookieParser';
-import { NetworkCookie } from './NetworkCookie';
-import { StringUtils } from '../utils/StringUtils';
-import type { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
+import { CookieParser } from './CookieParser.js';
+import { type NetworkCookie } from './NetworkCookie.js';
+import { StringUtils } from '../utils/StringUtils.js';
+import type {
+  RequestExtraInfo,
+  ResponseExtraInfo
+} from './ExtraInfoBuilder.js';
 import type { Header, Param, QueryString } from 'har-format';
-import type Protocol from 'devtools-protocol';
+import type protocol from 'devtools-protocol';
 
 export interface ContentData {
   error?: string;
@@ -20,7 +23,7 @@ export enum WebSocketFrameType {
 export interface WebSocket {
   type: WebSocketFrameType;
   data: string;
-  time: Protocol.Network.MonotonicTime;
+  time: protocol.Network.MonotonicTime;
   opcode: number;
   mask: boolean;
 }
@@ -34,19 +37,19 @@ export interface EventSourceMessage {
 
 export class NetworkRequest {
   private _contentData?: Promise<ContentData>;
-  private _wallIssueTime: Protocol.Network.TimeSinceEpoch = -1;
+  private _wallIssueTime: protocol.Network.TimeSinceEpoch = -1;
   private _requestHeaderValues: Map<string, string> = new Map<string, string>();
   private _responseHeaderValues: Map<string, string> = new Map<
     string,
     string
   >();
   private _parsedQueryParameters?: QueryString[];
-  private _currentPriority?: Protocol.Network.ResourcePriority;
+  private _currentPriority?: protocol.Network.ResourcePriority;
   private _requestFormData: Promise<string | undefined> =
     Promise.resolve(undefined);
   private _formParametersPromise?: Promise<Param[]>;
 
-  private _signedExchangeInfo?: Protocol.Network.SignedExchangeInfo;
+  private _signedExchangeInfo?: protocol.Network.SignedExchangeInfo;
 
   // TODO: use to finalize a response in the `requestWillBeSent` event handler or
   //  update `transferSize` for the chain of redirects
@@ -95,7 +98,7 @@ export class NetworkRequest {
   }
 
   set protocol(value: string) {
-    this._protocol = value ?? '';
+    this._protocol = value;
   }
 
   private _requestTime: number = 0;
@@ -105,7 +108,7 @@ export class NetworkRequest {
   }
 
   set requestTime(value: number) {
-    this._requestTime = value ?? 0;
+    this._requestTime = value;
   }
 
   private _requestMethod: string = '';
@@ -115,7 +118,7 @@ export class NetworkRequest {
   }
 
   set requestMethod(value: string) {
-    this._requestMethod = value ?? '';
+    this._requestMethod = value;
   }
 
   private _statusText: string = '';
@@ -125,7 +128,7 @@ export class NetworkRequest {
   }
 
   set statusText(value: string) {
-    this._statusText = value ?? '';
+    this._statusText = value;
   }
 
   private _parsedURL!: URL;
@@ -157,15 +160,15 @@ export class NetworkRequest {
     return this._remoteAddress;
   }
 
-  private _startTime: Protocol.Network.MonotonicTime = -1;
+  private _startTime: protocol.Network.MonotonicTime = -1;
 
-  get startTime(): Protocol.Network.MonotonicTime {
+  get startTime(): protocol.Network.MonotonicTime {
     return this._startTime || -1;
   }
 
-  private _issueTime: Protocol.Network.MonotonicTime = -1;
+  private _issueTime: protocol.Network.MonotonicTime = -1;
 
-  get issueTime(): Protocol.Network.MonotonicTime {
+  get issueTime(): protocol.Network.MonotonicTime {
     return this._issueTime;
   }
 
@@ -176,7 +179,7 @@ export class NetworkRequest {
   }
 
   set endTime(x: number) {
-    if (this.timing && this.timing.requestTime) {
+    if (this.timing?.requestTime) {
       this._endTime = Math.max(x, this.responseReceivedTime);
     } else {
       this._endTime = x;
@@ -203,7 +206,7 @@ export class NetworkRequest {
   }
 
   set resourceSize(value: number) {
-    this._resourceSize = value ?? 0;
+    this._resourceSize = value;
   }
 
   private _transferSize: number = 0;
@@ -213,10 +216,10 @@ export class NetworkRequest {
   }
 
   set transferSize(value: number) {
-    this._transferSize = value ?? 0;
+    this._transferSize = value;
   }
 
-  private _timing?: Protocol.Network.ResourceTiming;
+  private _timing?: protocol.Network.ResourceTiming;
 
   get timing() {
     return this._timing;
@@ -256,14 +259,14 @@ export class NetworkRequest {
     this._mimeType = value;
   }
 
-  private _resourceType: Protocol.Network.ResourceType = 'Other';
+  private _resourceType: protocol.Network.ResourceType = 'Other';
 
-  get resourceType(): Protocol.Network.ResourceType {
+  get resourceType(): protocol.Network.ResourceType {
     return this._resourceType;
   }
 
-  set resourceType(resourceType: Protocol.Network.ResourceType) {
-    this._resourceType = resourceType ?? 'Other';
+  set resourceType(resourceType: protocol.Network.ResourceType) {
+    this._resourceType = resourceType;
   }
 
   private _redirectSource?: NetworkRequest;
@@ -333,7 +336,7 @@ export class NetworkRequest {
   private _responseHeaders: Header[] = [];
 
   get responseHeaders(): Header[] {
-    return this._responseHeaders || [];
+    return this._responseHeaders;
   }
 
   set responseHeaders(value: Header[]) {
@@ -368,6 +371,7 @@ export class NetworkRequest {
   private _queryString?: string;
 
   get queryString() {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (this._queryString || !this.url) {
       return this._queryString;
     }
@@ -389,7 +393,7 @@ export class NetworkRequest {
     return this._queryString;
   }
 
-  private _initialPriority?: Protocol.Network.ResourcePriority;
+  private _initialPriority?: protocol.Network.ResourcePriority;
 
   get initialPriority() {
     return this._initialPriority;
@@ -421,19 +425,20 @@ export class NetworkRequest {
     this._statusCode = value;
   }
 
-  get requestId(): Protocol.Network.RequestId {
+  get requestId(): protocol.Network.RequestId {
     return this._requestId;
   }
 
   get requestHttpVersion(): string {
     if (this.requestHeadersText) {
-      const firstLine = this.requestHeadersText.split(/\r\n/)[0];
+      const [firstLine]: string[] = this.requestHeadersText.split(/\r\n/);
       const match = firstLine.match(/(HTTP\/\d+\.\d+)$/);
 
       return match ? match[1] : 'HTTP/0.9';
     }
 
     const version =
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       this.requestHeaderValue('version') || this.requestHeaderValue(':version');
     if (version) {
       return version;
@@ -458,7 +463,7 @@ export class NetworkRequest {
     return this.requestHeaderValue('Content-Type');
   }
 
-  get priority(): Protocol.Network.ResourcePriority | undefined {
+  get priority(): protocol.Network.ResourcePriority | undefined {
     return this._currentPriority ?? this.initialPriority ?? undefined;
   }
 
@@ -468,12 +473,12 @@ export class NetworkRequest {
 
   constructor(
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    private _requestId: Protocol.Network.RequestId,
+    private _requestId: protocol.Network.RequestId,
     url: string,
     public readonly documentURL: string,
-    public readonly loaderId: Protocol.Network.LoaderId,
-    public readonly initiator?: Protocol.Network.Initiator,
-    public readonly frameId: Protocol.Page.FrameId = ''
+    public readonly loaderId: protocol.Network.LoaderId,
+    public readonly initiator?: protocol.Network.Initiator,
+    public readonly frameId: protocol.Page.FrameId = ''
   ) {
     this.url = url;
   }
@@ -491,8 +496,8 @@ export class NetworkRequest {
   }
 
   public setIssueTime(
-    monotonicTime: Protocol.Network.MonotonicTime,
-    wallTime: Protocol.Network.TimeSinceEpoch
+    monotonicTime: protocol.Network.MonotonicTime,
+    wallTime: protocol.Network.TimeSinceEpoch
   ): void {
     this._issueTime = monotonicTime;
     this._wallIssueTime = wallTime;
@@ -513,13 +518,13 @@ export class NetworkRequest {
     this._formParametersPromise = undefined;
   }
 
-  public getWallTime(monotonicTime: Protocol.Network.MonotonicTime): number {
+  public getWallTime(monotonicTime: protocol.Network.MonotonicTime): number {
     return this._wallIssueTime
       ? this._wallIssueTime - this._issueTime + monotonicTime
       : monotonicTime;
   }
 
-  public formParameters(): Promise<Param[]> {
+  public formParameters(): Promise<Param[]> | undefined {
     if (!this._formParametersPromise) {
       this._formParametersPromise = this.parseFormParameters();
     }
@@ -529,14 +534,14 @@ export class NetworkRequest {
 
   public responseHttpVersion(): string {
     if (this._responseHeadersText) {
-      const firstLine: string = this._responseHeadersText.split(/\r\n/)[0];
-      const match: RegExpMatchArray | null =
-        firstLine.match(/^(HTTP\/\d+\.\d+)/);
+      const [firstLine]: string[] = this._responseHeadersText.split(/\r\n/);
+      const match = firstLine?.match(/^(HTTP\/\d+\.\d+)/);
 
       return match ? match[1] : 'HTTP/0.9';
     }
 
     const version =
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
       this.responseHeaderValue('version') ||
       this.responseHeaderValue(':version');
 
@@ -548,7 +553,7 @@ export class NetworkRequest {
   }
 
   public setContentData(
-    data: Promise<Protocol.Network.GetResponseBodyResponse>
+    data: Promise<protocol.Network.GetResponseBodyResponse>
   ): void {
     if (this.resourceType === 'WebSocket') {
       this._contentData = Promise.resolve({
@@ -563,7 +568,7 @@ export class NetworkRequest {
         ({
           body: text,
           base64Encoded
-        }: Protocol.Network.GetResponseBodyResponse): ContentData => ({
+        }: protocol.Network.GetResponseBodyResponse): ContentData => ({
           text,
           encoding: base64Encoded ? 'base64' : undefined
         })
@@ -577,7 +582,7 @@ export class NetworkRequest {
 
   public addProtocolFrameError(
     errorMessage: string,
-    time: Protocol.Network.MonotonicTime
+    time: protocol.Network.MonotonicTime
   ): void {
     this.addFrame({
       time,
@@ -589,8 +594,8 @@ export class NetworkRequest {
   }
 
   public addProtocolFrame(
-    response: Protocol.Network.WebSocketFrame,
-    time: Protocol.Network.MonotonicTime,
+    response: protocol.Network.WebSocketFrame,
+    time: protocol.Network.MonotonicTime,
     sent: boolean
   ): void {
     const type: WebSocketFrameType = sent
@@ -689,7 +694,7 @@ export class NetworkRequest {
       return [];
     }
 
-    const boundary = multipartDetails[1];
+    const [, boundary]: string[] = multipartDetails;
     const formData = await this.requestFormData();
 
     if (!boundary || !formData) {
@@ -718,15 +723,14 @@ export class NetworkRequest {
       'is'
     );
     const fields: string[] = data.split(
-      // eslint-disable-next-line no-useless-escape
       new RegExp(`--${sanitizedBoundary}(?:--\s*$)?`, 'g')
     );
 
     return fields.reduce((result: Param[], field: string): Param[] => {
-      const [match, name, fileName, contentType, value]: RegExpMatchArray =
+      const [match, fileName, contentType, value, name]: string[] =
         field.match(keyValuePattern) ?? [];
 
-      if (!match) {
+      if (!match || !name) {
         return result;
       }
 

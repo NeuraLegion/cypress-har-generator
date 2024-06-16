@@ -1,4 +1,4 @@
-import { Logger } from './Logger';
+import { Logger } from './Logger.js';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import chalk from 'chalk';
 
@@ -17,7 +17,7 @@ describe('Logger', () => {
     it('should log a blue message with an info symbol', () => {
       // arrange
       const message = 'Test message';
-      const expectedLog = chalk.blue(`🛈 ${message}`);
+      const expectedLog = chalk.blue(`✔ ${message}`);
 
       // act
       Logger.Instance.info(message);

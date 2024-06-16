@@ -1,5 +1,5 @@
-import { NetworkRequest } from '../NetworkRequest';
-import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
+import { type NetworkRequest } from '../NetworkRequest.js';
+import type { RequestFilter, RequestFilterOptions } from './RequestFilter.js';
 
 export class StatusCodeFilter implements RequestFilter {
   public apply(

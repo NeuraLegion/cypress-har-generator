@@ -45,7 +45,7 @@ export class StringUtils {
   ): string {
     let foundChar = false;
 
-    const length = chars.length;
+    const { length } = chars;
 
     for (let i = 0; i < length; ++i) {
       if (str.indexOf(chars.charAt(i)) !== -1) {

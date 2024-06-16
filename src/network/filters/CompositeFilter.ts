@@ -1,11 +1,10 @@
-import { NetworkRequest } from '../NetworkRequest';
-import { HostFilter } from './HostFilter';
-import { PathFilter } from './PathFilter';
-import { MimeFilter } from './MimeFilter';
-import { MinStatusCodeFilter } from './MinStatusCodeFilter';
-import { BlobFilter } from './BlobFilter';
-import { StatusCodeFilter } from './StatusCodeFilter';
-import type { RequestFilter, RequestFilterOptions } from './RequestFilter';
+import { type NetworkRequest } from '../NetworkRequest.js';
+import { HostFilter } from './HostFilter.js';
+import { PathFilter } from './PathFilter.js';
+import { MimeFilter } from './MimeFilter.js';
+import { BlobFilter } from './BlobFilter.js';
+import { StatusCodeFilter } from './StatusCodeFilter.js';
+import type { RequestFilter, RequestFilterOptions } from './RequestFilter.js';
 
 export class CompositeFilter implements RequestFilter {
   constructor(
@@ -14,7 +13,6 @@ export class CompositeFilter implements RequestFilter {
       new PathFilter(),
       new MimeFilter(),
       new BlobFilter(),
-      new MinStatusCodeFilter(),
       new StatusCodeFilter()
     ]
   ) {}

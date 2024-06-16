@@ -1,6 +1,6 @@
-import { NetworkRequest } from '../NetworkRequest';
-import { MimeFilter } from './MimeFilter';
-import type { RequestFilterOptions } from './RequestFilter';
+import { type NetworkRequest } from '../NetworkRequest.js';
+import { MimeFilter } from './MimeFilter.js';
+import type { RequestFilterOptions } from './RequestFilter.js';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 import { instance, mock, reset, when } from 'ts-mockito';
 

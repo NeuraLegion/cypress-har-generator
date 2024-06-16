@@ -1,10 +1,10 @@
-import { NetworkRequest } from './NetworkRequest';
-import { NetworkCookie } from './NetworkCookie';
-import type { ContentData } from './NetworkRequest';
+import { type NetworkRequest, type ContentData } from './NetworkRequest.js';
+import { type NetworkCookie } from './NetworkCookie.js';
 import type {
   Content,
   Cookie,
   Entry,
+  Har,
   Param,
   PostData,
   Request,
@@ -31,7 +31,7 @@ export class EntryBuilder {
       0
     );
 
-    const entry: any = {
+    const entry: Entry = {
       startedDateTime: new Date(
         this.request.getWallTime(this.request.issueTime) * 1000
       ).toJSON(),
@@ -44,8 +44,8 @@ export class EntryBuilder {
       serverIPAddress: serverIPAddress.replace(/[[\]]/g, ''),
       _priority: this.request.priority,
       _resourceType: this.request.resourceType,
-      _webSocketMessages: this.request.frames ?? [],
-      _eventSourceMessages: this.request.eventSourceMessages ?? []
+      _webSocketMessages: this.request.frames,
+      _eventSourceMessages: this.request.eventSourceMessages
     };
 
     if (this.request.connectionId !== '0') {
@@ -90,7 +90,7 @@ export class EntryBuilder {
       headers: this.request.requestHeaders,
       queryString: [...(this.request.queryParameters ?? [])],
       cookies: this.buildCookies(this.request.requestCookies ?? []),
-      headersSize: this.request.requestHeadersText?.length ?? -1,
+      headersSize: this.request.requestHeadersText.length || -1,
       bodySize: await this.requestBodySize()
     };
 
@@ -109,10 +109,10 @@ export class EntryBuilder {
       statusText: this.request.statusText,
       httpVersion: this.request.responseHttpVersion(),
       headers: this.request.responseHeaders,
-      cookies: this.buildCookies(this.request.responseCookies || []),
+      cookies: this.buildCookies(this.request.responseCookies ?? []),
       content: await this.buildContent(),
       redirectURL: this.request.responseHeaderValue('Location') ?? '',
-      headersSize: this.request.responseHeadersText?.length ?? -1,
+      headersSize: this.request.responseHeadersText.length || -1,
       bodySize: this.getResponseBodySize(),
       _transferSize: this.request.transferSize
     };
@@ -124,7 +124,7 @@ export class EntryBuilder {
     return Object.assign(
       {
         size: this.request.resourceSize,
-        mimeType: this.request.mimeType || 'x-unknown',
+        mimeType: this.request.mimeType ?? 'x-unknown',
         compression: this.getResponseCompression() ?? undefined
       },
       data
@@ -133,9 +133,9 @@ export class EntryBuilder {
 
   // eslint-disable-next-line complexity
   private buildTimings(): Timings {
-    const timing = this.request.timing;
-    const issueTime: number = this.request.issueTime;
-    const startTime: number = this.request.startTime;
+    const { timing } = this.request;
+    const { issueTime } = this.request;
+    const { startTime } = this.request;
 
     const result: Timings = {
       blocked: -1,
@@ -147,8 +147,7 @@ export class EntryBuilder {
       receive: 0
     };
 
-    const queuedTime: number =
-      issueTime < startTime ? startTime - issueTime : -1;
+    const queuedTime = issueTime < startTime ? startTime - issueTime : -1;
     result.blocked = this.toMilliseconds(queuedTime);
 
     let highestTime = 0;
@@ -163,25 +162,24 @@ export class EntryBuilder {
         result.blocked += blockedStart;
       }
 
-      const dnsStart: any = timing.dnsEnd >= 0 ? blockedStart : 0;
-      const dnsEnd: number = timing.dnsEnd >= 0 ? timing.dnsEnd : -1;
+      const dnsStart = timing.dnsEnd >= 0 ? blockedStart : 0;
+      const dnsEnd = timing.dnsEnd >= 0 ? timing.dnsEnd : -1;
       result.dns = dnsEnd - dnsStart;
 
-      const sslStart: number = timing.sslEnd > 0 ? timing.sslStart : 0;
-      const sslEnd: number = timing.sslEnd > 0 ? timing.sslEnd : -1;
+      const sslStart = timing.sslEnd > 0 ? timing.sslStart : 0;
+      const sslEnd = timing.sslEnd > 0 ? timing.sslEnd : -1;
       result.ssl = sslEnd - sslStart;
 
-      const connectStart: number =
+      const connectStart =
         timing.connectEnd >= 0
           ? this.leastNonNegative([dnsEnd, blockedStart])
           : 0;
-      const connectEnd: number =
-        timing.connectEnd >= 0 ? timing.connectEnd : -1;
+      const connectEnd = timing.connectEnd >= 0 ? timing.connectEnd : -1;
       result.connect = connectEnd - connectStart;
 
-      const sendStart: number =
+      const sendStart =
         timing.sendEnd >= 0 ? Math.max(connectEnd, dnsEnd, blockedStart) : 0;
-      const sendEnd: number = timing.sendEnd >= 0 ? timing.sendEnd : 0;
+      const sendEnd = timing.sendEnd >= 0 ? timing.sendEnd : 0;
       result.send = sendEnd - sendStart;
 
       if (result.send < 0) {
@@ -209,10 +207,8 @@ export class EntryBuilder {
     );
     result.wait = waitEnd - waitStart;
 
-    const receiveStart: number = waitEnd;
-    const receiveEnd: number = this.toMilliseconds(
-      this.request.endTime - requestTime
-    );
+    const receiveStart = waitEnd;
+    const receiveEnd = this.toMilliseconds(this.request.endTime - requestTime);
     result.receive = Math.max(receiveEnd - receiveStart, 0);
 
     return result;
@@ -238,7 +234,7 @@ export class EntryBuilder {
       text: postData
     };
 
-    const formParameters: Param[] = await this.request.formParameters();
+    const formParameters = await this.request.formParameters();
 
     if (formParameters) {
       res.params = [...formParameters] as never;
@@ -248,7 +244,8 @@ export class EntryBuilder {
   }
 
   private buildRequestURL(url: string): string {
-    return url.split('#', 2)[0];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return url.split('#', 2)[0]!;
   }
 
   private buildCookies(cookies: NetworkCookie[]): Cookie[] {

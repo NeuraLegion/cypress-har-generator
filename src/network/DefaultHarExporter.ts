@@ -1,17 +1,17 @@
-import { EntryBuilder } from './EntryBuilder';
-import type { NetworkRequest } from './NetworkRequest';
-import type { HarExporter } from './HarExporter';
-import type { Logger } from '../utils/Logger';
-import { ErrorUtils } from '../utils/ErrorUtils';
+import { EntryBuilder } from './EntryBuilder.js';
+import type { NetworkRequest } from './NetworkRequest.js';
+import type { HarExporter } from './HarExporter.js';
+import type { Logger } from '../utils/Logger.js';
+import { ErrorUtils } from '../utils/ErrorUtils.js';
 import type {
   DefaultHarExporterOptions,
   Filter,
   Transformer
-} from './DefaultHarExporterOptions';
+} from './DefaultHarExporterOptions.js';
 import type { Entry } from 'har-format';
-import type { WriteStream } from 'fs';
-import { EOL } from 'os';
-import { format, promisify } from 'util';
+import type { WriteStream } from 'node:fs';
+import { EOL } from 'node:os';
+import { format, promisify } from 'node:util';
 
 export class DefaultHarExporter implements HarExporter {
   get path(): string {

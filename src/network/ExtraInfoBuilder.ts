@@ -1,4 +1,4 @@
-import { NetworkRequest } from './NetworkRequest';
+import { type NetworkRequest } from './NetworkRequest.js';
 import type { Header } from 'har-format';
 
 export interface RequestExtraInfo {

@@ -1,8 +1,8 @@
-import { Logger } from '../utils/Logger';
-import { NetworkObserver } from './NetworkObserver';
-import type { NetworkObserverOptions } from './NetworkObserverOptions';
-import type { RequestFilter } from './filters';
-import type { Network } from './Network';
+import { type Logger } from '../utils/Logger.js';
+import { NetworkObserver } from './NetworkObserver.js';
+import type { NetworkObserverOptions } from './NetworkObserverOptions.js';
+import type { RequestFilter } from './filters/RequestFilter.js';
+import type { Network } from './Network.js';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import {
   anyFunction,
@@ -45,10 +45,8 @@ describe('NetworkObserver', () => {
     status: 200,
     statusText: 'OK',
     headers: {
-      /* eslint-disable @typescript-eslint/naming-convention */
       'Content-Length': '1777',
       'Content-Type': 'text/html; charset=UTF-8'
-      /* eslint-enable @typescript-eslint/naming-convention */
     },
     mimeType: 'text/html',
     connectionReused: false,
@@ -68,9 +66,7 @@ describe('NetworkObserver', () => {
         url: 'http://localhost:8080/',
         method: 'GET',
         headers: {
-          /* eslint-disable @typescript-eslint/naming-convention */
           'Upgrade-Insecure-Requests': '1'
-          /* eslint-enable @typescript-eslint/naming-convention */
         },
         initialPriority: 'VeryHigh'
       },
@@ -116,7 +112,6 @@ describe('NetworkObserver', () => {
     params: {
       requestId: '1',
       headers: {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
         'Transfer-Encoding': 'chunked'
       },
       resourceIPAddressSpace: 'Local',
@@ -179,7 +174,7 @@ describe('NetworkObserver', () => {
   });
 
   describe('subscribe', () => {
-    it('should return true when no pending requests', async () => {
+    it('should return true when no pending requests', () => {
       // act
       const result = sut.empty;
       // assert

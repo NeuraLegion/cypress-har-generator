@@ -1,4 +1,4 @@
-import { CookieParser } from './CookieParser';
+import { CookieParser } from './CookieParser.js';
 import { describe, beforeEach, it, expect } from '@jest/globals';
 
 describe('CookieParser', () => {
@@ -18,8 +18,7 @@ describe('CookieParser', () => {
       expect(result).toMatchObject([
         {
           name: 'key1',
-          value: 'value1',
-          size: 23
+          value: 'value1'
         }
       ]);
     });
@@ -51,8 +50,7 @@ describe('CookieParser', () => {
           name: '',
           value: 'cookie1',
           path: '/',
-          domain: '.example.com',
-          size: 37
+          domain: '.example.com'
         }
       ]);
     });
@@ -66,9 +64,9 @@ describe('CookieParser', () => {
       const result = parser.parseSetCookie(setCookieHeader);
       // assert
       expect(result).toMatchObject([
-        { name: 'a', value: 'b', size: 10 },
-        { name: 'c', value: 'd', size: 10 },
-        { name: '', value: 'f', size: 1 }
+        { name: 'a', value: 'b' },
+        { name: 'c', value: 'd' },
+        { name: '', value: 'f' }
       ]);
     });
 

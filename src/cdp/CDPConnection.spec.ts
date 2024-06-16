@@ -1,12 +1,12 @@
-import type { CDPConnection } from './CDPConnection';
-import { Logger } from '../utils/Logger';
-import { RetryStrategy } from './RetryStrategy';
+import type { CDPConnection } from './CDPConnection.js';
+import { type Logger } from '../utils/Logger.js';
+import { type RetryStrategy } from './RetryStrategy.js';
 import {
   CONNECTED,
   CONNECTION_NOT_ESTABLISHED,
   DISCONNECTED,
   FAILED_ATTEMPT_TO_CONNECT
-} from './messages';
+} from './messages.js';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { anyFunction, instance, mock, reset, verify, when } from 'ts-mockito';
 import type { Client, Options, VersionResult } from 'chrome-remote-interface';
@@ -169,14 +169,14 @@ describe('CDPConnection', () => {
   });
 
   describe('discoverNetwork', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       connect.mockResolvedValue(resolvableInstance(clientMock));
       version.mockResolvedValue({
         webSocketDebuggerUrl
       } as VersionResult);
     });
 
-    it('should throw an error when connection is not established yet', async () => {
+    it('should throw an error when connection is not established yet', () => {
       // act
       const act = () => sut.discoverNetwork();
       // assert

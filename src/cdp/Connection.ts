@@ -1,5 +1,5 @@
-import type { Network } from '../network';
-import type { NetworkOptions } from './NetworkOptions';
+import type { Network } from '../network/Network.js';
+import type { NetworkOptions } from './NetworkOptions.js';
 
 export interface Connection {
   open(): Promise<void>;

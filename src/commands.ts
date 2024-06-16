@@ -1,5 +1,5 @@
-import { StringUtils } from './utils/StringUtils';
-import type { RecordOptions, SaveOptions } from './Plugin';
+import { StringUtils } from './utils/StringUtils.js';
+import type { RecordOptions, SaveOptions } from './Plugin.js';
 
 Cypress.Commands.add(
   'recordHar',
@@ -22,7 +22,7 @@ Cypress.Commands.add(
   'saveHar',
   (options?: Partial<SaveOptions>): Cypress.Chainable => {
     const fallbackFileName = Cypress.spec.name;
-    const outDir = (Cypress.env('hars_folders') as string) ?? './';
+    const outDir = Cypress.env('hars_folder') ?? './';
 
     return cy.task('saveHar', {
       outDir,

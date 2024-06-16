@@ -1,6 +1,9 @@
-import { ExtraInfoBuilder } from './ExtraInfoBuilder';
-import { NetworkRequest } from './NetworkRequest';
-import type { RequestExtraInfo, ResponseExtraInfo } from './ExtraInfoBuilder';
+import { ExtraInfoBuilder } from './ExtraInfoBuilder.js';
+import { type NetworkRequest } from './NetworkRequest.js';
+import type {
+  RequestExtraInfo,
+  ResponseExtraInfo
+} from './ExtraInfoBuilder.js';
 import { describe, beforeEach, it, expect, jest } from '@jest/globals';
 import { deepEqual, instance, mock, reset, verify, when } from 'ts-mockito';
 

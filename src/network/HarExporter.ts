@@ -1,4 +1,4 @@
-import type { NetworkRequest } from './NetworkRequest';
+import type { NetworkRequest } from './NetworkRequest.js';
 
 export interface HarExporter {
   readonly path: string;

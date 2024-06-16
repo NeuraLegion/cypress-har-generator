@@ -1,19 +1,24 @@
-import type { Config } from 'jest';
+import { type JestConfigWithTsJest } from 'ts-jest';
 
-const config: Config = {
-  preset: 'ts-jest',
+const config: JestConfigWithTsJest = {
   testEnvironment: 'node',
   transform: {
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    '^.+\\.[tj]sx?$': [
+    '^.+\\.m?[tj]sx?$': [
       'ts-jest',
-      { tsconfig: './tsconfig.json', isolatedModules: true }
+      {
+        tsconfig: '<rootDir>/tsconfig.json',
+        isolatedModules: true,
+        useESM: true
+      }
     ]
   },
   maxWorkers: '25%',
-  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/'],
-  collectCoverageFrom: ['src/**/*.ts', '!**/index.ts']
+  collectCoverageFrom: ['src/**/*.ts', '!**/index.ts'],
+  extensionsToTreatAsEsm: ['.ts'],
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1'
+  }
 };
 
 export default config;

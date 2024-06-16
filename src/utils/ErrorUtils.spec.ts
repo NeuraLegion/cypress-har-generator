@@ -1,4 +1,4 @@
-import { ErrorUtils } from './ErrorUtils';
+import { ErrorUtils } from './ErrorUtils.js';
 import { describe, it, expect } from '@jest/globals';
 
 describe('ErrorUtils', () => {

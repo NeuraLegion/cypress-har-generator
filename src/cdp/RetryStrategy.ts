@@ -1,4 +1,4 @@
-import Timeout = NodeJS.Timeout;
+import { setTimeout } from 'node:timers/promises';
 
 export class RetryStrategy {
   private _times: number;
@@ -17,24 +17,18 @@ export class RetryStrategy {
     this.maximumBackoff = maximumBackoff;
   }
 
-  public async execute<T extends (...args: any[]) => unknown>(
+  public async execute<T extends (...args: unknown[]) => unknown>(
     task: T
   ): Promise<number> {
     const timeout: number | undefined = this.nextTime();
 
     if (timeout) {
-      await this.delay(timeout);
+      await setTimeout(timeout);
 
       await task();
     }
 
     return this.maxRetries - this._times;
-  }
-
-  private delay(timeout: number): Promise<void> {
-    return new Promise<void>(
-      (resolve): Timeout => setTimeout(resolve, timeout)
-    );
   }
 
   private nextTime(): number | undefined {
