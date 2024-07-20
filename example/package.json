@@ -8,7 +8,7 @@
     "test": "start-test 7079 cypress:run"
   },
   "dependencies": {
-    "express": "^4.18.2",
+    "express": "^4.19.2",
     "express-session": "^1.17.3",
     "hbs": "^4.2.0",
     "minimist": "^1.2.7",
