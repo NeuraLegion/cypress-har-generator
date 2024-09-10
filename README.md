@@ -433,6 +433,6 @@ module.exports = defineConfig({
 
 ## License
 
-Copyright © 2023 [Bright Security](https://brightsec.com/).
+Copyright © 2024 [Bright Security](https://brightsec.com/).
 
 This project is licensed under the MIT License - see the [LICENSE file](LICENSE) for details.
