@@ -118,7 +118,9 @@ export class DefaultNetwork implements Network {
       action: 'continue'
     });
 
-  private matchNetworkEvents(message: EventMessage): message is NetworkEvent {
+  private matchNetworkEvents(
+    message: Pick<EventMessage, 'method'>
+  ): message is NetworkEvent {
     const [domain]: string[] = message.method.split('.');
 
     return domain === this.DOMAIN;
