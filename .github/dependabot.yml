@@ -13,11 +13,25 @@ updates:
       day: 'monday'
     reviewers:
       - 'derevnjuk'
+    groups:
+      webpack:
+        patterns:
+          - 'webpack*'
+          - '@types/webpack*'
+          - 'filemanager-webpack-plugin'
+      commitlint:
+        patterns:
+          - '@commitlint/*'
+      semantic-release:
+        patterns:
+          - 'semantic-release'
+          - '@semantic-release/*'
+      eslint:
+        patterns:
+          - 'eslint*'
+          - '@typescript-eslint/*'
     ignore:
-      - dependency-name: '*eslint*'
-      - dependency-name: '*semantic-release*'
-      - dependency-name: 'cypress'
-      - dependency-name: 'webpack*'
-      - dependency-name: '@commitlint/*'
       - dependency-name: '*'
         update-types: ['version-update:semver-major']
+      - dependency-name: 'devtools-protocol'
+        update-types: ['version-update:semver-patch']
