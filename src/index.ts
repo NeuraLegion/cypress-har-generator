@@ -50,7 +50,7 @@ export const install = (on: Cypress.PluginEvents): void => {
     'before:browser:launch',
     (
       browser: Cypress.Browser | null,
-      launchOptions: Cypress.BrowserLaunchOptions
+      launchOptions: Cypress.BeforeBrowserLaunchOptions
     ) => {
       ensureBrowserFlags((browser ?? {}) as Cypress.Browser, launchOptions);
 
@@ -101,7 +101,7 @@ export const enableExperimentalLifecycle = (
  */
 export const ensureBrowserFlags = (
   browser: Cypress.Browser,
-  launchOptions: Cypress.BrowserLaunchOptions
+  launchOptions: Cypress.BeforeBrowserLaunchOptions
 ): void => {
   launchOptions.args.push(
     ...plugin.ensureBrowserFlags(browser, launchOptions.args)
