@@ -236,6 +236,8 @@ describe('Plugin', () => {
     } as SaveOptions;
 
     it('should log an error message when the connection is corrupted', async () => {
+      // arrange
+      plugin.ensureBrowserFlags(chrome, []);
       // act
       await plugin.saveHar(options);
       // assert
