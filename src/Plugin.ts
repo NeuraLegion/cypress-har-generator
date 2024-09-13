@@ -77,13 +77,13 @@ export class Plugin {
   }
 
   public async recordHar(options: RecordOptions): Promise<void> {
-    await this.closeConnection();
-
     if (!this.addr) {
       throw new Error(
         `Please call the 'ensureBrowserFlags' before attempting to start the recording.`
       );
     }
+
+    await this.closeConnection();
 
     this.exporter = await this.exporterFactory.create(options);
     this._connection = this.connectionFactory.create({
