@@ -193,15 +193,17 @@ describe('Plugin', () => {
       expect(result).not.toContain(expectedArgs);
     });
 
-    it('should throw an error if an unsupported browser family is used', () => {
+    it('should log a warning if an unsupported browser family is used', () => {
       // arrange
       const args = ['--flag1', '--flag2'];
       // act
-      const act = () => plugin.ensureBrowserFlags(firefox, args);
+      plugin.ensureBrowserFlags(firefox, args);
       // assert
-      expect(act).toThrowError(
-        `An unsupported browser family was used: ${firefox.name}`
-      );
+      verify(
+        loggerMock.warn(
+          `HAR recording is not supported in this browser: ${firefox.name}`
+        )
+      ).once();
     });
 
     it('should throw an error when Electron is used and switches are missed', () => {
@@ -402,6 +404,19 @@ describe('Plugin', () => {
       verify(harExporterMock.end()).once();
       verify(fileManagerMock.removeFile(tempFilePath)).once();
     });
+
+    it('should be a no-op if an unsupported browser family is used', async () => {
+      // arrange
+      plugin.ensureBrowserFlags(firefox, []);
+      await plugin.recordHar({
+        rootDir: '/'
+      });
+
+      // act
+      await plugin.saveHar(options);
+      // assert
+      verify(fileManagerMock.createFolder(options.outDir)).never();
+    });
   });
 
   describe('recordHar', () => {
@@ -495,6 +510,26 @@ describe('Plugin', () => {
       // assert
       verify(harExporterMock.write(request)).never();
     });
+
+    it('should be a no-op if an unsupported browser family is used', async () => {
+      const request = new NetworkRequest(
+        '1',
+        'https://example.com',
+        'https://example.com',
+        '1'
+      );
+      when(harExporterFactoryMock.create(anything())).thenResolve(
+        resolvableInstance(harExporterMock)
+      );
+      when(networkObserverMock.subscribe(anyFunction())).thenCall(callback =>
+        callback(request)
+      );
+      plugin.ensureBrowserFlags(firefox, []);
+      // act
+      await plugin.recordHar(options);
+      // assert
+      verify(harExporterMock.write(request)).never();
+    });
   });
 
   describe('disposeOfHar', () => {
@@ -540,6 +575,18 @@ describe('Plugin', () => {
       await plugin.disposeOfHar();
       // assert
       verify(networkObserverMock.unsubscribe()).never();
+    });
+
+    it('should be a no-op if an unsupported browser family is used', async () => {
+      // arrange
+      plugin.ensureBrowserFlags(firefox, []);
+      await plugin.recordHar({
+        rootDir: '/'
+      });
+      // act
+      await plugin.disposeOfHar();
+      // assert
+      verify(harExporterMock.end()).never();
     });
   });
 });
