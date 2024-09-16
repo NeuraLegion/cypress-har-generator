@@ -44,6 +44,7 @@ export class Plugin {
   private networkObservable?: Observer<NetworkRequest>;
   private addr?: Addr;
   private _connection?: Connection;
+  private supported?: boolean;
 
   constructor(
     private readonly logger: Logger,
@@ -57,9 +58,10 @@ export class Plugin {
     browser: Cypress.Browser,
     args: string[]
   ): string[] {
-    if (!this.isSupportedBrowser(browser)) {
-      throw new Error(
-        `An unsupported browser family was used: ${browser.name}`
+    this.supported = this.isSupportedBrowser(browser);
+    if (!this.supported) {
+      this.logger.warn(
+        `HAR recording is not supported in this browser: ${browser.name}`
       );
     }
 
@@ -77,13 +79,17 @@ export class Plugin {
   }
 
   public async recordHar(options: RecordOptions): Promise<void> {
-    await this.closeConnection();
-
     if (!this.addr) {
       throw new Error(
         `Please call the 'ensureBrowserFlags' before attempting to start the recording.`
       );
     }
+
+    if (!this.supported) {
+      return;
+    }
+
+    await this.closeConnection();
 
     this.exporter = await this.exporterFactory.create(options);
     this._connection = this.connectionFactory.create({
@@ -99,6 +105,10 @@ export class Plugin {
   }
 
   public async saveHar(options: SaveOptions): Promise<void> {
+    if (!this.supported) {
+      return;
+    }
+
     const filePath = join(options.outDir, options.fileName);
 
     if (!this._connection) {
@@ -130,6 +140,10 @@ export class Plugin {
   }
 
   public async disposeOfHar(): Promise<void> {
+    if (!this.supported) {
+      return;
+    }
+
     await this.networkObservable?.unsubscribe();
     delete this.networkObservable;
 
