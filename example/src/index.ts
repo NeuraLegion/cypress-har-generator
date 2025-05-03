@@ -2,7 +2,7 @@ import { join } from 'node:path';
 import minimist from 'minimist';
 import morgan from 'morgan';
 import session from 'express-session';
-import express, { NextFunction, Request, Response, json } from 'express';
+import express, { type NextFunction, type Request, type Response, json } from 'express';
 
 declare module 'express-session' {
   interface SessionData {
@@ -30,7 +30,7 @@ const ensureLoggedIn = (req: Request, res: Response, next: NextFunction) => {
 };
 
 app.use(morgan('dev'));
-app.use('/', express.static(join(__dirname, '..', 'public')));
+app.use('/', express.static(join(import.meta.dirname, '..', 'public')));
 
 // store a session cookie called
 // 'cypress-session-cookie'
@@ -43,7 +43,7 @@ app.use(
   })
 );
 
-app.set('views', join(__dirname, 'views'));
+app.set('views', join(import.meta.dirname, 'views'));
 app.set('view engine', 'hbs');
 
 app.get('/', (_: Request, res: Response) => res.redirect('/login'));

@@ -88,13 +88,6 @@ export class FileManager {
     });
 
     stream.path = tmpPath;
-    const cleanup = async () => {
-      await fileHandle.close();
-      await unlink(tmpPath).catch(() => {
-        // Ignore error
-      });
-    };
-    stream.once('error', cleanup).once('close', cleanup);
 
     return stream;
   }

@@ -75,15 +75,7 @@ ${stack}`
   }
 
   public end(): void {
-    if (this.buffer.closed) {
-      return;
-    }
-
-    this.buffer.destroy();
-    this.buffer.close(() => {
-      this.buffer.removeAllListeners();
-      this.logger.debug('The HAR file has been written.');
-    });
+    this.buffer.end();
   }
 
   private async applyFilter(entry: Entry): Promise<unknown> {
