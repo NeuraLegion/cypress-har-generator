@@ -81,13 +81,21 @@ export class FileManager {
 
   public async createTmpWriteStream(): Promise<WriteStream> {
     const name = randomBytes(16).toString('hex').substring(16);
-    const tmpPath = join(tmpdir(), name);
+    const tmpPath = join(tmpdir(), `cy-${name}`);
     const fileHandle = await open(tmpPath, 'wx+', 0o600);
     const stream = fileHandle.createWriteStream({
       encoding: 'utf-8'
     });
 
     stream.path = tmpPath;
+    const cleanup = async () => {
+      try {
+        await fileHandle.close();
+      } catch (e) {
+        Logger.Instance.err(e);
+      }
+    };
+    stream.once('close', cleanup).once('error', cleanup);
 
     return stream;
   }
