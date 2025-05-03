@@ -25,7 +25,7 @@ import {
 } from 'ts-mockito';
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type { Entry } from 'har-format';
-import { tmpdir } from 'os';
+import { tmpdir } from 'node:os';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {

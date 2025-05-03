@@ -15,8 +15,8 @@ import {
 } from 'ts-mockito';
 import type { Entry } from 'har-format';
 import { beforeEach, describe, it, jest, expect } from '@jest/globals';
-import type { WriteStream } from 'fs';
-import { EOL } from 'os';
+import type { WriteStream } from 'node:fs';
+import { EOL } from 'node:os';
 
 describe('DefaultHarExporter', () => {
   const streamMock = mock<WriteStream>();

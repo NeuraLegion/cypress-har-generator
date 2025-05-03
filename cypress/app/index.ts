@@ -1,8 +1,8 @@
 import express, { Request, Response, json, raw } from 'express';
 import minimist from 'minimist';
 import WebSocket, { Server } from 'ws';
-import { join } from 'path';
-import { randomBytes } from 'crypto';
+import { join } from 'node:path';
+import { randomBytes } from 'node:crypto';
 
 const app = express();
 const ws = new Server({ noServer: true, path: '/ws' });

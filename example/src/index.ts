@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import minimist from 'minimist';
 import morgan from 'morgan';
 import session from 'express-session';

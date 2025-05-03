@@ -1,19 +1,20 @@
 import { Logger } from './Logger';
-import { promisify } from 'util';
 import {
   access,
-  constants,
-  mkdir,
-  open,
-  unlink,
   writeFile,
   readFile,
-  WriteStream,
-  createWriteStream
-} from 'fs';
-import { randomBytes } from 'crypto';
-import { tmpdir } from 'os';
-import { join } from 'path';
+  mkdir,
+  unlink,
+  open,
+  constants,
+  FileHandle
+} from 'node:fs/promises';
+import { createWriteStream, type WriteStream } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+
+type Serializable = unknown;
 
 export class FileManager {
   private static _instance: FileManager;
@@ -29,7 +30,7 @@ export class FileManager {
 
   public async readFile(path: string): Promise<string | undefined> {
     try {
-      return await promisify(readFile)(path, { encoding: 'utf-8' });
+      return await readFile(path, { encoding: 'utf-8' });
     } catch (e) {
       Logger.Instance.err(e);
 
@@ -37,22 +38,23 @@ export class FileManager {
     }
   }
 
-  public async writeFile(path: string, data: string): Promise<void> {
-    try {
-      await this.removeFile(path);
-      await promisify(writeFile)(path, data);
-    } catch (e) {
-      Logger.Instance.err(e);
-    }
+  public async writeFile<T extends Serializable>(
+    path: string,
+    content: T
+  ): Promise<void> {
+    const data =
+      typeof content === 'string' ? content : JSON.stringify(content);
+
+    await writeFile(path, data);
   }
 
   public async createFolder(path: string): Promise<void> {
     try {
-      if (await this.exists(path)) {
+      if (await this.pathExists(path)) {
         return;
       }
 
-      await promisify(mkdir)(path);
+      await mkdir(path);
     } catch (e) {
       Logger.Instance.err(e);
     }
@@ -60,17 +62,17 @@ export class FileManager {
 
   public async removeFile(path: string): Promise<void> {
     try {
-      if (await this.exists(path)) {
-        await promisify(unlink)(path);
+      if (await this.pathExists(path)) {
+        await unlink(path);
       }
     } catch (e) {
       Logger.Instance.err(e);
     }
   }
 
-  public async exists(path: string): Promise<boolean> {
+  public async pathExists(path: string): Promise<boolean> {
     try {
-      await promisify(access)(path, constants.F_OK);
+      await access(path, constants.F_OK);
 
       return true;
     } catch {
@@ -79,10 +81,10 @@ export class FileManager {
   }
 
   public async createTmpWriteStream(): Promise<WriteStream> {
-    const { fd, path } = await this.openTmpFd();
+    const { file, path } = await this.openTmpFd();
 
     const stream = createWriteStream(path, {
-      fd,
+      fd: file.fd,
       flags: 'w',
       mode: 0o666,
       encoding: 'utf-8'
@@ -93,11 +95,11 @@ export class FileManager {
     return stream;
   }
 
-  private async openTmpFd(): Promise<{ path: string; fd: number }> {
+  private async openTmpFd(): Promise<{ path: string; file: FileHandle }> {
     const name = randomBytes(16).toString('hex').substring(16);
     const path = join(tmpdir(), name);
-    const fd = await promisify(open)(path, 'w', 0o600);
+    const file = await open(path, 'w', 0o600);
 
-    return { path, fd };
+    return { path, file };
   }
 }

@@ -1,8 +1,7 @@
 import { install } from './src';
 import { defineConfig } from 'cypress';
-import { promisify } from 'util';
-import { access, constants, unlink, readFile } from 'fs';
-import { tmpdir } from 'os';
+import { access, constants, unlink, readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 
 export default defineConfig({
   projectId: 'ir8zwo',
@@ -30,7 +29,7 @@ export default defineConfig({
           regexp: RegExp;
         }): Promise<boolean> {
           try {
-            const result = await promisify(readFile)(path, 'utf-8');
+            const result = await readFile(path, 'utf-8');
 
             return new RegExp(regexp).test(result);
           } catch {
@@ -39,7 +38,7 @@ export default defineConfig({
         },
         async 'fs:exists'(path: string): Promise<boolean> {
           try {
-            await promisify(access)(path, constants.F_OK);
+            await access(path, constants.F_OK);
 
             return true;
           } catch {
@@ -48,7 +47,7 @@ export default defineConfig({
         },
         async 'fs:remove'(path: string): Promise<null> {
           try {
-            await promisify(unlink)(path);
+            await unlink(path);
           } catch {
             // noop
           }

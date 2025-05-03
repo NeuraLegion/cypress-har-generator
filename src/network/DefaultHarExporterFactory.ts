@@ -12,7 +12,7 @@ import type {
   Filter,
   Transformer
 } from './DefaultHarExporterOptions';
-import { resolve } from 'path';
+import { resolve } from 'node:path';
 
 export class DefaultHarExporterFactory implements HarExporterFactory {
   constructor(

@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { debuglog } from 'util';
+import { debuglog } from 'node:util';
 
 export class Logger {
   private static _instance: Logger;

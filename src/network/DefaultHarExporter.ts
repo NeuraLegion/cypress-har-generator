@@ -9,9 +9,9 @@ import type {
   Transformer
 } from './DefaultHarExporterOptions';
 import type { Entry } from 'har-format';
-import type { WriteStream } from 'fs';
-import { EOL } from 'os';
-import { format, promisify } from 'util';
+import type { WriteStream } from 'node:fs';
+import { EOL } from 'node:os';
+import { format, promisify } from 'node:util';
 
 export class DefaultHarExporter implements HarExporter {
   get path(): string {

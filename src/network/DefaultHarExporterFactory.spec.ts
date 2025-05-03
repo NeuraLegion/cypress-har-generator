@@ -12,7 +12,7 @@ import {
   beforeEach,
   afterEach
 } from '@jest/globals';
-import type { WriteStream } from 'fs';
+import type { WriteStream } from 'node:fs';
 
 const resolvableInstance = <T extends object>(m: T): T =>
   new Proxy<T>(instance(m), {

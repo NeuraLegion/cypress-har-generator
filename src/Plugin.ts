@@ -18,9 +18,9 @@ import {
   PORT_OPTION_NAME,
   SUPPORTED_BROWSERS
 } from './constants';
-import { join } from 'path';
-import { EOL } from 'os';
-import { promisify } from 'util';
+import { join } from 'node:path';
+import { EOL } from 'node:os';
+import { setTimeout } from 'node:timers/promises';
 
 export interface SaveOptions {
   fileName: string;
@@ -190,21 +190,20 @@ Please refer to the documentation:
     return undefined;
   }
 
-  private async waitForNetworkIdle(
+  private waitForNetworkIdle(
     options: Pick<SaveOptions, 'minIdleDuration' | 'maxWaitDuration'>
   ): Promise<void> {
     const {
       minIdleDuration = MAX_NETWORK_IDLE_THRESHOLD,
       maxWaitDuration = MAX_NETWORK_IDLE_DURATION
     } = options;
-    const cancellation = promisify(setTimeout)(maxWaitDuration);
 
     return Promise.race([
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       new NetworkIdleMonitor(this.networkObservable!).waitForIdle(
         minIdleDuration
       ),
-      cancellation
+      setTimeout(maxWaitDuration)
     ]);
   }
 

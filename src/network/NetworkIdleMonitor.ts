@@ -1,6 +1,6 @@
 import { NetworkRequest } from './NetworkRequest';
 import type { Observer } from './Observer';
-import { promisify } from 'util';
+import { promisify } from 'node:util';
 
 export class NetworkIdleMonitor {
   private startIdleTime?: number;

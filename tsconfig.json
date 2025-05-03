@@ -1,8 +1,8 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "target": "es2016",
-    "lib": ["es2021", "dom"],
+    "target": "es2022",
+    "lib": ["esnext", "dom"],
     "newLine": "LF",
     "module": "esnext",
     "moduleResolution": "node",
@@ -22,7 +22,6 @@
     "noUncheckedIndexedAccess": false,
     "exactOptionalPropertyTypes": false,
     "forceConsistentCasingInFileNames": true,
-    "suppressImplicitAnyIndexErrors": true,
     "allowSyntheticDefaultImports": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,

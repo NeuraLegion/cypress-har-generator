@@ -1,9 +1,10 @@
 import { FileManager } from './FileManager';
 import { describe, beforeEach, it, expect } from '@jest/globals';
-import { randomBytes } from 'crypto';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { WriteStream } from 'fs';
+import { randomBytes } from 'node:crypto';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { constants, WriteStream } from 'node:fs';
+import { access } from 'node:fs/promises';
 
 describe('FileManager', () => {
   let path!: string;
@@ -64,32 +65,30 @@ describe('FileManager', () => {
       // act
       await sut.removeFile(path);
       // assert
-      const result = await sut.exists(path);
-      expect(result).toBeFalsy();
+      await expect(access(path, constants.F_OK)).rejects.toThrowError();
     });
 
     it('should do nothing if the file does not exist', async () => {
       // act
       await sut.removeFile(path);
       // assert
-      const result = await sut.exists(path);
-      expect(result).toBeFalsy();
+      await expect(access(path, constants.F_OK)).rejects.toThrowError();
     });
   });
 
-  describe('exists', () => {
+  describe('pathExists', () => {
     it('should return true if the file exists', async () => {
       // arrange
       await sut.writeFile(path, data);
       // act
-      const result = await sut.exists(path);
+      const result = await sut.pathExists(path);
       // assert
       expect(result).toBeTruthy();
     });
 
     it('should return false if the file does not exist', async () => {
       // act
-      const result = await sut.exists(path);
+      const result = await sut.pathExists(path);
       // assert
       expect(result).toBeFalsy();
     });
@@ -100,8 +99,7 @@ describe('FileManager', () => {
       // act
       await sut.createFolder(path);
       // assert
-      const result = await sut.exists(path);
-      expect(result).toBeTruthy();
+      await expect(access(path, constants.F_OK)).resolves.not.toThrowError();
     });
 
     it('should do nothing if the folder already exists', async () => {
@@ -110,8 +108,7 @@ describe('FileManager', () => {
       // act
       await sut.createFolder(path);
       // assert
-      const result = await sut.exists(path);
-      expect(result).toBeTruthy();
+      await expect(access(path, constants.F_OK)).resolves.not.toThrowError();
     });
   });
 
@@ -127,8 +124,9 @@ describe('FileManager', () => {
       // act
       const stream = await sut.createTmpWriteStream();
       // assert
-      const result = await sut.exists(stream.path.toString());
-      expect(result).toBeTruthy();
+      await expect(
+        access(stream.path, constants.F_OK)
+      ).resolves.not.toThrowError();
     });
   });
 });

@@ -1,7 +1,7 @@
 declare module 'chrome-remote-interface' {
   import type ProtocolProxyApi from 'devtools-protocol/types/protocol-proxy-api';
   import type ProtocolMappingApi from 'devtools-protocol/types/protocol-mapping';
-  import EventEmitter from 'events';
+  import { EventEmitter } from 'node:events';
 
   declare namespace CDP {
     interface BaseOptions {
@@ -179,7 +179,8 @@ declare module 'chrome-remote-interface' {
       ? ProtocolMappingApi.Events[`${D}.${E}`][0]
       : never;
     type DoEventPromises<D extends string> = {
-      [event in GetEvent<D>]: () => Promise< // tslint:disable-next-line: void-return
+      [event in GetEvent<D>]: () => Promise<
+        // tslint:disable-next-line: void-return
         GetReturnType<D, event> extends undefined
           ? void
           : GetReturnType<D, event>
