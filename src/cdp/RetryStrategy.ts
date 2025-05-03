@@ -1,5 +1,3 @@
-import Timeout = NodeJS.Timeout;
-
 export class RetryStrategy {
   private _times: number;
   private backoffTime: number;
@@ -32,9 +30,7 @@ export class RetryStrategy {
   }
 
   private delay(timeout: number): Promise<void> {
-    return new Promise<void>(
-      (resolve): Timeout => setTimeout(resolve, timeout)
-    );
+    return new Promise<void>(resolve => setTimeout(resolve, timeout));
   }
 
   private nextTime(): number | undefined {

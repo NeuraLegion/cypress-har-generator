@@ -13,6 +13,9 @@ export default defineConfig({
     baseUrl: 'http://localhost:8080',
     supportFile: 'cypress/support/e2e.ts',
     specPattern: 'cypress/e2e/**/*.cy.ts',
+    env: {
+      hars_folders: 'cypress/hars'
+    },
     setupNodeEvents(
       on: Cypress.PluginEvents,
       _: Cypress.PluginConfigOptions

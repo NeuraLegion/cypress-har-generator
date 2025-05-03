@@ -6,10 +6,9 @@ import {
   mkdir,
   unlink,
   open,
-  constants,
-  FileHandle
+  constants
 } from 'node:fs/promises';
-import { createWriteStream, type WriteStream } from 'node:fs';
+import { type WriteStream } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -81,25 +80,22 @@ export class FileManager {
   }
 
   public async createTmpWriteStream(): Promise<WriteStream> {
-    const { file, path } = await this.openTmpFd();
-
-    const stream = createWriteStream(path, {
-      fd: file.fd,
-      flags: 'w',
-      mode: 0o666,
+    const name = randomBytes(16).toString('hex').substring(16);
+    const tmpPath = join(tmpdir(), name);
+    const fileHandle = await open(tmpPath, 'wx+', 0o600);
+    const stream = fileHandle.createWriteStream({
       encoding: 'utf-8'
     });
 
-    stream.path = path;
+    stream.path = tmpPath;
+    const cleanup = async () => {
+      await fileHandle.close();
+      await unlink(tmpPath).catch(() => {
+        // Ignore error
+      });
+    };
+    stream.once('error', cleanup).once('close', cleanup);
 
     return stream;
-  }
-
-  private async openTmpFd(): Promise<{ path: string; file: FileHandle }> {
-    const name = randomBytes(16).toString('hex').substring(16);
-    const path = join(tmpdir(), name);
-    const file = await open(path, 'w', 0o600);
-
-    return { path, file };
   }
 }

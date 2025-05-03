@@ -2,6 +2,8 @@ import '../../src/commands';
 import { Har } from 'har-format';
 import like from 'chai-like';
 import things from 'chai-things';
+// ADHOC: Cypress does not support node:* module specifiers.
+import { join } from 'path';
 
 chai.use(like);
 chai.use(things);
@@ -16,7 +18,7 @@ like.extend({
 });
 
 const getDefaultHarPath = (): string =>
-  Cypress.spec.name.replace('.ts', '.har');
+  join(Cypress.env('hars_folders'), Cypress.spec.name.replace('.ts', '.har'));
 
 // assert a recorded HAR file
 Cypress.Commands.add('findHar', (fileName?: string) =>

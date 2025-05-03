@@ -4,7 +4,8 @@
 /dist
 /tmp
 /out-tsc
-commands.js
+commands.js*
+*.har
 
 # dependencies
 /node_modules
@@ -42,3 +43,7 @@ Thumbs.db
 
 # Config Files
 .env
+
+# Cypress
+cypress/hars
+cypress/downloads

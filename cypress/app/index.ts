@@ -1,19 +1,20 @@
-import express, { Request, Response, json, raw } from 'express';
+import express, { type Request, type Response, json, raw } from 'express';
 import minimist from 'minimist';
-import WebSocket, { Server } from 'ws';
+import { WebSocketServer, type WebSocket } from 'ws';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
+import { setInterval, clearInterval } from 'node:timers';
 
 const app = express();
-const ws = new Server({ noServer: true, path: '/ws' });
+const ws = new WebSocketServer({ noServer: true, path: '/ws' });
 
 // get port from passed in args from scripts/start.js
 const { port } = minimist(process.argv.slice(2));
 
-app.use('/assets', express.static(join(__dirname, 'assets')));
-app.use('/', express.static(join(__dirname, 'public')));
+app.use('/assets', express.static(join(import.meta.dirname, 'assets')));
+app.use('/', express.static(join(import.meta.dirname, 'public')));
 
-app.set('views', join(__dirname, 'views'));
+app.set('views', join(import.meta.dirname, 'views'));
 app.set('view engine', 'hbs');
 
 const wsDispatcher = (socket: WebSocket) => {
@@ -103,6 +104,7 @@ app.get('/api/keys', (_: Request, res: Response) =>
       }))
   })
 );
+
 const server = app.listen(port);
 server.on('upgrade', (request, socket, head) =>
   ws.handleUpgrade(request, socket, head, client =>
