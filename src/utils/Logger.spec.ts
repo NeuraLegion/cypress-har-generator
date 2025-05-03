@@ -17,7 +17,7 @@ describe('Logger', () => {
     it('should log a blue message with an info symbol', () => {
       // arrange
       const message = 'Test message';
-      const expectedLog = chalk.blue(`🛈 ${message}`);
+      const expectedLog = chalk.blue(`ℹ️ ${message}`);
 
       // act
       Logger.Instance.info(message);
