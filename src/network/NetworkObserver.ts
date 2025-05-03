@@ -568,8 +568,8 @@ export class NetworkObserver implements Observer<NetworkRequest> {
   private handleEvent({ method, params, sessionId }: NetworkEvent): void {
     const methodName = method.substring(method.indexOf('.') + 1);
 
-    if (typeof this[methodName] === 'function') {
-      this[methodName](params, sessionId);
+    if (typeof (this as any)[methodName] === 'function') {
+      (this as any)[methodName](params, sessionId);
     }
   }
 }
