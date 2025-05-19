@@ -113,12 +113,15 @@ To generate a HAR file, you'll need to include the following code in your test f
 describe('my tests', () => {
   before(() => {
     // start recording
-    cy.recordHar();
+    cy.task('recordHar', {});
   });
 
   after(() => {
     // save the HAR file
-    cy.saveHar();
+    cy.task('saveHar', {
+      outDir: '.',
+      fileName: 'my.har',
+    });
   });
 });
 ```
